@@ -7,7 +7,7 @@ file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.c)
 file(GLOB HEADERS ${PROJECT_SOURCE_DIR}/include/*.h)
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME v1720e-frontend)
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME caen-v1720e-frontend)
 target_link_libraries(${PROJECT_NAME} CAENDigitizer)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
