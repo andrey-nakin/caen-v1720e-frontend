@@ -7,7 +7,7 @@
 
 namespace caen {
 
-class Handle : public Noncopyable, public ErrorHolder {
+class Handle final : public Noncopyable, public ErrorHolder {
 
 	int handle;
 

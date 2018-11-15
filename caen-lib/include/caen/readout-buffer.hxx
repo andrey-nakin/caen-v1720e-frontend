@@ -8,7 +8,7 @@
 
 namespace caen {
 
-class ReadoutBuffer : public Noncopyable, public ErrorHolder {
+class ReadoutBuffer final : public Noncopyable, public ErrorHolder {
 
 	char* buffer;
 	uint32_t bufferSize;
