@@ -21,7 +21,7 @@ ReadoutBuffer::ReadoutBuffer(ReadoutBuffer&& rb) : buffer(nullptr), bufferSize(0
 ReadoutBuffer::~ReadoutBuffer() {
 
 	if (buffer) {
-		CAEN_DGTZ_FreeReadoutBuffer(buffer);
+		CAEN_DGTZ_FreeReadoutBuffer(&buffer);
 	}
 
 }
