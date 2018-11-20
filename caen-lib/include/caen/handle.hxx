@@ -13,7 +13,7 @@ class Handle final : public Noncopyable, public ErrorHolder {
 
 public:
 
-	Handle(int linkNum, int conetNode, uint32_t vmeBaseAddr);
+	Handle(int linkNum, int conetNode, ::uint32_t vmeBaseAddr);
 	Handle(Handle&& h);
 	~Handle();
 

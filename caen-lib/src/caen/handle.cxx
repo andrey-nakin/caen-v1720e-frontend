@@ -3,7 +3,7 @@
 
 namespace caen {
 
-Handle::Handle(int const linkNum, int const conetNode, uint32_t const vmeBaseAddr) : handle(0) {
+Handle::Handle(int const linkNum, int const conetNode, ::uint32_t const vmeBaseAddr) : handle(0) {
 
 	errorCode = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_OpticalLink, linkNum, conetNode, vmeBaseAddr, &handle);
 
