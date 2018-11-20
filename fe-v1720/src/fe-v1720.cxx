@@ -1,3 +1,4 @@
+#include <iostream>
 #include <midas.h>
 #include <caen/handle.hxx>
 
@@ -14,7 +15,7 @@ char frontend_name[] = "fe_v1720";
 char frontend_file_name[] = __FILE__;
 
 /* frontend_loop is called periodically if this variable is TRUE    */
-BOOL frontend_call_loop = FALSE;
+BOOL frontend_call_loop = TRUE;
 
 /* a frontend status page is displayed with this frequency in ms */
 INT display_period = 1000;
@@ -74,7 +75,10 @@ NULL, /* bank list */
 /*-- Frontend Init -------------------------------------------------*/
 
 INT frontend_init() {
+	std::cout << "frontend_init() hDB=" << hDB << std::endl;
 	INT status = SUCCESS;
+
+	set_equipment_status(equipment[0].name, "Initializing...", "yellow");
 
 	return status;
 }
@@ -82,6 +86,7 @@ INT frontend_init() {
 /*-- Frontend Exit -------------------------------------------------*/
 
 INT frontend_exit() {
+	std::cout << "frontend_exit()" << std::endl;
 
 	return SUCCESS;
 }
@@ -89,36 +94,47 @@ INT frontend_exit() {
 /*-- Begin of Run --------------------------------------------------*/
 
 INT begin_of_run(INT run_number, char *error) {
+	std::cout << "begin_of_run(" << run_number << ", " << error << ")"
+			<< std::endl;
 	return SUCCESS;
 }
 
 /*-- End of Run ----------------------------------------------------*/
 INT end_of_run(INT run_number, char *error) {
+	std::cout << "end_of_run(" << run_number << ", " << error << ")"
+			<< std::endl;
 	return SUCCESS;
 }
 
 /*-- Pause Run -----------------------------------------------------*/
 INT pause_run(INT run_number, char *error) {
+	std::cout << "pause_run(" << run_number << ", " << error << ")"
+			<< std::endl;
 	return SUCCESS;
 }
 
 /*-- Resume Run ----------------------------------------------------*/
 INT resume_run(INT run_number, char *error) {
+	std::cout << "resume_run(" << run_number << ", " << error << ")"
+			<< std::endl;
 	return SUCCESS;
 }
 
 /*-- Frontend Loop -------------------------------------------------*/
 INT frontend_loop() {
+	std::cout << "frontend_loop()" << std::endl;
 	return SUCCESS;
 }
 
 /*-- Trigger event routines ----------------------------------------*/
 extern "C" INT poll_event(INT source, INT count, BOOL test) {
+	std::cout << "poll_event()" << std::endl;
 	return FALSE;
 }
 
 /*-- Interrupt configuration ---------------------------------------*/
 extern "C" INT interrupt_configure(INT cmd, INT source, PTYPE adr) {
+	std::cout << "interrupt_configure()" << std::endl;
 	switch (cmd) {
 	case CMD_INTERRUPT_ENABLE:
 		break;
@@ -134,12 +150,6 @@ extern "C" INT interrupt_configure(INT cmd, INT source, PTYPE adr) {
 
 /*-- Read Event -------------------------------------------------*/
 INT read_event(char *pevent, INT off) {
+	std::cout << "read_event()" << std::endl;
 	return 0;
 }
-
-/*
- int main(int argc, char* argv[]) {
- caen::Handle handle(0, 0, 0);
- return 0;
- }
- */
