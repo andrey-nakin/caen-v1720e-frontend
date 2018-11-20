@@ -2,12 +2,12 @@
 
 namespace caen {
 
-ErrorHolder::ErrorHolder() : errorCode(0) {
+ErrorHolder::ErrorHolder() : errorCode(CAEN_DGTZ_Success) {
 }
 
 ErrorHolder::operator bool() const {
 
-	return 0 == errorCode;
+	return CAEN_DGTZ_Success == errorCode;
 
 }
 
