@@ -41,6 +41,11 @@ int main(int argc, char* argv[]) {
 	char *buffer, *evtptr = NULL;
 	uint32_t bufferSize, dataSize, numEvents, eventCounter;
 	FILE *file;
+	uint32_t maxEvent = 100;
+
+	if (argc > 1) {
+		maxEvent = atoi(argv[1]);
+	}
 
 	ret = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_OpticalLink, linkNum, conetNode,
 			vmeBaseAddr, &handle);
@@ -142,7 +147,7 @@ int main(int argc, char* argv[]) {
 	ret = CAEN_DGTZ_SWStartAcquisition(handle);
 	CHECK(ret, "starting acquisition");
 
-	for (eventCounter = 0; eventCounter < 10000;) {
+	for (eventCounter = 0; eventCounter < maxEvent;) {
 		ret = CAEN_DGTZ_ReadData(handle,
 				CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &dataSize);
 		CHECK(ret, "reading data");
