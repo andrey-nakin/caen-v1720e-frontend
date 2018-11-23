@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <CAENDigitizer.h>
 
 #define ERREXIT() \
@@ -28,7 +29,15 @@ int const conetNode = 0;
 uint32_t const vmeBaseAddr = 0;
 uint32_t const channelMask = 0xff;
 uint32_t const triggerChannel = 0;
-uint32_t const recordLength = 1024;
+uint32_t const recordLength = 1024 * 32;	//	num of samples
+uint32_t const preTrigger = 16;	//	num of samples
+uint8_t const IRQlevel = 1;
+uint32_t const IRQstatusId = 1;
+uint16_t const desiredNumOfEvents = 10;
+
+uint32_t const REG_CHANNEL_CONFIG = 0x8000;
+uint32_t const REG_BIT_TRIGGER_OVERLAP = 0x0001 << 1;
+
 unsigned maxNumOfEvents = 0;
 
 int main(int argc, char* argv[]) {
@@ -43,6 +52,9 @@ int main(int argc, char* argv[]) {
 	uint32_t bufferSize, dataSize, numEvents, eventCounter;
 	FILE *file;
 	uint32_t maxEvent = 100;
+	time_t now, last = time(NULL);
+	int verbose = 0;
+	uint32_t regData;
 
 	if (argc > 1) {
 		maxEvent = atoi(argv[1]);
@@ -132,6 +144,29 @@ int main(int argc, char* argv[]) {
 	ret = CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED);
 	CHECK(ret, "setting acquisition mode");
 
+	ret = CAEN_DGTZ_ReadRegister(handle, REG_CHANNEL_CONFIG, &regData);
+	CHECK(ret, "reading channel config register");
+	if (regData & REG_BIT_TRIGGER_OVERLAP) {
+		// disable trigger overlap
+		ret = CAEN_DGTZ_WriteRegister(handle, REG_CHANNEL_CONFIG,
+				regData & ~REG_BIT_TRIGGER_OVERLAP);
+		CHECK(ret, "writing channel config register");
+	}
+
+	ret = CAEN_DGTZ_WriteRegister(handle, 0x8114, (preTrigger) / 4);
+	CHECK(ret, "writing post trigger register");
+	ret = CAEN_DGTZ_ReadRegister(handle, 0x8114, &regData);
+	CHECK(ret, "reading post trigger register");
+	printf("Value of post trigger register: %x\n", (unsigned) regData);
+
+	ret = CAEN_DGTZ_ReadRegister(handle, 0x800C, &regData);
+	CHECK(ret, "reading 0x800C register");
+	printf("Value of 0x800C register: %x\n", (unsigned) regData);
+
+	ret = CAEN_DGTZ_ReadRegister(handle, 0x8020, &regData);
+	CHECK(ret, "reading 0x8020 register");
+	printf("Value of 0x8020 register: %x\n", (unsigned) regData);
+
 	ret = CAEN_DGTZ_MallocReadoutBuffer(handle, &buffer, &bufferSize);
 	CHECK(ret, "allocating readout buffer");
 	printf("Readout buffer size: %u\n", (unsigned) bufferSize);
@@ -157,48 +192,66 @@ int main(int argc, char* argv[]) {
 		CHECK(ret, "getting num events");
 		maxNumOfEvents = max(maxNumOfEvents, numEvents);
 
-		for (i = 0; i < numEvents; i++) {
-			ret = CAEN_DGTZ_GetEventInfo(handle, buffer, dataSize, i,
-					&eventInfo, &evtptr);
-			CHECK(ret, "getting event info");
-			printf("Event size=%u, channels=%x, time=%u, max # of events=%u\n",
-					(unsigned) eventInfo.EventSize,
-					(unsigned) eventInfo.ChannelMask,
-					(unsigned) eventInfo.TriggerTimeTag, maxNumOfEvents);
+		if (numEvents > 0) {
+			now = time(NULL);
+			if (now > last) {
+				verbose = 1;
+				last = now;
+			} else {
+				verbose = 0;
+			}
 
-			ret = CAEN_DGTZ_DecodeEvent(handle, evtptr, &evt);
-			CHECK(ret, "decoding event");
+			for (i = 0; i < numEvents; i++, eventCounter++) {
+				ret = CAEN_DGTZ_GetEventInfo(handle, buffer, dataSize, i,
+						&eventInfo, &evtptr);
+				CHECK(ret, "getting event info");
 
-			//*************************************
-			// Event Elaboration
-			//*************************************
-
-			for (j = 0; j < boardInfo.Channels; j++) {
-				uint32_t const numOfSamples =
-						((CAEN_DGTZ_UINT16_EVENT_t*) evt)->ChSize[j];
-				uint16_t const *samples =
-						((CAEN_DGTZ_UINT16_EVENT_t*) evt)->DataChannel[j];
-				uint16_t minSample, maxSample;
-
-				for (k = 0; k < numOfSamples; k++) {
-					uint16_t const s = samples[k];
-
-					if (k == 0) {
-						minSample = maxSample = s;
-					} else {
-						minSample = min(minSample, s);
-						maxSample = max(maxSample, s);
-					}
+				if (verbose) {
+					printf(
+							"Event #=%u, size=%u, channels=%x, time=%u, max # of events=%u\n",
+							(unsigned) eventInfo.EventCounter,
+							(unsigned) eventInfo.EventSize,
+							(unsigned) eventInfo.ChannelMask,
+							(unsigned) (eventInfo.TriggerTimeTag & ~0x80000000),
+							maxNumOfEvents);
 				}
 
-				printf("Channel %u, # samples=%u, min = %u, max = %u\n",
-						(unsigned) j, (unsigned) numOfSamples,
-						(unsigned) minSample, (unsigned) maxSample);
-				fwrite(samples, numOfSamples, sizeof(samples[0]), file);
+				ret = CAEN_DGTZ_DecodeEvent(handle, evtptr, &evt);
+				CHECK(ret, "decoding event");
+
+				//*************************************
+				// Event Elaboration
+				//*************************************
+
+				for (j = 0; j < boardInfo.Channels; j++) {
+					if ((1 << j) & eventInfo.ChannelMask) {
+						uint32_t const numOfSamples =
+								((CAEN_DGTZ_UINT16_EVENT_t*) evt)->ChSize[j];
+						uint16_t const *samples =
+								((CAEN_DGTZ_UINT16_EVENT_t*) evt)->DataChannel[j];
+						uint16_t minSample = 0, maxSample = 0;
+
+						if (numOfSamples > 0) {
+							minSample = maxSample = samples[0];
+
+							for (k = numOfSamples - 1; k > 0; k--) {
+								uint16_t const s = samples[k];
+								minSample = min(minSample, s);
+								maxSample = max(maxSample, s);
+							}
+						}
+
+						if (verbose) {
+							printf(
+									"Channel %u, # samples=%u, min = %u, max = %u\n",
+									(unsigned) j, (unsigned) numOfSamples,
+									(unsigned) minSample, (unsigned) maxSample);
+						}
+						//fwrite(samples, numOfSamples, sizeof(samples[0]), file);
+					}
+				}
 			}
 		}
-
-		eventCounter += numEvents;
 	}
 
 	fclose(file);
