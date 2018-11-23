@@ -29,6 +29,7 @@ uint32_t const vmeBaseAddr = 0;
 uint32_t const channelMask = 0xff;
 uint32_t const triggerChannel = 0;
 uint32_t const recordLength = 1024;
+unsigned maxNumOfEvents = 0;
 
 int main(int argc, char* argv[]) {
 	CAEN_DGTZ_ErrorCode ret;
@@ -154,15 +155,16 @@ int main(int argc, char* argv[]) {
 
 		ret = CAEN_DGTZ_GetNumEvents(handle, buffer, dataSize, &numEvents);
 		CHECK(ret, "getting num events");
+		maxNumOfEvents = max(maxNumOfEvents, numEvents);
 
 		for (i = 0; i < numEvents; i++) {
 			ret = CAEN_DGTZ_GetEventInfo(handle, buffer, dataSize, i,
 					&eventInfo, &evtptr);
 			CHECK(ret, "getting event info");
-			printf("Event size=%u, channels=%x, time=%u\n",
+			printf("Event size=%u, channels=%x, time=%u, max # of events=%u\n",
 					(unsigned) eventInfo.EventSize,
 					(unsigned) eventInfo.ChannelMask,
-					(unsigned) eventInfo.TriggerTimeTag);
+					(unsigned) eventInfo.TriggerTimeTag, maxNumOfEvents);
 
 			ret = CAEN_DGTZ_DecodeEvent(handle, evtptr, &evt);
 			CHECK(ret, "decoding event");
