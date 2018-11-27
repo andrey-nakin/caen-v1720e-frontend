@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include <time.h>
 #include <CAENDigitizer.h>
 
@@ -30,7 +31,7 @@ uint32_t const vmeBaseAddr = 0;
 uint32_t const channelMask = 0xff;
 uint32_t const triggerChannel = 0;
 uint32_t const recordLength = 1024 * 32;	//	num of samples
-uint32_t const preTrigger = 16;	//	num of samples
+uint32_t const postTrigger = 1024 * 32 - 64;	//	num of samples
 uint8_t const IRQlevel = 1;
 uint32_t const IRQstatusId = 1;
 uint16_t const desiredNumOfEvents = 10;
@@ -55,6 +56,7 @@ int main(int argc, char* argv[]) {
 	time_t now, last = time(NULL);
 	int verbose = 0;
 	uint32_t regData;
+	int waveformWritten = 0;
 
 	if (argc > 1) {
 		maxEvent = atoi(argv[1]);
@@ -153,7 +155,7 @@ int main(int argc, char* argv[]) {
 		CHECK(ret, "writing channel config register");
 	}
 
-	ret = CAEN_DGTZ_WriteRegister(handle, 0x8114, (preTrigger) / 4);
+	ret = CAEN_DGTZ_WriteRegister(handle, 0x8114, postTrigger / 4);
 	CHECK(ret, "writing post trigger register");
 	ret = CAEN_DGTZ_ReadRegister(handle, 0x8114, &regData);
 	CHECK(ret, "reading post trigger register");
@@ -208,11 +210,11 @@ int main(int argc, char* argv[]) {
 
 				if (verbose) {
 					printf(
-							"Event #=%u, size=%u, channels=%x, time=%u, max # of events=%u\n",
-							(unsigned) eventInfo.EventCounter,
-							(unsigned) eventInfo.EventSize,
-							(unsigned) eventInfo.ChannelMask,
-							(unsigned) (eventInfo.TriggerTimeTag & ~0x80000000),
+							"Event #=%" PRIu32 ", size=%" PRIu32 ", channels=%" PRIx32
+							", time=%" PRIu32 ", max # of events=%u\n",
+							eventInfo.EventCounter, eventInfo.EventSize,
+							eventInfo.ChannelMask,
+							eventInfo.TriggerTimeTag & ~0x80000000,
 							maxNumOfEvents);
 				}
 
@@ -230,24 +232,42 @@ int main(int argc, char* argv[]) {
 						uint16_t const *samples =
 								((CAEN_DGTZ_UINT16_EVENT_t*) evt)->DataChannel[j];
 						uint16_t minSample = 0, maxSample = 0;
+						uint32_t minPos, maxPos = 0;
 
 						if (numOfSamples > 0) {
 							minSample = maxSample = samples[0];
 
 							for (k = numOfSamples - 1; k > 0; k--) {
 								uint16_t const s = samples[k];
-								minSample = min(minSample, s);
-								maxSample = max(maxSample, s);
+								if (minSample > s) {
+									minSample = s;
+									minPos = k;
+								}
+								if (maxSample < s) {
+									maxSample = s;
+									maxPos = k;
+								}
 							}
+
+							if (j == 0 && !waveformWritten) {
+								// write waveform on channel #0 to a text file
+
+								for (k = 0; k < numOfSamples; k++) {
+									fprintf(file, "%" PRIu16 "\n", samples[k]);
+								}
+
+								waveformWritten = 1;
+							}
+
 						}
 
 						if (verbose) {
-							printf(
-									"Channel %u, # samples=%u, min = %u, max = %u\n",
-									(unsigned) j, (unsigned) numOfSamples,
-									(unsigned) minSample, (unsigned) maxSample);
+							printf("Channel %" PRIu32 ", # samples=%" PRIu16
+							", min = %" PRIu16 " at %" PRIu32
+							", max = %" PRIu16 " at %" PRIu32 "\n", j,
+									numOfSamples, minSample, minPos, maxSample,
+									maxPos);
 						}
-						//fwrite(samples, numOfSamples, sizeof(samples[0]), file);
 					}
 				}
 			}
