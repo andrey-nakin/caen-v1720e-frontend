@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
 		if (channelMask & (1 << i)) {
 			// Set the number of samples for each waveform (you can set different RL for different channels)
 			ret = CAEN_DGTZ_SetRecordLength(handle, recordLength, i);
-			CHECK(ret, "setting recond length");
+			CHECK(ret, "setting record length");
 
 			// Set a DC offset to the input signal to adapt it to digitizer's dynamic range
 			ret = CAEN_DGTZ_SetChannelDCOffset(handle, i, 0x8000);
@@ -159,19 +159,19 @@ int main(int argc, char* argv[]) {
 	CHECK(ret, "writing post trigger register");
 	ret = CAEN_DGTZ_ReadRegister(handle, 0x8114, &regData);
 	CHECK(ret, "reading post trigger register");
-	printf("Value of post trigger register: %x\n", (unsigned) regData);
+	printf("Value of post trigger register: %" PRIu32 "\n", regData);
 
 	ret = CAEN_DGTZ_ReadRegister(handle, 0x800C, &regData);
 	CHECK(ret, "reading 0x800C register");
-	printf("Value of 0x800C register: %x\n", (unsigned) regData);
+	printf("Value of 0x800C register: %" PRIu32 "\n", regData);
 
 	ret = CAEN_DGTZ_ReadRegister(handle, 0x8020, &regData);
 	CHECK(ret, "reading 0x8020 register");
-	printf("Value of 0x8020 register: %x\n", (unsigned) regData);
+	printf("Value of 0x8020 register: %" PRIu32 "\n", regData);
 
 	ret = CAEN_DGTZ_MallocReadoutBuffer(handle, &buffer, &bufferSize);
 	CHECK(ret, "allocating readout buffer");
-	printf("Readout buffer size: %u\n", (unsigned) bufferSize);
+	printf("Readout buffer size: %" PRIu32 "\n", bufferSize);
 
 	ret = CAEN_DGTZ_AllocateEvent(handle, &evt);
 	CHECK(ret, "allocating event");
