@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 	uint32_t bufferSize, dataSize, numEvents, eventCounter;
 	FILE *file;
 	uint32_t maxEvent = 100;
-	time_t now, last = time(NULL);
+	time_t now, last = 0;
 	int verbose = 0;
 	uint32_t regData;
 	int waveformWritten = 0;
