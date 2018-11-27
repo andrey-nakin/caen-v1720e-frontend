@@ -37,7 +37,7 @@ uint32_t const IRQstatusId = 1;
 uint16_t const desiredNumOfEvents = 10;
 
 uint32_t const REG_CHANNEL_CONFIG = 0x8000;
-uint32_t const REG_CHANNEL_POST_TRIGGER = 0x8114;
+uint32_t const REG_POST_TRIGGER = 0x8114;
 
 uint32_t const REG_BIT_TRIGGER_OVERLAP = 0x0001 << 1;
 
@@ -157,10 +157,9 @@ int main(int argc, char* argv[]) {
 		CHECK(ret, "writing channel config register");
 	}
 
-	ret = CAEN_DGTZ_WriteRegister(handle, REG_CHANNEL_POST_TRIGGER,
-			postTrigger / 4);
+	ret = CAEN_DGTZ_WriteRegister(handle, REG_POST_TRIGGER, postTrigger / 4);
 	CHECK(ret, "writing post trigger register");
-	ret = CAEN_DGTZ_ReadRegister(handle, REG_CHANNEL_POST_TRIGGER, &regData);
+	ret = CAEN_DGTZ_ReadRegister(handle, REG_POST_TRIGGER, &regData);
 	CHECK(ret, "reading post trigger register");
 	printf("Value of post trigger register: %" PRIu32 "\n", regData);
 
