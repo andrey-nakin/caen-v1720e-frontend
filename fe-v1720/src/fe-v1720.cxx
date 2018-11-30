@@ -1,6 +1,7 @@
 #include <iostream>
 #include <midas.h>
 #include <caen/handle.hxx>
+#include <stdio.h>
 
 /* make frontend functions callable from the C framework */
 #ifdef __cplusplus
@@ -42,31 +43,36 @@ INT resume_run(INT run_number, char *error);
 INT frontend_loop();
 
 INT read_event(char *pevent, INT off);
+INT poll_event(INT source, INT count, BOOL test);
+INT interrupt_configure(INT cmd, INT source, PTYPE adr);
+
 /*-- Bank definitions ----------------------------------------------*/
 
 /*-- Equipment list ------------------------------------------------*/
 
-EQUIPMENT equipment[] = {
+EQUIPMENT equipment[] = { { "" } };
 
-{ "Trigger", /* equipment name */
-{ 1, TRIGGER_ALL, /* event ID, trigger mask */
-"SYSTEM", /* event buffer */
-EQ_POLLED, /* equipment type */
-LAM_SOURCE(0, 0xFFFFFF), /* event source */
-"MIDAS", /* format */
-TRUE, /* enabled */
-RO_RUNNING, /* read only when running */
-
-500, /* poll for 500ms */
-0, /* stop run after this event limit */
-0, /* number of sub events */
-0, /* don't log history */
-"", "", "", }, read_event, /* readout routine */
-NULL, NULL,
-NULL, /* bank list */
-},
-
-{ "" } };
+//EQUIPMENT equipment[] = {
+//
+//{ "Trigger", /* equipment name */
+//{ 1, TRIGGER_ALL, /* event ID, trigger mask */
+//"SYSTEM", /* event buffer */
+//EQ_POLLED, /* equipment type */
+//LAM_SOURCE(0, 0xFFFFFF), /* event source */
+//"MIDAS", /* format */
+//TRUE, /* enabled */
+//RO_RUNNING, /* read only when running */
+//
+//500, /* poll for 500ms */
+//0, /* stop run after this event limit */
+//0, /* number of sub events */
+//0, /* don't log history */
+//"", "", "", }, read_event, /* readout routine */
+//NULL, NULL,
+//NULL, /* bank list */
+//},
+//
+//{ "" } };
 
 #ifdef __cplusplus
 }
@@ -75,10 +81,11 @@ NULL, /* bank list */
 /*-- Frontend Init -------------------------------------------------*/
 
 INT frontend_init() {
+	printf("frontend_init()\n");
 	std::cout << "frontend_init() hDB=" << hDB << std::endl;
 	INT status = SUCCESS;
 
-	set_equipment_status(equipment[0].name, "Initializing...", "yellow");
+//	set_equipment_status(equipment[0].name, "Initializing...", "yellow");
 
 	return status;
 }
@@ -127,13 +134,13 @@ INT frontend_loop() {
 }
 
 /*-- Trigger event routines ----------------------------------------*/
-extern "C" INT poll_event(INT source, INT count, BOOL test) {
+INT poll_event(INT source, INT count, BOOL test) {
 	std::cout << "poll_event()" << std::endl;
 	return FALSE;
 }
 
 /*-- Interrupt configuration ---------------------------------------*/
-extern "C" INT interrupt_configure(INT cmd, INT source, PTYPE adr) {
+INT interrupt_configure(INT cmd, INT source, PTYPE adr) {
 	std::cout << "interrupt_configure()" << std::endl;
 	switch (cmd) {
 	case CMD_INTERRUPT_ENABLE:
