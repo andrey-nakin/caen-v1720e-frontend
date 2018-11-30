@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(FrontEndV1720 VERSION 1.0.0 LANGUAGES CXX DESCRIPTION "MIDAS Frontend for CAEN V1720 ")
 set (CMAKE_CXX_STANDARD 14)
+link_directories(/opt/packages/midas/linux/lib)
 
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cxx)
 file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/include/*.hxx)
 
 add_library(MidasMfe OBJECT IMPORTED GLOBAL)
-set_property(TARGET MidasMfe PROPERTY IMPORTED_OBJECTS /usr/local/lib/mfe.o)
+set_property(TARGET MidasMfe PROPERTY IMPORTED_OBJECTS /opt/packages/midas/linux/lib/mfe.o)
 
 add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:MidasMfe> ${SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME fe_v1720)
