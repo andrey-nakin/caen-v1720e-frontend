@@ -3,12 +3,9 @@
 #
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(MidasUtilLib VERSION 1.0.0 LANGUAGES CXX DESCRIPTION "Midas Utility Library")
-
 set (CMAKE_CXX_STANDARD 14)
-add_definitions(
-  -DCAENLIB_VERSION_MAJOR=${MidasUtilLib_VERSION_MAJOR}
-  -DCAENLIB_VERSION_MINOR=${MidasUtilLib_VERSION_MINOR}
-  -DCAENLIB_VERSION_PATCH=${MidasUtilLib_VERSION_PATCH})
+include_directories(${PROJECT_SOURCE_DIR}/include/)
+include_directories(/opt/packages/midas/include)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project

@@ -5,6 +5,16 @@
 #include <string>
 #include <midas.h>
 
+#ifndef NEED_NO_EXTERN_C
+extern "C" {
+#endif
+
+extern const char *frontend_name;
+
+#ifndef NEED_NO_EXTERN_C
+}
+#endif
+
 namespace odb {
 
 template<typename T, DWORD type>
