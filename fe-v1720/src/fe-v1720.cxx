@@ -468,22 +468,30 @@ INT interrupt_configure(INT cmd, INT source, PTYPE adr) {
 int read_test_event(char *pevent, int off) {
 	bk_init32(pevent);
 
-	char* pdata8;
+	char name[5];
+	name[0] = 'C';
+	name[1] = 'H';
+	name[2] = '0';
+	name[3] = '0';
+	name[4] = 0;
 
-	bk_create(pevent, "TEST", TID_BYTE, (void**) &pdata8);
-	fe::BankType *bank = (fe::BankType*) pdata8;
-	bank->headerSize = htons(offsetof(fe::BankType, data));
-	bank->dataType = fe::DataType::WaveForm16bitVer1;
-	bank->device = fe::Device::CaenV1720E;
-	bank->customHeader.waveForm16BitVer1.timeStamp = htonll(0);	//	TODO
-	bank->customHeader.waveForm16BitVer1.dcOffset = htons(0);	//	TODO
-	bank->customHeader.waveForm16BitVer1.sampleTime = htonl(1000000 / 250);
-	bank->customHeader.waveForm16BitVer1.numOfSamples = htonl(0);	//	TODO
-	bank->customHeader.waveForm16BitVer1.preTrigger = htonl(0);	//	TODO
+	for (int i = 0; i < 8; i++) {
+		name[3] = '0' + i;
 
-	pdata8 += event_size;
+		char* pdata8;
+		bk_create(pevent, name, TID_BYTE, (void**) &pdata8);
+		fe::BankType *bank = (fe::BankType*) pdata8;
+		bank->headerSize = htons(offsetof(fe::BankType, data));
+		bank->dataType = fe::DataType::WaveForm16bitVer1;
+		bank->device = fe::Device::CaenV1720E;
+		bank->customHeader.waveForm16BitVer1.timeStamp = htonll(0);	//	TODO
+		bank->customHeader.waveForm16BitVer1.dcOffset = htons(0);	//	TODO
+		bank->customHeader.waveForm16BitVer1.sampleTime = htonl(1000000 / 250);
+		bank->customHeader.waveForm16BitVer1.numOfSamples = htonl(0);	//	TODO
+		bank->customHeader.waveForm16BitVer1.preTrigger = htonl(0);	//	TODO
 
-	bk_close(pevent, pdata8);
+		bk_close(pevent, pdata8 + event_size / 8);
+	}
 
 	test_event_count++;
 
