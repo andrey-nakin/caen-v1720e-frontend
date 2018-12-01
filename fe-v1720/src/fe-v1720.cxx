@@ -630,5 +630,6 @@ INT frontend_init() {
 		return 1;
 	}
 
+	std::cout << "BankType size="  << sizeof(fe::BankType) << std::endl;
 	return SUCCESS;
 }
