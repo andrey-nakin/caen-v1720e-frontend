@@ -12,14 +12,14 @@ constexpr uint32_t vmeBaseAddr = 0;
 constexpr uint32_t recordLength = 1024;
 constexpr uint32_t preTriggerLength = 64;
 constexpr uint8_t triggerChannel = 0;
-constexpr uint32_t triggerThreshold = 1000;
+constexpr uint16_t triggerThreshold = 1000;
 constexpr bool triggerRaisingPolarity = false;
 constexpr char triggerMode[] = "";
 
 namespace channel {
 
 constexpr bool enabled = true;
-constexpr uint32_t dcOffset = 0x8000;
+constexpr uint16_t dcOffset = 0x8000;
 
 }
 

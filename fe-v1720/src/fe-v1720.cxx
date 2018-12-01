@@ -16,6 +16,7 @@
 #include <vector>
 #include <string>
 #include <cstddef>
+#include <arpa/inet.h>
 
 #include <midas.h>
 
@@ -471,11 +472,15 @@ int read_test_event(char *pevent, int off) {
 
 	bk_create(pevent, "TEST", TID_BYTE, (void**) &pdata8);
 	fe::BankType *bank = (fe::BankType*) pdata8;
-	bank->headerSize = offsetof(fe::BankType, data);
+	bank->headerSize = htons(offsetof(fe::BankType, data));
 	std::cout << "bank->headerSize=" << bank->headerSize << std::endl;
 	bank->dataType = fe::DataType::WaveForm16bitVer1;
 	bank->device = fe::Device::CaenV1720E;
-	bank->customHeader.waveForm16BitVer1.sampleTime = 1000000 / 250;
+	bank->customHeader.waveForm16BitVer1.timeStamp = htonll(0);	//	TODO
+	bank->customHeader.waveForm16BitVer1.dcOffset = htons(0);	//	TODO
+	bank->customHeader.waveForm16BitVer1.sampleTime = htonl(1000000 / 250);
+	bank->customHeader.waveForm16BitVer1.numOfSamples = htonl(0);	//	TODO
+	bank->customHeader.waveForm16BitVer1.preTrigger = htonl(0);	//	TODO
 
 	pdata8 += event_size;
 
@@ -564,7 +569,6 @@ INT configureDevice(HNDLE const hDB, HNDLE const hSet) {
 
 	cm_msg(MDEBUG, frontend_name, "Configuring device");
 
-	uint32_t channelMask = 0x0000;
 	uint32_t const recordLength = odb::getValueUInt32(hDB, hSet,
 			"waveform_length", TRUE, defaults::recordLength);
 	uint32_t const preTriggerLength = odb::getValueUInt32(hDB, hSet,
@@ -573,11 +577,12 @@ INT configureDevice(HNDLE const hDB, HNDLE const hSet) {
 			"trigger_mode", TRUE, defaults::triggerMode);
 	uint8_t const triggerChannel = odb::getValueUInt8(hDB, hSet,
 			"trigger_channel", TRUE, defaults::triggerChannel);
-	uint32_t const triggerThreshold = odb::getValueUInt32(hDB, hSet,
+	uint16_t const triggerThreshold = odb::getValueUInt16(hDB, hSet,
 			"trigger_threshold", TRUE, defaults::triggerThreshold);
 	bool const triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
 			"trigger_raising_polarity", TRUE, defaults::triggerRaisingPolarity);
 
+	uint32_t channelMask = 0x0000;
 	for (decltype(globals::boardInfo.Channels) i = 0;
 			i < globals::boardInfo.Channels; i++) {
 
@@ -587,7 +592,7 @@ INT configureDevice(HNDLE const hDB, HNDLE const hSet) {
 			channelMask |= 0x0001 << i;
 		}
 
-		uint32_t const dcOffset = odb::getValueUInt32(hDB, hSet,
+		uint16_t const dcOffset = odb::getValueUInt16(hDB, hSet,
 				channelKey(i, "dc_offset"), TRUE, defaults::channel::dcOffset);
 
 	}
