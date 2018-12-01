@@ -473,7 +473,6 @@ int read_test_event(char *pevent, int off) {
 	bk_create(pevent, "TEST", TID_BYTE, (void**) &pdata8);
 	fe::BankType *bank = (fe::BankType*) pdata8;
 	bank->headerSize = htons(offsetof(fe::BankType, data));
-	std::cout << "bank->headerSize=" << bank->headerSize << std::endl;
 	bank->dataType = fe::DataType::WaveForm16bitVer1;
 	bank->device = fe::Device::CaenV1720E;
 	bank->customHeader.waveForm16BitVer1.timeStamp = htonll(0);	//	TODO
