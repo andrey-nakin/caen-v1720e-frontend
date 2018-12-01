@@ -14,6 +14,7 @@ typedef struct __attribute__ ((packed)) {
 	uint32_t sampleTime;
 	uint32_t numOfSamples;
 	uint32_t preTrigger;
+	uint16_t reserved;
 
 } WaveForm16BitHeader;
 
@@ -43,7 +44,7 @@ typedef struct __attribute__ ((packed)) {
 	DataType dataType;
 	DataVersion dataVersion;
 	Device device;
-	uint8_t reserved;
+	uint8_t reserved[3];
 
 	union {
 		uint8_t rawData[];
