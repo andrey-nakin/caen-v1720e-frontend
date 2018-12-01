@@ -3,4 +3,5 @@ project(CaenV1720eFrontend VERSION 1.0.0 LANGUAGES CXX C DESCRIPTION "MIDAS Fron
 #add_subdirectory(caen-lib)
 #add_subdirectory(readout-example)
 add_subdirectory(midas-util-lib)
+add_subdirectory(frontend-util-lib)
 add_subdirectory(fe-v1720)

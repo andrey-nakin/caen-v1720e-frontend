@@ -19,6 +19,7 @@
 #include "midas.h"
 
 #include <midas/odb.hxx>
+#include <frontend/types.hxx>
 #include "defaults.hxx"
 
 typedef struct {
