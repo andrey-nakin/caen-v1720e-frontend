@@ -1,5 +1,5 @@
-#ifndef	__midas_lib_odb_hxx__
-#define	__midas_lib_odb_hxx__
+#ifndef	__midas_util_lib_odb_hxx__
+#define	__midas_util_lib_odb_hxx__
 
 #include <cstdint>
 #include <string>
@@ -92,4 +92,4 @@ auto const getValueDouble = getValue<double, TID_DOUBLE>;
 
 }
 
-#endif	//	__midas_lib_odb_hxx__
+#endif	//	__midas_util_lib_odb_hxx__
