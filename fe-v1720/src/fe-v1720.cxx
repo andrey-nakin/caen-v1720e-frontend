@@ -15,8 +15,9 @@
 #include <cstdint>
 #include <vector>
 #include <string>
+#include <cstddef>
 
-#include "midas.h"
+#include <midas.h>
 
 #include <midas/odb.hxx>
 #include <frontend/types.hxx>
@@ -469,6 +470,12 @@ int read_test_event(char *pevent, int off) {
 	char* pdata8;
 
 	bk_create(pevent, "TEST", TID_BYTE, (void**) &pdata8);
+	fe::BankType *bank = (fe::BankType*) pdata8;
+	bank->headerSize = offsetof(fe::BankType, data);
+	std::cout << "bank->headerSize=" << bank->headerSize << std::endl;
+	bank->dataType = fe::DataType::WaveForm16bitVer1;
+	bank->device = fe::Device::CaenV1720E;
+	bank->customHeader.waveForm16BitVer1.sampleTime = 1000000 / 250;
 
 	pdata8 += event_size;
 
@@ -630,6 +637,5 @@ INT frontend_init() {
 		return 1;
 	}
 
-	std::cout << "BankType size="  << sizeof(fe::BankType) << std::endl;
 	return SUCCESS;
 }

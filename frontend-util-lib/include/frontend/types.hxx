@@ -5,8 +5,6 @@
 
 namespace fe {
 
-namespace ver1 {
-
 typedef struct __attribute__ ((packed)) {
 
 	uint64_t timeStamp;
@@ -16,44 +14,37 @@ typedef struct __attribute__ ((packed)) {
 	uint32_t preTrigger;
 	uint16_t reserved;
 
-} WaveForm16BitHeader;
+} WaveForm16BitVer1Header;
 
 typedef struct __attribute__ ((packed)) {
 
 	uint16_t samples[];
 
-} WaveForm16Bit;
-
-}
+} WaveForm16BitVer1;
 
 enum class DataType : uint8_t {
-	WaveForm
-};
-
-enum class DataVersion : uint8_t {
-	Version1
+	WaveForm16bitVer1 = 1
 };
 
 enum class Device : uint8_t {
-	CaenV1720E
+	CaenV1720E = 1
 };
 
 typedef struct __attribute__ ((packed)) {
 
 	uint16_t headerSize;
 	DataType dataType;
-	DataVersion dataVersion;
 	Device device;
-	uint8_t reserved[3];
+	uint8_t reserved[4];
 
 	union {
 		uint8_t rawData[];
-		ver1::WaveForm16BitHeader waveForm16BitVer1;
+		WaveForm16BitVer1Header waveForm16BitVer1;
 	} customHeader;
 
 	union {
 		uint8_t rawData[];
-		ver1::WaveForm16Bit waveForm16BitVer1;
+		WaveForm16BitVer1 waveForm16BitVer1;
 	} data;
 
 } BankType;
