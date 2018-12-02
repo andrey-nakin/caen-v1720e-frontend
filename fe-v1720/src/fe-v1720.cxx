@@ -425,7 +425,11 @@ static void startAcquisition() {
 
 static void stopAcquisition() {
 
-	// TODO CAEN command
+	checkCaenStatus(
+			CAEN_DGTZ_SWStopAcquisition(*globals::hDevice),
+			"stopping acquisition"
+	);
+
 	globals::roBuffer = nullptr;
 
 }
