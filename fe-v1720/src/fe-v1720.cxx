@@ -538,15 +538,15 @@ int readEvent(char *pevent, int off) {
 
 	{
 		// store general information
-		uint32_t* pdata;
+		uint8_t* pdata;
 		bk_create(pevent, "INFO", TID_DWORD, (void**) &pdata);
-		*pdata++ = static_cast<uint32_t>(fe::DataType::WaveForm16bitVer1);
-		*pdata++ = static_cast<uint32_t>(fe::Device::CaenV1720E);
-		*pdata++ = globals::recordLength;
-		*pdata++ = globals::preTriggerLength;
-		*pdata++ = 0;	//	TODO timestamp low dword
-		*pdata++ = 0;	//	TODO timestamp hi dword
-		bk_close(pevent, pdata);
+		fe::InfoBank* info = (fe::InfoBank*) pdata;
+		info->dataType = fe::DataType::WaveForm16bitVer1;
+		info->device = fe::Device::CaenV1720E;
+		info->recordLength = globals::recordLength;
+		info->preTriggerLength = globals::preTriggerLength;
+		info->timeStamp = 0;	// TODO
+		bk_close(pevent, pdata + sizeof(*info));
 	}
 
 	{
