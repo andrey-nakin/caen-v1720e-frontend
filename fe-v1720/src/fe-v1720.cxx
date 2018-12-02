@@ -16,25 +16,29 @@
 #include <vector>
 #include <string>
 #include <cstddef>
-#include <arpa/inet.h>
-
+#include <stdlib.h>
+#include <cstring>
 #include <midas.h>
 
 #include <midas/odb.hxx>
 #include <frontend/types.hxx>
+#include <caen/handle.hxx>
 #include "defaults.hxx"
-
-typedef struct {
-	int Channels;
-} CAEN_DGTZ_BoardInfo_t;
 
 namespace globals {
 
 CAEN_DGTZ_BoardInfo_t boardInfo;
+uint32_t recordLength = 0;
+uint32_t preTriggerLength = 0;
+std::vector<bool> enabledChannels;
+std::vector<uint16_t> dcOffsets;
+std::vector<uint16_t> sample;
+HNDLE hSet;
 
 }
 
 #define EQUIP_NAME "v1720"
+#define EVID 1
 
 #ifndef NEED_NO_EXTERN_C
 extern "C" {
@@ -85,14 +89,8 @@ int read_random_event(char *pevent, int off);
 
 /*-- Equipment list ------------------------------------------------*/
 
-#define EVID_TEST 1
-#define EVID_SLOW 2
-#define EVID_RANDOM 3
-
-EQUIPMENT equipment[] = {
-
-{ EQUIP_NAME, {
-EVID_TEST, (1 << EVID_TEST), /* event ID, trigger mask */
+EQUIPMENT equipment[] = { { EQUIP_NAME, {
+EVID, (1 << EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
 EQ_USER, /* equipment type */
 0, /* event source */
@@ -110,41 +108,12 @@ RO_RUNNING, /* Read when running */
 }
 #endif
 
-/********************************************************************\
-              Callback routines for system transitions
-
- These routines are called whenever a system transition like start/
- stop of a run occurs. The routines are called on the following
- occations:
-
- frontend_init:  When the frontend program is started. This routine
- should initialize the hardware.
-
- frontend_exit:  When the frontend program is shut down. Can be used
- to releas any locked resources like memory, commu-
- nications ports etc.
-
- begin_of_run:   When a new run is started. Clear scalers, open
- rungates, etc.
-
- end_of_run:     Called on a request to stop a run. Can send
- end-of-run event and close run gates.
-
- pause_run:      When a run is paused. Should disable trigger events.
-
- resume_run:     When a run is resumed. Should enable trigger events.
-
- \********************************************************************/
-
-int event_size = 10 * 1024;
-
 extern "C" {
 void set_rate_period(int ms);
 }
 
 /*-- Frontend Init -------------------------------------------------*/
 
-HNDLE hSet;
 int test_rb_wait_sleep = 1;
 
 // RPC handler
@@ -176,15 +145,8 @@ INT rpc_callback(INT index, void *prpc_param[]) {
 void configure() {
 	int size, status;
 
-	size = sizeof(event_size);
-	status = db_get_value(hDB, hSet, "event_size", &event_size, &size,
-			TID_DWORD, TRUE);
-	assert(status == DB_SUCCESS);
-
-	printf("Event size set to %d bytes\n", event_size);
-
 	size = sizeof(test_rb_wait_sleep);
-	status = db_get_value(hDB, hSet, "rb_wait_sleep", &test_rb_wait_sleep,
+	status = db_get_value(hDB, globals::hSet, "rb_wait_sleep", &test_rb_wait_sleep,
 			&size, TID_DWORD, TRUE);
 	assert(status == DB_SUCCESS);
 
@@ -300,21 +262,11 @@ INT begin_of_run(INT run_number, char *error) {
 	int status;
 	int size;
 
-	size = sizeof(fail);
-	status = db_get_value(hDB, hSet, "fail_begin_of_run", &fail, &size, TID_INT,
-			TRUE);
-	assert(status == DB_SUCCESS);
-
-	if (fail) {
-		printf("fail_begin_of_run: returning error status %d\n", fail);
-		return fail;
-	}
-
 	configure();
 
 	int s = 0;
 	size = sizeof(s);
-	status = db_get_value(hDB, hSet, "sleep_begin_of_run", &s, &size, TID_INT,
+	status = db_get_value(hDB, globals::hSet, "sleep_begin_of_run", &s, &size, TID_INT,
 			TRUE);
 	assert(status == DB_SUCCESS);
 
@@ -341,7 +293,7 @@ INT end_of_run(INT run_number, char *error) {
 	int size;
 
 	size = sizeof(fail);
-	status = db_get_value(hDB, hSet, "fail_end_of_run", &fail, &size, TID_INT,
+	status = db_get_value(hDB, globals::hSet, "fail_end_of_run", &fail, &size, TID_INT,
 			TRUE);
 	assert(status == DB_SUCCESS);
 
@@ -354,7 +306,7 @@ INT end_of_run(INT run_number, char *error) {
 
 	int s = 0;
 	size = sizeof(s);
-	status = db_get_value(hDB, hSet, "sleep_end_of_run", &s, &size, TID_INT,
+	status = db_get_value(hDB, globals::hSet, "sleep_end_of_run", &s, &size, TID_INT,
 			TRUE);
 	assert(status == DB_SUCCESS);
 
@@ -380,7 +332,7 @@ INT pause_run(INT run_number, char *error) {
 	int size;
 
 	size = sizeof(fail);
-	status = db_get_value(hDB, hSet, "fail_pause_run", &fail, &size, TID_INT,
+	status = db_get_value(hDB, globals::hSet, "fail_pause_run", &fail, &size, TID_INT,
 			TRUE);
 	assert(status == DB_SUCCESS);
 
@@ -404,7 +356,7 @@ INT resume_run(INT run_number, char *error) {
 	int size;
 
 	size = sizeof(fail);
-	status = db_get_value(hDB, hSet, "fail_resume_run", &fail, &size, TID_INT,
+	status = db_get_value(hDB, globals::hSet, "fail_resume_run", &fail, &size, TID_INT,
 			TRUE);
 	assert(status == DB_SUCCESS);
 
@@ -465,85 +417,73 @@ INT interrupt_configure(INT cmd, INT source, PTYPE adr) {
 
 /*-- Event readout -------------------------------------------------*/
 
+template<typename T>
+static std::string toString(T const v, std::size_t const len) {
+
+	std::string s = std::to_string(v);
+	while (s.size() < len) {
+		s = "0" + s;
+	}
+	return s;
+
+}
+
 int read_test_event(char *pevent, int off) {
 	bk_init32(pevent);
 
-	char name[5];
-	name[0] = 'C';
-	name[1] = 'H';
-	name[2] = '0';
-	name[3] = '0';
-	name[4] = 0;
+	uint32_t channelMask = 0x00ff;	//	TODO
 
-	for (int i = 0; i < 8; i++) {
-		name[3] = '0' + i;
+	{
+		// store general information
+		uint32_t* pdata;
+		bk_create(pevent, "INFO", TID_DWORD, (void**) &pdata);
+		*pdata++ = static_cast<uint32_t>(fe::DataType::WaveForm16bitVer1);
+		*pdata++ = static_cast<uint32_t>(fe::Device::CaenV1720E);
+		*pdata++ = globals::recordLength;
+		*pdata++ = globals::preTriggerLength;
+		*pdata++ = 0;	//	TODO timestamp low dword
+		*pdata++ = 0;	//	TODO timestamp hi dword
+		bk_close(pevent, pdata);
+	}
 
-		char* pdata8;
-		bk_create(pevent, name, TID_BYTE, (void**) &pdata8);
-		fe::BankType *bank = (fe::BankType*) pdata8;
-		bank->headerSize = htons(offsetof(fe::BankType, data));
-		bank->dataType = fe::DataType::WaveForm16bitVer1;
-		bank->device = fe::Device::CaenV1720E;
-		bank->customHeader.waveForm16BitVer1.timeStamp = htonll(0);	//	TODO
-		bank->customHeader.waveForm16BitVer1.dcOffset = htons(0);	//	TODO
-		bank->customHeader.waveForm16BitVer1.sampleTime = htonl(1000000 / 250);
-		bank->customHeader.waveForm16BitVer1.numOfSamples = htonl(0);	//	TODO
-		bank->customHeader.waveForm16BitVer1.preTrigger = htonl(0);	//	TODO
+	{
+		// store channel enabled status
+		uint8_t* pdata;
+		bk_create(pevent, "CHEN", TID_BYTE, (void**) &pdata);
+		for (decltype(globals::boardInfo.Channels) i = 0;
+				i < globals::boardInfo.Channels; i++) {
+			*pdata++ = globals::enabledChannels[i] ? 1 : 0;
+		}
+		bk_close(pevent, pdata);
+	}
 
-		bk_close(pevent, pdata8 + event_size / 8);
+	{
+		// store channel DC offset
+		uint16_t* pdata;
+		bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
+		for (decltype(globals::boardInfo.Channels) i = 0;
+				i < globals::boardInfo.Channels; i++) {
+			*pdata++ = globals::dcOffsets[i];
+		}
+		bk_close(pevent, pdata);
+	}
+
+	// store wave forms
+	std::size_t const sampleSize = sizeof(globals::sample[0])
+			* globals::sample.size();
+	for (decltype(globals::boardInfo.Channels) i = 0;
+			i < globals::boardInfo.Channels; i++) {
+
+		if (channelMask & (0x0001 << i)) {
+			std::string const name = "WF" + toString(i, 2);
+			uint8_t* pdata;
+			bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
+			std::memcpy(pdata, &globals::sample[0], sampleSize);
+			bk_close(pevent, pdata + sampleSize);
+		}
 	}
 
 	test_event_count++;
-
-	return bk_size(pevent);
-}
-
-int read_slow_event(char *pevent, int off) {
-	bk_init32(pevent);
-
-	float* pdataf;
-
-	bk_create(pevent, "SLOW", TID_FLOAT, (void**) &pdataf);
-
-	time_t t = time(NULL);
-
-	pdataf[0] = 100.0 * sin(M_PI * t / 60);
-
-	printf("time %d, data %f\n", (int) t, pdataf[0]);
-
-	bk_close(pevent, pdataf + 1);
-
-	return bk_size(pevent);
-}
-
-int read_random_event(char *pevent, int off) {
-	if (drand48() < 0.5)
-		bk_init(pevent);
-	else
-		bk_init32(pevent);
-
-	int nbank = 1 + 8 * drand48();
-
-	for (int i = nbank; i >= 0; i--) {
-		char name[5];
-		name[0] = 'R';
-		name[1] = 'N';
-		name[2] = 'D';
-		name[3] = '0' + i;
-		name[4] = 0;
-
-		int tid = 1 + (TID_LAST - 1) * drand48();
-
-		int size = 100 * drand48();
-
-		char* ptr;
-		bk_create(pevent, name, tid, (void**) &ptr);
-
-		for (int j = 0; j < size; j++)
-			ptr[j] = i;
-
-		bk_close(pevent, ptr + size);
-	}
 
 	return bk_size(pevent);
 }
@@ -576,9 +516,9 @@ INT configureDevice(HNDLE const hDB, HNDLE const hSet) {
 
 	cm_msg(MDEBUG, frontend_name, "Configuring device");
 
-	uint32_t const recordLength = odb::getValueUInt32(hDB, hSet,
-			"waveform_length", TRUE, defaults::recordLength);
-	uint32_t const preTriggerLength = odb::getValueUInt32(hDB, hSet,
+	globals::recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
+			TRUE, defaults::recordLength);
+	globals::preTriggerLength = odb::getValueUInt32(hDB, hSet,
 			"pre_trigger_length", TRUE, defaults::preTriggerLength);
 	std::string const triggerMode = odb::getValueString(hDB, hSet,
 			"trigger_mode", TRUE, defaults::triggerMode);
@@ -589,19 +529,26 @@ INT configureDevice(HNDLE const hDB, HNDLE const hSet) {
 	bool const triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
 			"trigger_raising_polarity", TRUE, defaults::triggerRaisingPolarity);
 
+	globals::enabledChannels.resize(globals::boardInfo.Channels);
+	globals::dcOffsets.resize(globals::boardInfo.Channels);
 	uint32_t channelMask = 0x0000;
 	for (decltype(globals::boardInfo.Channels) i = 0;
 			i < globals::boardInfo.Channels; i++) {
 
-		bool const enabled = odb::getValueBool(hDB, hSet,
+		globals::enabledChannels[i] = odb::getValueBool(hDB, hSet,
 				channelKey(i, "enabled"), TRUE, defaults::channel::enabled);
-		if (enabled) {
+		if (globals::enabledChannels[i]) {
 			channelMask |= 0x0001 << i;
 		}
 
-		uint16_t const dcOffset = odb::getValueUInt16(hDB, hSet,
+		globals::dcOffsets[i] = odb::getValueUInt16(hDB, hSet,
 				channelKey(i, "dc_offset"), TRUE, defaults::channel::dcOffset);
 
+	}
+
+	globals::sample.resize(globals::recordLength);
+	for (std::size_t i = 0; i < globals::recordLength; i++) {
+		globals::sample[i] = rand() % 0x10000;
 	}
 
 	cm_msg(MDEBUG, frontend_name, "Device is successfully configured");
@@ -620,13 +567,13 @@ INT frontend_init() {
 			TRUE, defaults::linkNum);
 
 	// save reference to settings tree
-	status = db_find_key(hDB, 0, "/equipment/" EQUIP_NAME "/Settings", &hSet);
+	status = db_find_key(hDB, 0, "/equipment/" EQUIP_NAME "/Settings", &globals::hSet);
 	assert(status == DB_SUCCESS);
 
-	status = connectToDevice(hDB, hSet);
+	status = connectToDevice(hDB, globals::hSet);
 	assert(status == DB_SUCCESS);
 
-	status = configureDevice(hDB, hSet);
+	status = configureDevice(hDB, globals::hSet);
 	assert(status == DB_SUCCESS);
 
 #ifdef RPC_JRPC
