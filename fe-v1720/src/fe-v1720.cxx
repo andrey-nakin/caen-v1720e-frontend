@@ -9,7 +9,6 @@
 #include <errno.h>
 #include <math.h>
 #include <ctype.h>
-#include <assert.h>
 #include <string.h>
 #include <iostream>
 #include <cstdint>
@@ -18,6 +17,8 @@
 #include <cstddef>
 #include <stdlib.h>
 #include <cstring>
+#include <memory>
+#include <sstream>
 #include <midas.h>
 
 #include <midas/odb.hxx>
@@ -33,7 +34,7 @@ static uint32_t preTriggerLength = 0;
 static std::vector<bool> enabledChannels;
 static std::vector<uint16_t> dcOffsets;
 static std::vector<uint16_t> sample;
-static HNDLE hSet;
+static std::unique_ptr<caen::Handle> hDevice;
 
 }
 
@@ -140,17 +141,6 @@ INT rpc_callback(INT index, void *prpc_param[]) {
 	return RPC_SUCCESS;
 }
 
-void configure() {
-	int size, status;
-
-	size = sizeof(test_rb_wait_sleep);
-	status = db_get_value(hDB, globals::hSet, "rb_wait_sleep", &test_rb_wait_sleep,
-			&size, TID_DWORD, TRUE);
-	assert(status == DB_SUCCESS);
-
-	printf("Ring buffer wait sleep %d ms\n", test_rb_wait_sleep);
-}
-
 #include "msystem.h"
 
 int test_run_number = 0;
@@ -243,132 +233,6 @@ int test_thread(void *param) {
 	return 0;
 }
 
-/*-- Begin of Run --------------------------------------------------*/
-
-INT begin_of_run(INT run_number, char *error) {
-	std::cout << "begin_of_run(" << run_number << ", " << error << ")"
-			<< std::endl;
-
-	int fail = 0;
-	int status;
-	int size;
-
-	configure();
-
-	int s = 0;
-	size = sizeof(s);
-	status = db_get_value(hDB, globals::hSet, "sleep_begin_of_run", &s, &size, TID_INT,
-			TRUE);
-	assert(status == DB_SUCCESS);
-
-	if (s) {
-		printf("sleep_begin_of_run: calling ss_sleep(%d)\n", s);
-		ss_sleep(s);
-	}
-
-	test_event_count = 0;
-	test_rb_wait_count = 0;
-	test_run_number = run_number; // tell thread to start running
-
-	return SUCCESS;
-}
-
-/*-- End of Run ----------------------------------------------------*/
-
-INT end_of_run(INT run_number, char *error) {
-	std::cout << "end_of_run(" << run_number << ", " << error << ")"
-			<< std::endl;
-
-	int fail = 0;
-	int status;
-	int size;
-
-	size = sizeof(fail);
-	status = db_get_value(hDB, globals::hSet, "fail_end_of_run", &fail, &size, TID_INT,
-			TRUE);
-	assert(status == DB_SUCCESS);
-
-	if (fail) {
-		printf("fail_end_of_run: returning error status %d\n", fail);
-		return fail;
-	}
-
-	test_run_number = 0; // tell thread to stop running
-
-	int s = 0;
-	size = sizeof(s);
-	status = db_get_value(hDB, globals::hSet, "sleep_end_of_run", &s, &size, TID_INT,
-			TRUE);
-	assert(status == DB_SUCCESS);
-
-	if (s) {
-		printf("sleep_end_of_run: calling ss_sleep(%d)\n", s);
-		ss_sleep(s);
-	}
-
-	printf("test_event_count: %d events sent, ring buffer wait count %d\n",
-			test_event_count, test_rb_wait_count);
-
-	return SUCCESS;
-}
-
-/*-- Pause Run -----------------------------------------------------*/
-
-INT pause_run(INT run_number, char *error) {
-	std::cout << "pause_run(" << run_number << ", " << error << ")"
-			<< std::endl;
-
-	int fail = 0;
-	int status;
-	int size;
-
-	size = sizeof(fail);
-	status = db_get_value(hDB, globals::hSet, "fail_pause_run", &fail, &size, TID_INT,
-			TRUE);
-	assert(status == DB_SUCCESS);
-
-	if (fail) {
-		printf("fail_pause_run: returning error status %d\n", fail);
-		return fail;
-	}
-
-	test_run_number = 0; // tell thread to stop running
-	return SUCCESS;
-}
-
-/*-- Resume Run ----------------------------------------------------*/
-
-INT resume_run(INT run_number, char *error) {
-	std::cout << "resume_run(" << run_number << ", " << error << ")"
-			<< std::endl;
-
-	int fail = 0;
-	int status;
-	int size;
-
-	size = sizeof(fail);
-	status = db_get_value(hDB, globals::hSet, "fail_resume_run", &fail, &size, TID_INT,
-			TRUE);
-	assert(status == DB_SUCCESS);
-
-	if (fail) {
-		printf("fail_resume_run: returning error status %d\n", fail);
-		return fail;
-	}
-
-	test_run_number = run_number; // tell thread to start running
-	return SUCCESS;
-}
-
-/*-- Frontend Loop -------------------------------------------------*/
-
-INT frontend_loop() {
-	/* if frontend_call_loop is true, this routine gets called when
-	 the frontend is idle or once between every event */
-	return SUCCESS;
-}
-
-/*------------------------------------------------------------------*/
 
 /********************************************************************\
   
@@ -479,7 +343,23 @@ int readEvent(char *pevent, int off) {
 	return bk_size(pevent);
 }
 
-static INT connectToDevice(HNDLE const hDB, HNDLE const hSet) {
+static std::string channelKey(unsigned const channelNo,
+		char const * const keyName) {
+
+	return std::string("channel_") + std::to_string(channelNo) + "_" + keyName;
+
+}
+
+static HNDLE getSettingsKey() {
+
+	return odb::findKey(hDB, 0, "/equipment/" EQUIP_NAME "/Settings");
+
+}
+
+static caen::Handle connect() {
+
+	// save reference to settings tree
+	HNDLE const hSet = getSettingsKey();
 
 	int32_t const linkNum = odb::getValueInt32(hDB, hSet, "link_num", TRUE,
 			defaults::linkNum);
@@ -489,23 +369,27 @@ static INT connectToDevice(HNDLE const hDB, HNDLE const hSet) {
 			TRUE, defaults::vmeBaseAddr);
 
 	cm_msg(MDEBUG, frontend_name, "Connecting to device");
-	globals::boardInfo.Channels = 8;
+
+	caen::Handle result(linkNum, conetNode, vmeBaseAddr);
+	if (!result) {
+		std::stringstream s;
+		s << "Error " << result.getErrorCode() << " connecting to device";
+		throw midas::Exception(CM_SET_ERROR, s.str());
+	}
+
 	cm_msg(MINFO, frontend_name, "Connected to device");
 
-	return DB_SUCCESS;
+	return result;
 
 }
 
-static std::string channelKey(unsigned const channelNo,
-		char const * const keyName) {
-
-	return std::string("channel_") + std::to_string(channelNo) + "_" + keyName;
-
-}
-
-static INT configureDevice(HNDLE const hDB, HNDLE const hSet) {
+static void configure(caen::Handle& hDevice) {
 
 	cm_msg(MDEBUG, frontend_name, "Configuring device");
+
+	HNDLE const hSet = getSettingsKey();
+
+	globals::boardInfo.Channels = 8;
 
 	globals::recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
 			TRUE, defaults::recordLength);
@@ -544,8 +428,6 @@ static INT configureDevice(HNDLE const hDB, HNDLE const hSet) {
 
 	cm_msg(MDEBUG, frontend_name, "Device is successfully configured");
 
-	return DB_SUCCESS;
-
 }
 
 INT frontend_init() {
@@ -557,16 +439,6 @@ INT frontend_init() {
 		// create subtree
 		odb::getValueInt32(hDB, 0, "/equipment/" EQUIP_NAME "/Settings/link_num",
 				TRUE, defaults::linkNum);
-
-		// save reference to settings tree
-		status = db_find_key(hDB, 0, "/equipment/" EQUIP_NAME "/Settings", &globals::hSet);
-		assert(status == DB_SUCCESS);
-
-		status = connectToDevice(hDB, globals::hSet);
-		assert(status == DB_SUCCESS);
-
-		status = configureDevice(hDB, globals::hSet);
-		assert(status == DB_SUCCESS);
 
 	#ifdef RPC_JRPC
 		status = cm_register_function(RPC_JRPC, rpc_callback);
@@ -580,7 +452,8 @@ INT frontend_init() {
 
 	//set_rate_period(1000);
 
-		configure();
+		caen::Handle hDevice = connect();
+		configure(hDevice);
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
@@ -592,4 +465,94 @@ INT frontend_init() {
 INT frontend_exit() {
 	std::cout << "frontend_exit()" << std::endl;
 	return SUCCESS;
+}
+
+INT begin_of_run(INT run_number, char *error) {
+
+	std::cout << "begin_of_run(" << run_number << ", " << error << ")"
+			<< std::endl;
+
+	int status = SUCCESS;
+
+	try {
+		globals::hDevice = std::make_unique<caen::Handle>(connect());
+		configure(*globals::hDevice);
+
+		test_event_count = 0;
+		test_rb_wait_count = 0;
+		test_run_number = run_number; // tell thread to start running
+
+	} catch (midas::Exception& ex) {
+		status = ex.getStatus();
+	}
+
+	return status;
+
+}
+
+INT end_of_run(INT run_number, char *error) {
+
+	std::cout << "end_of_run(" << run_number << ", " << error << ")"
+			<< std::endl;
+
+	int status = SUCCESS;
+
+	try {
+
+		if (globals::hDevice) {
+			globals::hDevice = nullptr;
+		}
+
+		test_run_number = 0; // tell thread to stop running
+
+	} catch (midas::Exception& ex) {
+		status = ex.getStatus();
+	}
+
+	return status;
+
+}
+
+INT pause_run(INT run_number, char *error) {
+
+	std::cout << "pause_run(" << run_number << ", " << error << ")"
+			<< std::endl;
+
+	int status = SUCCESS;
+
+	try {
+
+		test_run_number = 0; // tell thread to stop running
+
+	} catch (midas::Exception& ex) {
+		status = ex.getStatus();
+	}
+
+	return status;
+
+}
+
+INT resume_run(INT run_number, char *error) {
+
+	std::cout << "resume_run(" << run_number << ", " << error << ")"
+			<< std::endl;
+
+	int status = SUCCESS;
+
+	try {
+
+		test_run_number = run_number; // tell thread to start running
+
+	} catch (midas::Exception& ex) {
+		status = ex.getStatus();
+	}
+
+	return status;
+
+}
+
+INT frontend_loop() {
+
+	return SUCCESS;
+
 }

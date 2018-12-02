@@ -16,7 +16,7 @@ public:
 
 	operator bool() const;
 
-	CAEN_DGTZ_ErrorCode GetErrorCode() const {
+	CAEN_DGTZ_ErrorCode getErrorCode() const {
 
 		return errorCode;
 
