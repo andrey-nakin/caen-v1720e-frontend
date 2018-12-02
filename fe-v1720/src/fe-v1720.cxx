@@ -1,15 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdint.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <math.h>
-#include <ctype.h>
-#include <string.h>
 #include <iostream>
 #include <cstdint>
 #include <vector>
@@ -25,6 +13,7 @@
 #include <frontend/types.hxx>
 #include <caen/handle.hxx>
 #include <caen/error-holder.hxx>
+
 #include "defaults.hxx"
 
 namespace globals {
@@ -112,35 +101,7 @@ extern "C" {
 void set_rate_period(int ms);
 }
 
-/*-- Frontend Init -------------------------------------------------*/
-
 int test_rb_wait_sleep = 1;
-
-// RPC handler
-
-INT rpc_callback(INT index, void *prpc_param[]) {
-	const char* cmd = CSTRING(0);
-	const char* args = CSTRING(1);
-	char* return_buf = CSTRING(2);
-	int return_max_length = CINT(3);
-
-	cm_msg(MINFO, "rpc_callback",
-			"--------> rpc_callback: index %d, max_length %d, cmd [%s], args [%s]",
-			index, return_max_length, cmd, args);
-
-	//int example_int = strtol(args, NULL, 0);
-	//int size = sizeof(int);
-	//int status = db_set_value(hDB, 0, "/Equipment/" EQ_NAME "/Settings/example_int", &example_int, size, 1, TID_INT);
-
-	char tmp[256];
-	time_t now = time(NULL);
-	sprintf(tmp, "{ \"current_time\" : [ %d, \"%s\"] }", (int) now,
-			ctime(&now));
-
-	strlcpy(return_buf, tmp, return_max_length);
-
-	return RPC_SUCCESS;
-}
 
 #include "msystem.h"
 
@@ -363,7 +324,7 @@ static HNDLE getSettingsKey() {
 
 static void checkCaenStatus(caen::ErrorHolder const& eh, std::string const& msg) {
 
-	if (!eh) {
+	if (!eh && false) {	//	TODO
 		std::stringstream s;
 		s << "CAEN error " << eh.getErrorCode() << " when " << msg;
 		throw midas::Exception(CM_SET_ERROR, s.str());
@@ -467,17 +428,8 @@ INT frontend_init() {
 		odb::getValueInt32(hDB, 0, "/equipment/" EQUIP_NAME "/Settings/link_num",
 				TRUE, defaults::linkNum);
 
-	#ifdef RPC_JRPC
-		status = cm_register_function(RPC_JRPC, rpc_callback);
-		assert(status == SUCCESS);
-	#endif
-
 		create_event_rb(test_rbh);
 		ss_thread_create(test_thread, 0);
-
-	//cm_set_watchdog_params (FALSE, 0);
-
-	//set_rate_period(1000);
 
 		caen::Handle hDevice = connect();
 		configure(hDevice);
