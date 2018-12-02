@@ -251,66 +251,6 @@ static std::string toString(T const v, std::size_t const len) {
 
 }
 
-int readEvent(char *pevent, int off) {
-	bk_init32(pevent);
-
-	uint32_t channelMask = 0x00ff;	//	TODO
-
-	{
-		// store general information
-		uint32_t* pdata;
-		bk_create(pevent, "INFO", TID_DWORD, (void**) &pdata);
-		*pdata++ = static_cast<uint32_t>(fe::DataType::WaveForm16bitVer1);
-		*pdata++ = static_cast<uint32_t>(fe::Device::CaenV1720E);
-		*pdata++ = globals::recordLength;
-		*pdata++ = globals::preTriggerLength;
-		*pdata++ = 0;	//	TODO timestamp low dword
-		*pdata++ = 0;	//	TODO timestamp hi dword
-		bk_close(pevent, pdata);
-	}
-
-	{
-		// store channel enabled status
-		uint8_t* pdata;
-		bk_create(pevent, "CHEN", TID_BYTE, (void**) &pdata);
-		for (decltype(globals::boardInfo.Channels) i = 0;
-				i < globals::boardInfo.Channels; i++) {
-			*pdata++ = globals::enabledChannels[i] ? 1 : 0;
-		}
-		bk_close(pevent, pdata);
-	}
-
-	{
-		// store channel DC offset
-		uint16_t* pdata;
-		bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
-		for (decltype(globals::boardInfo.Channels) i = 0;
-				i < globals::boardInfo.Channels; i++) {
-			*pdata++ = globals::dcOffsets[i];
-		}
-		bk_close(pevent, pdata);
-	}
-
-	// store wave forms
-	std::size_t const sampleSize = sizeof(globals::sample[0])
-			* globals::sample.size();
-	for (decltype(globals::boardInfo.Channels) i = 0;
-			i < globals::boardInfo.Channels; i++) {
-
-		if (channelMask & (0x0001 << i)) {
-			std::string const name = "WF" + toString(i, 2);
-			uint8_t* pdata;
-			bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
-			std::memcpy(pdata, &globals::sample[0], sampleSize);
-			bk_close(pevent, pdata + sampleSize);
-		}
-	}
-
-	test_event_count++;
-
-	return bk_size(pevent);
-}
-
 static std::string channelKey(unsigned const channelNo,
 		char const * const keyName) {
 
@@ -571,5 +511,83 @@ INT resume_run(INT run_number, char *error) {
 INT frontend_loop() {
 
 	return SUCCESS;
+
+}
+
+int readEvent(char *pevent, int off) {
+
+	uint32_t dataSize;
+	checkCaenStatus(
+			CAEN_DGTZ_ReadData(*globals::hDevice, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, *globals::roBuffer, &dataSize),
+			"reading data"
+	);
+
+	uint32_t numEvents;
+	checkCaenStatus(
+			CAEN_DGTZ_GetNumEvents(*globals::hDevice, *globals::roBuffer, dataSize, &numEvents),
+			"getting num events"
+	);
+
+	if (!numEvents) {
+		return 0;	//	no events
+	}
+
+	bk_init32(pevent);
+
+	uint32_t channelMask = 0x00ff;	//	TODO
+
+	{
+		// store general information
+		uint32_t* pdata;
+		bk_create(pevent, "INFO", TID_DWORD, (void**) &pdata);
+		*pdata++ = static_cast<uint32_t>(fe::DataType::WaveForm16bitVer1);
+		*pdata++ = static_cast<uint32_t>(fe::Device::CaenV1720E);
+		*pdata++ = globals::recordLength;
+		*pdata++ = globals::preTriggerLength;
+		*pdata++ = 0;	//	TODO timestamp low dword
+		*pdata++ = 0;	//	TODO timestamp hi dword
+		bk_close(pevent, pdata);
+	}
+
+	{
+		// store channel enabled status
+		uint8_t* pdata;
+		bk_create(pevent, "CHEN", TID_BYTE, (void**) &pdata);
+		for (decltype(globals::boardInfo.Channels) i = 0;
+				i < globals::boardInfo.Channels; i++) {
+			*pdata++ = globals::enabledChannels[i] ? 1 : 0;
+		}
+		bk_close(pevent, pdata);
+	}
+
+	{
+		// store channel DC offset
+		uint16_t* pdata;
+		bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
+		for (decltype(globals::boardInfo.Channels) i = 0;
+				i < globals::boardInfo.Channels; i++) {
+			*pdata++ = globals::dcOffsets[i];
+		}
+		bk_close(pevent, pdata);
+	}
+
+	// store wave forms
+	std::size_t const sampleSize = sizeof(globals::sample[0])
+			* globals::sample.size();
+	for (decltype(globals::boardInfo.Channels) i = 0;
+			i < globals::boardInfo.Channels; i++) {
+
+		if (channelMask & (0x0001 << i)) {
+			std::string const name = "WF" + toString(i, 2);
+			uint8_t* pdata;
+			bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
+			std::memcpy(pdata, &globals::sample[0], sampleSize);
+			bk_close(pevent, pdata + sampleSize);
+		}
+	}
+
+	test_event_count++;
+
+	return bk_size(pevent);
 
 }
