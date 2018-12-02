@@ -19,6 +19,12 @@ public:
 	ReadoutBuffer(ReadoutBuffer&&);
 	~ReadoutBuffer();
 
+	uint32_t size() const {
+
+		return bufferSize;
+
+	}
+
 	operator char*() {
 
 		return buffer;

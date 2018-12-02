@@ -14,6 +14,8 @@
 #include <caen/handle.hxx>
 #include <caen/error-holder.hxx>
 #include <caen/readout-buffer.hxx>
+#include <caen/event.hxx>
+#include <caen/v1720.hxx>
 
 #include "defaults.hxx"
 
@@ -27,6 +29,7 @@ static std::vector<uint16_t> dcOffsets;
 static std::vector<uint16_t> sample;
 static std::unique_ptr<caen::Handle> hDevice;
 static std::unique_ptr<caen::ReadoutBuffer> roBuffer;
+static std::unique_ptr<caen::Event> event;
 
 }
 
@@ -109,7 +112,6 @@ int test_rb_wait_sleep = 1;
 
 int test_run_number = 0;
 int test_rb_wait_count = 0;
-int test_event_count = 0;
 int test_rbh = 0;
 
 int test_thread(void *param) {
@@ -309,43 +311,119 @@ static void configure(caen::Handle& hDevice) {
 	cm_msg(MDEBUG, frontend_name, "Configuring device");
 
 	HNDLE const hSet = getSettingsKey();
+	uint32_t regData;
 
-	globals::boardInfo.Channels = 8;
-
-	globals::recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
-			TRUE, defaults::recordLength);
-	globals::preTriggerLength = odb::getValueUInt32(hDB, hSet,
-			"pre_trigger_length", TRUE, defaults::preTriggerLength);
-	std::string const triggerMode = odb::getValueString(hDB, hSet,
-			"trigger_mode", TRUE, defaults::triggerMode);
-	uint8_t const triggerChannel = odb::getValueUInt8(hDB, hSet,
-			"trigger_channel", TRUE, defaults::triggerChannel);
-	uint16_t const triggerThreshold = odb::getValueUInt16(hDB, hSet,
-			"trigger_threshold", TRUE, defaults::triggerThreshold);
-	bool const triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
-			"trigger_raising_polarity", TRUE, defaults::triggerRaisingPolarity);
-
+	checkCaenStatus(
+			CAEN_DGTZ_GetInfo(hDevice, &globals::boardInfo),
+			"getting digitizer info"
+	);
 	globals::enabledChannels.resize(globals::boardInfo.Channels);
 	globals::dcOffsets.resize(globals::boardInfo.Channels);
+
+	checkCaenStatus(
+			CAEN_DGTZ_Reset(hDevice),
+			"resetting digitizer"
+	);
+
+	checkCaenStatus(
+			CAEN_DGTZ_SetIOLevel(hDevice, CAEN_DGTZ_IOLevel_NIM),
+			"setting IO level"
+	);
+
+	checkCaenStatus(
+			CAEN_DGTZ_SetExtTriggerInputMode(hDevice, CAEN_DGTZ_TRGMODE_ACQ_ONLY),
+			"setting external trigger input mode"
+	);
+
 	uint32_t channelMask = 0x0000;
 	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
-
 		globals::enabledChannels[i] = odb::getValueBool(hDB, hSet,
 				channelKey(i, "enabled"), TRUE, defaults::channel::enabled);
 		if (globals::enabledChannels[i]) {
 			channelMask |= 0x0001 << i;
 		}
+	}
+	checkCaenStatus(
+			CAEN_DGTZ_SetChannelEnableMask(hDevice, channelMask),
+			"setting channel enable mask"
+	);
+
+	checkCaenStatus(
+			CAEN_DGTZ_SetRunSynchronizationMode(hDevice, CAEN_DGTZ_RUN_SYNC_Disabled),
+			"setting run sync mode"
+	);
+
+	globals::recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
+			TRUE, defaults::recordLength);
+
+	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
+		checkCaenStatus(
+				CAEN_DGTZ_SetRecordLength(hDevice, globals::recordLength, i),
+				"setting record length"
+		);
 
 		globals::dcOffsets[i] = odb::getValueUInt16(hDB, hSet,
 				channelKey(i, "dc_offset"), TRUE, defaults::channel::dcOffset);
 
+		checkCaenStatus(
+				CAEN_DGTZ_SetChannelDCOffset(hDevice, i, globals::dcOffsets[i]),
+				"setting channel DC offset"
+		);
 	}
 
-	// TODO: test code
-	globals::sample.resize(globals::recordLength);
-	for (std::size_t i = 0; i < globals::recordLength; i++) {
-		globals::sample[i] = rand() % 0x10000;
+	uint8_t const triggerChannel = odb::getValueUInt8(hDB, hSet,
+			"trigger_channel", TRUE, defaults::triggerChannel);
+	checkCaenStatus(
+			CAEN_DGTZ_SetChannelSelfTrigger(hDevice, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel)),
+			"setting channel self trigger"
+	);
+
+	uint16_t const triggerThreshold = odb::getValueUInt16(hDB, hSet,
+			"trigger_threshold", TRUE, defaults::triggerThreshold);
+	checkCaenStatus(
+			CAEN_DGTZ_SetChannelTriggerThreshold(hDevice, triggerChannel, triggerThreshold),
+			"setting channel trigger threshold"
+	);
+
+	bool const triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
+			"trigger_raising_polarity", TRUE, defaults::triggerRaisingPolarity);
+	checkCaenStatus(
+			CAEN_DGTZ_SetTriggerPolarity(hDevice, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge),
+			"setting trigger polarity"
+	);
+
+	checkCaenStatus(
+			CAEN_DGTZ_SetMaxNumEventsBLT(hDevice, 1),
+			"setting max num events"
+	);
+
+	checkCaenStatus(
+			CAEN_DGTZ_SetAcquisitionMode(hDevice, CAEN_DGTZ_SW_CONTROLLED),
+			"setting acquisition mode"
+	);
+
+	checkCaenStatus(
+			CAEN_DGTZ_ReadRegister(hDevice, caen::v1720::REG_CHANNEL_CONFIG, &regData),
+			"reading channel config register"
+	);
+	if (regData & caen::v1720::REG_BIT_TRIGGER_OVERLAP) {
+		// disable trigger overlap
+		checkCaenStatus(
+				CAEN_DGTZ_WriteRegister(hDevice, caen::v1720::REG_CHANNEL_CONFIG, regData & ~caen::v1720::REG_BIT_TRIGGER_OVERLAP),
+				"writing channel config register"
+		);
 	}
+
+	globals::preTriggerLength = odb::getValueUInt32(hDB, hSet,
+			"pre_trigger_length", TRUE, defaults::preTriggerLength);
+
+	checkCaenStatus(
+			CAEN_DGTZ_WriteRegister(hDevice, caen::v1720::REG_POST_TRIGGER, (globals::recordLength - globals::preTriggerLength) / 4),
+			"writing post trigger register"
+	);
+
+	std::string const triggerMode = odb::getValueString(hDB, hSet,
+			"trigger_mode", TRUE, defaults::triggerMode);
 
 	cm_msg(MDEBUG, frontend_name, "Device is successfully configured");
 
@@ -355,6 +433,9 @@ static void startAcquisition() {
 
 	globals::roBuffer = std::make_unique<caen::ReadoutBuffer>(*globals::hDevice);
 	checkCaenStatus(*globals::roBuffer, "allocating readout buffer");
+
+	globals::event = std::make_unique<caen::Event>(*globals::hDevice);
+	checkCaenStatus(*globals::event, "allocating event");
 
 	checkCaenStatus(
 			CAEN_DGTZ_SWStartAcquisition(*globals::hDevice),
@@ -370,6 +451,7 @@ static void stopAcquisition() {
 			"stopping acquisition"
 	);
 
+	globals::event = nullptr;
 	globals::roBuffer = nullptr;
 
 }
@@ -406,6 +488,7 @@ INT frontend_exit() {
 	try {
 
 		if (globals::hDevice) {
+			stopAcquisition();
 			globals::hDevice = nullptr;
 		}
 
@@ -429,7 +512,6 @@ INT begin_of_run(INT run_number, char *error) {
 		configure(*globals::hDevice);
 		startAcquisition();
 
-		test_event_count = 0;
 		test_rb_wait_count = 0;
 		test_run_number = run_number; // tell thread to start running
 
@@ -450,9 +532,8 @@ INT end_of_run(INT run_number, char *error) {
 
 	try {
 
-		stopAcquisition();
-
 		if (globals::hDevice) {
+			stopAcquisition();
 			globals::hDevice = nullptr;
 		}
 
@@ -516,78 +597,96 @@ INT frontend_loop() {
 
 int readEvent(char *pevent, int off) {
 
-	uint32_t dataSize;
-	checkCaenStatus(
-			CAEN_DGTZ_ReadData(*globals::hDevice, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, *globals::roBuffer, &dataSize),
-			"reading data"
-	);
+	int result;
 
-	uint32_t numEvents;
-	checkCaenStatus(
-			CAEN_DGTZ_GetNumEvents(*globals::hDevice, *globals::roBuffer, dataSize, &numEvents),
-			"getting num events"
-	);
+	try {
+		uint32_t dataSize;
+		checkCaenStatus(
+				CAEN_DGTZ_ReadData(*globals::hDevice, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, *globals::roBuffer, &dataSize),
+				"reading data"
+		);
 
-	if (!numEvents) {
-		return 0;	//	no events
-	}
+		uint32_t numEvents;
+		checkCaenStatus(
+				CAEN_DGTZ_GetNumEvents(*globals::hDevice, *globals::roBuffer, dataSize, &numEvents),
+				"getting num events"
+		);
 
-	bk_init32(pevent);
-
-	uint32_t channelMask = 0x00ff;	//	TODO
-
-	{
-		// store general information
-		uint8_t* pdata;
-		bk_create(pevent, "INFO", TID_DWORD, (void**) &pdata);
-		fe::InfoBank* info = (fe::InfoBank*) pdata;
-		info->dataType = fe::DataType::WaveForm16bitVer1;
-		info->device = fe::Device::CaenV1720E;
-		info->recordLength = globals::recordLength;
-		info->preTriggerLength = globals::preTriggerLength;
-		info->timeStamp = 0;	// TODO
-		bk_close(pevent, pdata + sizeof(*info));
-	}
-
-	{
-		// store channel enabled status
-		uint8_t* pdata;
-		bk_create(pevent, "CHEN", TID_BYTE, (void**) &pdata);
-		for (decltype(globals::boardInfo.Channels) i = 0;
-				i < globals::boardInfo.Channels; i++) {
-			*pdata++ = globals::enabledChannels[i] ? 1 : 0;
+		if (!numEvents) {
+			return 0;	//	no events
 		}
-		bk_close(pevent, pdata);
-	}
 
-	{
-		// store channel DC offset
-		uint16_t* pdata;
-		bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
-		for (decltype(globals::boardInfo.Channels) i = 0;
-				i < globals::boardInfo.Channels; i++) {
-			*pdata++ = globals::dcOffsets[i];
-		}
-		bk_close(pevent, pdata);
-	}
+		CAEN_DGTZ_EventInfo_t eventInfo;
+		char *eventPtr = nullptr;
+		checkCaenStatus(
+				CAEN_DGTZ_GetEventInfo(*globals::hDevice, *globals::roBuffer, globals::roBuffer->size(), 0, &eventInfo, &eventPtr),
+				"getting event info"
+		);
 
-	// store wave forms
-	std::size_t const sampleSize = sizeof(globals::sample[0])
-			* globals::sample.size();
-	for (decltype(globals::boardInfo.Channels) i = 0;
-			i < globals::boardInfo.Channels; i++) {
+		globals::event->decode(eventPtr);
+		checkCaenStatus(
+				*globals::event,
+				"decoding event"
+		);
 
-		if (channelMask & (0x0001 << i)) {
-			std::string const name = "WF" + toString(i, 2);
+		bk_init32(pevent);
+
+		{
+			// store general information
 			uint8_t* pdata;
-			bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
-			std::memcpy(pdata, &globals::sample[0], sampleSize);
-			bk_close(pevent, pdata + sampleSize);
+			bk_create(pevent, "INFO", TID_DWORD, (void**) &pdata);
+			fe::InfoBank* info = (fe::InfoBank*) pdata;
+			info->dataType = fe::DataType::WaveForm16bitVer1;
+			info->device = fe::Device::CaenV1720E;
+			info->recordLength = globals::recordLength;
+			info->preTriggerLength = globals::preTriggerLength;
+			info->timeStamp = 0;	// TODO
+			bk_close(pevent, pdata + sizeof(*info));
 		}
+
+		{
+			// store channel enabled status
+			uint8_t* pdata;
+			bk_create(pevent, "CHEN", TID_BYTE, (void**) &pdata);
+			for (decltype(globals::boardInfo.Channels) i = 0;
+					i < globals::boardInfo.Channels; i++) {
+				*pdata++ = globals::enabledChannels[i] ? 1 : 0;
+			}
+			bk_close(pevent, pdata);
+		}
+
+		{
+			// store channel DC offset
+			uint16_t* pdata;
+			bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
+			for (decltype(globals::boardInfo.Channels) i = 0;
+					i < globals::boardInfo.Channels; i++) {
+				*pdata++ = globals::dcOffsets[i];
+			}
+			bk_close(pevent, pdata);
+		}
+
+		// store wave forms
+		for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
+			if (eventInfo.ChannelMask & (0x0001 << i)) {
+				uint32_t const numOfSamples = globals::event->evt()->ChSize[i];
+				uint16_t const *samples = globals::event->evt()->DataChannel[i];
+				uint32_t const dataSize = numOfSamples * sizeof(*samples);
+
+				std::string const name = "WF" + toString(i, 2);
+				uint8_t* pdata;
+				bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
+				std::memcpy(pdata, samples, dataSize);
+				bk_close(pevent, pdata + dataSize);
+			}
+		}
+
+		result = bk_size(pevent);
+
+	} catch (midas::Exception& ex) {
+		result = 0;
 	}
 
-	test_event_count++;
-
-	return bk_size(pevent);
+	return result;
 
 }
