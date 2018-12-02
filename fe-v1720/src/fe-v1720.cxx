@@ -13,6 +13,7 @@
 #include <frontend/types.hxx>
 #include <caen/handle.hxx>
 #include <caen/error-holder.hxx>
+#include <caen/readout-buffer.hxx>
 
 #include "defaults.hxx"
 
@@ -25,6 +26,7 @@ static std::vector<bool> enabledChannels;
 static std::vector<uint16_t> dcOffsets;
 static std::vector<uint16_t> sample;
 static std::unique_ptr<caen::Handle> hDevice;
+static std::unique_ptr<caen::ReadoutBuffer> roBuffer;
 
 }
 
@@ -411,10 +413,20 @@ static void configure(caen::Handle& hDevice) {
 
 static void startAcquisition() {
 
+	globals::roBuffer = std::make_unique<caen::ReadoutBuffer>(*globals::hDevice);
+	checkCaenStatus(*globals::roBuffer, "allocating readout buffer");
+
 	checkCaenStatus(
 			CAEN_DGTZ_SWStartAcquisition(*globals::hDevice),
 			"starting acquisition"
 	);
+
+}
+
+static void stopAcquisition() {
+
+	// TODO CAEN command
+	globals::roBuffer = nullptr;
 
 }
 
@@ -494,6 +506,8 @@ INT end_of_run(INT run_number, char *error) {
 
 	try {
 
+		stopAcquisition();
+
 		if (globals::hDevice) {
 			globals::hDevice = nullptr;
 		}
@@ -517,6 +531,8 @@ INT pause_run(INT run_number, char *error) {
 
 	try {
 
+		stopAcquisition();
+
 		test_run_number = 0; // tell thread to stop running
 
 	} catch (midas::Exception& ex) {
@@ -537,6 +553,7 @@ INT resume_run(INT run_number, char *error) {
 	try {
 
 		startAcquisition();
+
 		test_run_number = run_number; // tell thread to start running
 
 	} catch (midas::Exception& ex) {
