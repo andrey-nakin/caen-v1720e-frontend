@@ -1,3 +1,4 @@
+#include <sstream>
 #include <CAENDigitizer.h>
 #include <caen/handle.hxx>
 
@@ -20,6 +21,29 @@ Handle::~Handle() {
 
 	if (handle) {
 		CAEN_DGTZ_CloseDigitizer(handle);
+	}
+
+}
+
+uint32_t Handle::readRegister(uint32_t const reg) {
+
+	uint32_t regData;
+	auto const res = CAEN_DGTZ_ReadRegister(handle, reg, &regData);
+	if (CAEN_DGTZ_Success != res) {
+		std::stringstream s;
+		s << "reading register 0x" << std::hex << reg;
+		throw Exception(res, s.str());
+	}
+
+}
+
+void Handle::writeRegister(uint32_t const reg, uint32_t const regData) {
+
+	auto const res = CAEN_DGTZ_WriteRegister(handle, reg, regData);
+	if (CAEN_DGTZ_Success != res) {
+		std::stringstream s;
+		s << "writing " <<  std::hex << regData << " to register 0x" << std::hex << reg;
+		throw Exception(res, s.str());
 	}
 
 }

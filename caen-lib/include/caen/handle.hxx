@@ -27,6 +27,9 @@ public:
 
 	}
 
+	uint32_t readRegister(uint32_t reg);
+	void writeRegister(uint32_t reg, uint32_t regData);
+
 	template<class Function>
 	void command(std::string const& msg, Function action) {
 		auto const res = action(handle);

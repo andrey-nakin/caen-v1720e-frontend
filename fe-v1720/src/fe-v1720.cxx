@@ -329,16 +329,19 @@ static void configure(caen::Handle& hDevice) {
 	globals::enabledChannels.resize(globals::boardInfo.Channels);
 	globals::dcOffsets.resize(globals::boardInfo.Channels);
 
-	hDevice.command("resetting digitizer", [](auto handle) { return CAEN_DGTZ_Reset(handle); });
-
-	checkCaenStatus(
-			CAEN_DGTZ_SetIOLevel(hDevice, CAEN_DGTZ_IOLevel_NIM),
-			"setting IO level"
+	hDevice.command(
+			"resetting digitizer",
+			[](auto handle) { return CAEN_DGTZ_Reset(handle); }
 	);
 
-	checkCaenStatus(
-			CAEN_DGTZ_SetExtTriggerInputMode(hDevice, CAEN_DGTZ_TRGMODE_ACQ_ONLY),
-			"setting external trigger input mode"
+	hDevice.command(
+			"setting IO level",
+			[](auto handle) { return CAEN_DGTZ_SetIOLevel(handle, CAEN_DGTZ_IOLevel_NIM); }
+	);
+
+	hDevice.command(
+			"setting external trigger input mode",
+			[](auto handle) { return CAEN_DGTZ_SetExtTriggerInputMode(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY); }
 	);
 
 	uint32_t channelMask = 0x0000;
@@ -349,84 +352,77 @@ static void configure(caen::Handle& hDevice) {
 			channelMask |= 0x0001 << i;
 		}
 	}
-	checkCaenStatus(
-			CAEN_DGTZ_SetChannelEnableMask(hDevice, channelMask),
-			"setting channel enable mask"
+	hDevice.command(
+			"setting channel enable mask",
+			[channelMask](auto handle) { return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask); }
 	);
 
-	checkCaenStatus(
-			CAEN_DGTZ_SetRunSynchronizationMode(hDevice, CAEN_DGTZ_RUN_SYNC_Disabled),
-			"setting run sync mode"
+	hDevice.command(
+			"setting run sync mode",
+			[](auto handle) { return CAEN_DGTZ_SetRunSynchronizationMode(handle, CAEN_DGTZ_RUN_SYNC_Disabled); }
 	);
 
-	globals::recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
+	decltype(globals::recordLength) const recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
 			TRUE, defaults::recordLength);
+	globals::recordLength = recordLength;
 
 	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
-		checkCaenStatus(
-				CAEN_DGTZ_SetRecordLength(hDevice, globals::recordLength, i),
-				"setting record length"
+		hDevice.command(
+				"setting record length",
+				[recordLength, i](auto handle) { return CAEN_DGTZ_SetRecordLength(handle, recordLength, i); }
 		);
 
 		globals::dcOffsets[i] = odb::getValueUInt16(hDB, hSet,
 				channelKey(i, "dc_offset"), TRUE, defaults::channel::dcOffset);
 
-		checkCaenStatus(
-				CAEN_DGTZ_SetChannelDCOffset(hDevice, i, globals::dcOffsets[i]),
-				"setting channel DC offset"
+		decltype(globals::dcOffsets[i]) dcOffset = globals::dcOffsets[i];
+		hDevice.command(
+				"setting channel DC offset",
+				[dcOffset, i](auto handle) { return CAEN_DGTZ_SetChannelDCOffset(handle, i, dcOffset); }
 		);
 	}
 
 	uint8_t const triggerChannel = odb::getValueUInt8(hDB, hSet,
 			"trigger_channel", TRUE, defaults::triggerChannel);
-	checkCaenStatus(
-			CAEN_DGTZ_SetChannelSelfTrigger(hDevice, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel)),
-			"setting channel self trigger"
+	hDevice.command(
+			"setting channel self trigger",
+			[triggerChannel](auto handle) { return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel)); }
 	);
 
 	uint16_t const triggerThreshold = odb::getValueUInt16(hDB, hSet,
 			"trigger_threshold", TRUE, defaults::triggerThreshold);
-	checkCaenStatus(
-			CAEN_DGTZ_SetChannelTriggerThreshold(hDevice, triggerChannel, triggerThreshold),
-			"setting channel trigger threshold"
+	hDevice.command(
+			"setting channel trigger threshold",
+			[triggerChannel, triggerThreshold](auto handle) { return CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold); }
 	);
 
 	bool const triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
 			"trigger_raising_polarity", TRUE, defaults::triggerRaisingPolarity);
-	checkCaenStatus(
-			CAEN_DGTZ_SetTriggerPolarity(hDevice, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge),
-			"setting trigger polarity"
+	hDevice.command(
+			"setting trigger polarity",
+			[triggerChannel, triggerRaisingPolarity](auto handle) { return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge); }
 	);
 
-	checkCaenStatus(
-			CAEN_DGTZ_SetMaxNumEventsBLT(hDevice, 1),
-			"setting max num events"
+	hDevice.command(
+			"setting max num events",
+			[](auto handle) { return CAEN_DGTZ_SetMaxNumEventsBLT(handle, 1); }
 	);
 
-	checkCaenStatus(
-			CAEN_DGTZ_SetAcquisitionMode(hDevice, CAEN_DGTZ_SW_CONTROLLED),
-			"setting acquisition mode"
+	hDevice.command(
+			"setting acquisition mode",
+			[](auto handle) { return CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED); }
 	);
 
-	checkCaenStatus(
-			CAEN_DGTZ_ReadRegister(hDevice, caen::v1720::REG_CHANNEL_CONFIG, &regData),
-			"reading channel config register"
-	);
+	regData = hDevice.readRegister(caen::v1720::REG_CHANNEL_CONFIG);
 	if (regData & caen::v1720::REG_BIT_TRIGGER_OVERLAP) {
 		// disable trigger overlap
-		checkCaenStatus(
-				CAEN_DGTZ_WriteRegister(hDevice, caen::v1720::REG_CHANNEL_CONFIG, regData & ~caen::v1720::REG_BIT_TRIGGER_OVERLAP),
-				"writing channel config register"
-		);
+		hDevice.writeRegister(caen::v1720::REG_CHANNEL_CONFIG, regData & ~caen::v1720::REG_BIT_TRIGGER_OVERLAP);
 	}
 
 	globals::preTriggerLength = odb::getValueUInt32(hDB, hSet,
 			"pre_trigger_length", TRUE, defaults::preTriggerLength);
 
-	checkCaenStatus(
-			CAEN_DGTZ_WriteRegister(hDevice, caen::v1720::REG_POST_TRIGGER, (globals::recordLength - globals::preTriggerLength) / 4),
-			"writing post trigger register"
-	);
+	hDevice.writeRegister(caen::v1720::REG_POST_TRIGGER, (globals::recordLength - globals::preTriggerLength) / 4);
 
 	std::string const triggerMode = odb::getValueString(hDB, hSet,
 			"trigger_mode", TRUE, defaults::triggerMode);
