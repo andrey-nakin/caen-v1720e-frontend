@@ -29,6 +29,9 @@ Event::~Event() {
 void Event::decode(char* const eventPtr) {
 
 	errorCode = CAEN_DGTZ_DecodeEvent(handle, eventPtr, &event);
+	if (CAEN_DGTZ_Success != errorCode) {
+		throw Exception(errorCode, "decoding event");
+	}
 
 }
 

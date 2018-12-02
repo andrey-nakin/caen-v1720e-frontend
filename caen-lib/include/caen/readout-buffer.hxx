@@ -10,6 +10,7 @@ namespace caen {
 
 class ReadoutBuffer final : public Noncopyable, public ErrorHolder {
 
+	Handle& handle;
 	char* buffer;
 	uint32_t bufferSize;
 
@@ -30,6 +31,12 @@ public:
 		return buffer;
 
 	}
+
+	void getEventInfo(CAEN_DGTZ_EventInfo_t &eventInfo, char*&eventPtr);
+
+	uint32_t readData();
+
+	uint32_t getNumEvents(uint32_t dataSize);
 
 };
 

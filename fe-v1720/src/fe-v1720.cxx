@@ -275,23 +275,6 @@ static INT handleCaenException(caen::Exception const& ex) {
 
 }
 
-static void checkCaenStatus(caen::ErrorHolder const& eh, std::string const& msg) {
-
-	if (!eh && false) {	//	TODO
-		std::stringstream s;
-		s << "CAEN error " << eh.getErrorCode() << " when " << msg;
-		throw midas::Exception(CM_SET_ERROR, s.str());
-	}
-
-}
-
-static void checkCaenStatus(CAEN_DGTZ_ErrorCode const rc, std::string const& msg) {
-
-	caen::ErrorHolder const eh(rc);
-	checkCaenStatus(eh, msg);
-
-}
-
 static caen::Handle connect() {
 
 	// save reference to settings tree
@@ -321,10 +304,12 @@ static void configure(caen::Handle& hDevice) {
 	HNDLE const hSet = getSettingsKey();
 	uint32_t regData;
 
-	checkCaenStatus(
-			CAEN_DGTZ_GetInfo(hDevice, &globals::boardInfo),
-			"getting digitizer info"
+	decltype(globals::boardInfo) boardInfo;
+	hDevice.command(
+			"getting digitizer info",
+			[&boardInfo](auto handle) { return CAEN_DGTZ_GetInfo(handle, &boardInfo); }
 	);
+	globals::boardInfo = boardInfo;
 	globals::enabledChannels.resize(globals::boardInfo.Channels);
 	globals::dcOffsets.resize(globals::boardInfo.Channels);
 
@@ -611,17 +596,9 @@ int readEvent(char *pevent, int off) {
 	int result;
 
 	try {
-		uint32_t dataSize;
-		checkCaenStatus(
-				CAEN_DGTZ_ReadData(*globals::hDevice, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, *globals::roBuffer, &dataSize),
-				"reading data"
-		);
+		uint32_t const dataSize = globals::roBuffer->readData();
 
-		uint32_t numEvents;
-		checkCaenStatus(
-				CAEN_DGTZ_GetNumEvents(*globals::hDevice, *globals::roBuffer, dataSize, &numEvents),
-				"getting num events"
-		);
+		uint32_t const numEvents = globals::roBuffer->getNumEvents(dataSize);
 
 		if (!numEvents) {
 			return 0;	//	no events
@@ -629,16 +606,9 @@ int readEvent(char *pevent, int off) {
 
 		CAEN_DGTZ_EventInfo_t eventInfo;
 		char *eventPtr = nullptr;
-		checkCaenStatus(
-				CAEN_DGTZ_GetEventInfo(*globals::hDevice, *globals::roBuffer, globals::roBuffer->size(), 0, &eventInfo, &eventPtr),
-				"getting event info"
-		);
+		globals::roBuffer->getEventInfo(eventInfo, eventPtr);
 
 		globals::event->decode(eventPtr);
-		checkCaenStatus(
-				*globals::event,
-				"decoding event"
-		);
 
 		bk_init32(pevent);
 
