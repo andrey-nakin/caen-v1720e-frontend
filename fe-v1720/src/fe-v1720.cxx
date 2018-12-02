@@ -83,9 +83,7 @@ INT interrupt_configure(INT cmd, INT source, PTYPE adr);
 
 extern HNDLE hDB;
 
-int read_test_event(char *pevent, int off);
-int read_slow_event(char *pevent, int off);
-int read_random_event(char *pevent, int off);
+int readEvent(char *pevent, int off);
 
 /*-- Equipment list ------------------------------------------------*/
 
@@ -101,7 +99,7 @@ RO_RUNNING, /* Read when running */
 0, /* stop run after this event limit */
 0, /* number of sub events */
 0, /* no history */
-"", "", "" }, read_test_event, /* readout routine */
+"", "", "" }, readEvent, /* readout routine */
 }, { "" } };
 
 #ifndef NEED_NO_EXTERN_C
@@ -421,7 +419,7 @@ static std::string toString(T const v, std::size_t const len) {
 
 }
 
-int read_test_event(char *pevent, int off) {
+int readEvent(char *pevent, int off) {
 	bk_init32(pevent);
 
 	uint32_t channelMask = 0x00ff;	//	TODO
