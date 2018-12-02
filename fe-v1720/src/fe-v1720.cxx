@@ -27,13 +27,13 @@
 
 namespace globals {
 
-CAEN_DGTZ_BoardInfo_t boardInfo;
-uint32_t recordLength = 0;
-uint32_t preTriggerLength = 0;
-std::vector<bool> enabledChannels;
-std::vector<uint16_t> dcOffsets;
-std::vector<uint16_t> sample;
-HNDLE hSet;
+static CAEN_DGTZ_BoardInfo_t boardInfo;
+static uint32_t recordLength = 0;
+static uint32_t preTriggerLength = 0;
+static std::vector<bool> enabledChannels;
+static std::vector<uint16_t> dcOffsets;
+static std::vector<uint16_t> sample;
+static HNDLE hSet;
 
 }
 
@@ -243,13 +243,6 @@ int test_thread(void *param) {
 	signal_readout_thread_active(test_rbh, 0);
 
 	return 0;
-}
-
-/*-- Frontend Exit -------------------------------------------------*/
-
-INT frontend_exit() {
-	std::cout << "frontend_exit()" << std::endl;
-	return SUCCESS;
 }
 
 /*-- Begin of Run --------------------------------------------------*/
@@ -488,7 +481,7 @@ int read_test_event(char *pevent, int off) {
 	return bk_size(pevent);
 }
 
-INT connectToDevice(HNDLE const hDB, HNDLE const hSet) {
+static INT connectToDevice(HNDLE const hDB, HNDLE const hSet) {
 
 	int32_t const linkNum = odb::getValueInt32(hDB, hSet, "link_num", TRUE,
 			defaults::linkNum);
@@ -505,14 +498,14 @@ INT connectToDevice(HNDLE const hDB, HNDLE const hSet) {
 
 }
 
-std::string channelKey(decltype(globals::boardInfo.Channels) const channelNo,
+static std::string channelKey(unsigned const channelNo,
 		char const * const keyName) {
 
 	return std::string("channel_") + std::to_string(channelNo) + "_" + keyName;
 
 }
 
-INT configureDevice(HNDLE const hDB, HNDLE const hSet) {
+static INT configureDevice(HNDLE const hDB, HNDLE const hSet) {
 
 	cm_msg(MDEBUG, frontend_name, "Configuring device");
 
@@ -532,8 +525,7 @@ INT configureDevice(HNDLE const hDB, HNDLE const hSet) {
 	globals::enabledChannels.resize(globals::boardInfo.Channels);
 	globals::dcOffsets.resize(globals::boardInfo.Channels);
 	uint32_t channelMask = 0x0000;
-	for (decltype(globals::boardInfo.Channels) i = 0;
-			i < globals::boardInfo.Channels; i++) {
+	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
 
 		globals::enabledChannels[i] = odb::getValueBool(hDB, hSet,
 				channelKey(i, "enabled"), TRUE, defaults::channel::enabled);
@@ -546,6 +538,7 @@ INT configureDevice(HNDLE const hDB, HNDLE const hSet) {
 
 	}
 
+	// TODO: test code
 	globals::sample.resize(globals::recordLength);
 	for (std::size_t i = 0; i < globals::recordLength; i++) {
 		globals::sample[i] = rand() % 0x10000;
@@ -560,41 +553,45 @@ INT configureDevice(HNDLE const hDB, HNDLE const hSet) {
 INT frontend_init() {
 	std::cout << "frontend_init()" << std::endl;
 
-	int status;
+	int status = SUCCESS;
 
-	// create subtree
-	odb::getValueInt32(hDB, 0, "/equipment/" EQUIP_NAME "/Settings/link_num",
-			TRUE, defaults::linkNum);
+	try {
+		// create subtree
+		odb::getValueInt32(hDB, 0, "/equipment/" EQUIP_NAME "/Settings/link_num",
+				TRUE, defaults::linkNum);
 
-	// save reference to settings tree
-	status = db_find_key(hDB, 0, "/equipment/" EQUIP_NAME "/Settings", &globals::hSet);
-	assert(status == DB_SUCCESS);
+		// save reference to settings tree
+		status = db_find_key(hDB, 0, "/equipment/" EQUIP_NAME "/Settings", &globals::hSet);
+		assert(status == DB_SUCCESS);
 
-	status = connectToDevice(hDB, globals::hSet);
-	assert(status == DB_SUCCESS);
+		status = connectToDevice(hDB, globals::hSet);
+		assert(status == DB_SUCCESS);
 
-	status = configureDevice(hDB, globals::hSet);
-	assert(status == DB_SUCCESS);
+		status = configureDevice(hDB, globals::hSet);
+		assert(status == DB_SUCCESS);
 
-#ifdef RPC_JRPC
-	status = cm_register_function(RPC_JRPC, rpc_callback);
-	assert(status == SUCCESS);
-#endif
+	#ifdef RPC_JRPC
+		status = cm_register_function(RPC_JRPC, rpc_callback);
+		assert(status == SUCCESS);
+	#endif
 
-	create_event_rb(test_rbh);
-	ss_thread_create(test_thread, 0);
+		create_event_rb(test_rbh);
+		ss_thread_create(test_thread, 0);
 
-//cm_set_watchdog_params (FALSE, 0);
+	//cm_set_watchdog_params (FALSE, 0);
 
-//set_rate_period(1000);
+	//set_rate_period(1000);
 
-	configure();
+		configure();
 
-	if (false) {
-		cm_msg(MERROR, frontend_name,
-				"Error initializing the front-end, status %d", status);
-		return 1;
+	} catch (midas::Exception& ex) {
+		status = ex.getStatus();
 	}
 
+	return status;
+}
+
+INT frontend_exit() {
+	std::cout << "frontend_exit()" << std::endl;
 	return SUCCESS;
 }

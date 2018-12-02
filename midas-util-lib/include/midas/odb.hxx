@@ -4,16 +4,7 @@
 #include <cstdint>
 #include <string>
 #include <midas.h>
-
-#ifndef NEED_NO_EXTERN_C
-extern "C" {
-#endif
-
-extern const char *frontend_name;
-
-#ifndef NEED_NO_EXTERN_C
-}
-#endif
+#include "midas/exception.hxx"
 
 namespace odb {
 
@@ -26,12 +17,7 @@ T getValue(HNDLE const hDB, HNDLE const hKeyRoot, std::string const& keyName,
 			&bufSize, type, create);
 
 	if (DB_SUCCESS != status) {
-		std::string msg("Error reading ODB key ");
-		msg += keyName;
-		msg += ", status %d";
-		cm_msg(MERROR, frontend_name, msg.c_str(), status);
-
-		throw std::exception();
+		throw midas::Exception(status, std::string("Error reading ODB key ") + keyName);
 	}
 
 	return value;
@@ -47,12 +33,7 @@ bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
 			&bufSize, TID_BOOL, create);
 
 	if (DB_SUCCESS != status) {
-		std::string msg("Error reading ODB key ");
-		msg += keyName;
-		msg += ", status %d";
-		cm_msg(MERROR, frontend_name, msg.c_str(), status);
-
-		throw std::exception();
+		throw midas::Exception(status, std::string("Error reading ODB key ") + keyName);
 	}
 
 	return v ? true : false;
@@ -70,12 +51,7 @@ std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
 			&bufSize, TID_STRING, create);
 
 	if (DB_SUCCESS != status) {
-		std::string msg("Error reading ODB key ");
-		msg += keyName;
-		msg += ", status %d";
-		cm_msg(MERROR, frontend_name, msg.c_str(), status);
-
-		throw std::exception();
+		throw midas::Exception(status, std::string("Error reading ODB key ") + keyName);
 	}
 
 	return &str[0];
