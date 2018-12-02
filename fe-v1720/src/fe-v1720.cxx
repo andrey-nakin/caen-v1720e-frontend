@@ -15,6 +15,7 @@
 #include <caen/error-holder.hxx>
 #include <caen/readout-buffer.hxx>
 #include <caen/event.hxx>
+#include <caen/exception.hxx>
 #include <caen/v1720.hxx>
 
 #include "defaults.hxx"
@@ -266,6 +267,14 @@ static HNDLE getSettingsKey() {
 
 }
 
+static INT handleCaenException(caen::Exception const& ex) {
+
+	INT const status = CM_SET_ERROR;
+	cm_msg(MERROR, frontend_name, ex.what(), status);
+	return status;
+
+}
+
 static void checkCaenStatus(caen::ErrorHolder const& eh, std::string const& msg) {
 
 	if (!eh && false) {	//	TODO
@@ -320,10 +329,7 @@ static void configure(caen::Handle& hDevice) {
 	globals::enabledChannels.resize(globals::boardInfo.Channels);
 	globals::dcOffsets.resize(globals::boardInfo.Channels);
 
-	checkCaenStatus(
-			CAEN_DGTZ_Reset(hDevice),
-			"resetting digitizer"
-	);
+	hDevice.command("resetting digitizer", [](auto handle) { return CAEN_DGTZ_Reset(handle); });
 
 	checkCaenStatus(
 			CAEN_DGTZ_SetIOLevel(hDevice, CAEN_DGTZ_IOLevel_NIM),
@@ -474,6 +480,8 @@ INT frontend_init() {
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
+	} catch (caen::Exception& ex) {
+		status = handleCaenException(ex);
 	}
 
 	return status;
@@ -494,6 +502,8 @@ INT frontend_exit() {
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
+	} catch (caen::Exception& ex) {
+		status = handleCaenException(ex);
 	}
 
 	return status;
@@ -517,6 +527,8 @@ INT begin_of_run(INT run_number, char *error) {
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
+	} catch (caen::Exception& ex) {
+		status = handleCaenException(ex);
 	}
 
 	return status;
@@ -541,6 +553,8 @@ INT end_of_run(INT run_number, char *error) {
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
+	} catch (caen::Exception& ex) {
+		status = handleCaenException(ex);
 	}
 
 	return status;
@@ -562,6 +576,8 @@ INT pause_run(INT run_number, char *error) {
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
+	} catch (caen::Exception& ex) {
+		status = handleCaenException(ex);
 	}
 
 	return status;
@@ -583,6 +599,8 @@ INT resume_run(INT run_number, char *error) {
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
+	} catch (caen::Exception& ex) {
+		status = handleCaenException(ex);
 	}
 
 	return status;
@@ -684,6 +702,9 @@ int readEvent(char *pevent, int off) {
 		result = bk_size(pevent);
 
 	} catch (midas::Exception& ex) {
+		result = 0;
+	} catch (caen::Exception& ex) {
+		handleCaenException(ex);
 		result = 0;
 	}
 
