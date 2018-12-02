@@ -24,6 +24,7 @@
 #include <midas/odb.hxx>
 #include <frontend/types.hxx>
 #include <caen/handle.hxx>
+#include <caen/error-holder.hxx>
 #include "defaults.hxx"
 
 namespace globals {
@@ -360,6 +361,23 @@ static HNDLE getSettingsKey() {
 
 }
 
+static void checkCaenStatus(caen::ErrorHolder const& eh, std::string const& msg) {
+
+	if (!eh) {
+		std::stringstream s;
+		s << "CAEN error " << eh.getErrorCode() << " when " << msg;
+		throw midas::Exception(CM_SET_ERROR, s.str());
+	}
+
+}
+
+static void checkCaenStatus(CAEN_DGTZ_ErrorCode const rc, std::string const& msg) {
+
+	caen::ErrorHolder const eh(rc);
+	checkCaenStatus(eh, msg);
+
+}
+
 static caen::Handle connect() {
 
 	// save reference to settings tree
@@ -375,11 +393,7 @@ static caen::Handle connect() {
 	cm_msg(MDEBUG, frontend_name, "Connecting to device");
 
 	caen::Handle result(linkNum, conetNode, vmeBaseAddr);
-	if (!result && false) {	//	TODO
-		std::stringstream s;
-		s << "Error " << result.getErrorCode() << " connecting to device";
-		throw midas::Exception(CM_SET_ERROR, s.str());
-	}
+	checkCaenStatus(result, "connecting to device");
 
 	cm_msg(MINFO, frontend_name, "Connected to device");
 
@@ -434,6 +448,15 @@ static void configure(caen::Handle& hDevice) {
 
 }
 
+static void startAcquisition() {
+
+	checkCaenStatus(
+			CAEN_DGTZ_SWStartAcquisition(*globals::hDevice),
+			"starting acquisition"
+	);
+
+}
+
 INT frontend_init() {
 	std::cout << "frontend_init()" << std::endl;
 
@@ -467,8 +490,23 @@ INT frontend_init() {
 }
 
 INT frontend_exit() {
+
 	std::cout << "frontend_exit()" << std::endl;
-	return SUCCESS;
+
+	int status = SUCCESS;
+
+	try {
+
+		if (globals::hDevice) {
+			globals::hDevice = nullptr;
+		}
+
+	} catch (midas::Exception& ex) {
+		status = ex.getStatus();
+	}
+
+	return status;
+
 }
 
 INT begin_of_run(INT run_number, char *error) {
@@ -481,6 +519,7 @@ INT begin_of_run(INT run_number, char *error) {
 	try {
 		globals::hDevice = std::make_unique<caen::Handle>(connect());
 		configure(*globals::hDevice);
+		startAcquisition();
 
 		test_event_count = 0;
 		test_rb_wait_count = 0;
@@ -545,6 +584,7 @@ INT resume_run(INT run_number, char *error) {
 
 	try {
 
+		startAcquisition();
 		test_run_number = run_number; // tell thread to start running
 
 	} catch (midas::Exception& ex) {

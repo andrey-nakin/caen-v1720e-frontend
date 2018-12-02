@@ -13,6 +13,7 @@ protected:
 public:
 
 	ErrorHolder();
+	ErrorHolder(CAEN_DGTZ_ErrorCode errorCode);
 
 	operator bool() const;
 
