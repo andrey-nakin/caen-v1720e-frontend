@@ -245,10 +245,14 @@ INT poll_event(INT source, INT count, BOOL test)
  is available. If test equals TRUE, don't return. The test
  flag is used to time the polling */
 {
+
+	std::cout << "poll_event(" << source << ", " << count << ", " << test << ")" << std::endl;
+
 	if (test) {
 		ss_sleep(count);
 	}
 	return (0);
+
 }
 
 /*-- Interrupt configuration ---------------------------------------*/
@@ -371,7 +375,7 @@ static caen::Handle connect() {
 	cm_msg(MDEBUG, frontend_name, "Connecting to device");
 
 	caen::Handle result(linkNum, conetNode, vmeBaseAddr);
-	if (!result) {
+	if (!result && false) {	//	TODO
 		std::stringstream s;
 		s << "Error " << result.getErrorCode() << " connecting to device";
 		throw midas::Exception(CM_SET_ERROR, s.str());
