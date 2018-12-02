@@ -5,6 +5,9 @@ namespace caen {
 Event::Event(Handle& aHandle) : handle(aHandle), event(nullptr) {
 
 	errorCode = CAEN_DGTZ_AllocateEvent(handle, &event);
+	if (CAEN_DGTZ_Success != errorCode) {
+		throw Exception(errorCode, "allocating event");
+	}
 
 }
 

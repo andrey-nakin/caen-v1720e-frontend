@@ -434,23 +434,21 @@ static void configure(caen::Handle& hDevice) {
 static void startAcquisition() {
 
 	globals::roBuffer = std::make_unique<caen::ReadoutBuffer>(*globals::hDevice);
-	checkCaenStatus(*globals::roBuffer, "allocating readout buffer");
 
 	globals::event = std::make_unique<caen::Event>(*globals::hDevice);
-	checkCaenStatus(*globals::event, "allocating event");
 
-	checkCaenStatus(
-			CAEN_DGTZ_SWStartAcquisition(*globals::hDevice),
-			"starting acquisition"
+	globals::hDevice->command(
+			"starting acquisition",
+			[](auto handle) { return CAEN_DGTZ_SWStartAcquisition(handle); }
 	);
 
 }
 
 static void stopAcquisition() {
 
-	checkCaenStatus(
-			CAEN_DGTZ_SWStopAcquisition(*globals::hDevice),
-			"stopping acquisition"
+	globals::hDevice->command(
+			"stopping acquisition",
+			[](auto handle) { return CAEN_DGTZ_SWStopAcquisition(handle); }
 	);
 
 	globals::event = nullptr;

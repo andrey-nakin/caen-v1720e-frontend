@@ -6,6 +6,9 @@ namespace caen {
 ReadoutBuffer::ReadoutBuffer(Handle& handle) : buffer(nullptr), bufferSize(0) {
 
 	errorCode = CAEN_DGTZ_MallocReadoutBuffer(handle, &buffer, &bufferSize);
+	if (CAEN_DGTZ_Success != errorCode) {
+		throw Exception(errorCode, "allocating readout buffer");
+	}
 
 }
 
