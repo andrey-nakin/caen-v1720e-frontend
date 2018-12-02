@@ -307,7 +307,6 @@ static caen::Handle connect() {
 	cm_msg(MDEBUG, frontend_name, "Connecting to device");
 
 	caen::Handle result(linkNum, conetNode, vmeBaseAddr);
-	checkCaenStatus(result, "connecting to device");
 
 	cm_msg(MINFO, frontend_name, "Connected to device");
 
