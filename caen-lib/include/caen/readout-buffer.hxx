@@ -2,6 +2,7 @@
 #define	__CAEN_READOUT_BUFFER_HXX__
 
 #include <cstdint>
+#include <utility>
 #include "noncopyable.hxx"
 #include "error-holder.hxx"
 #include "handle.hxx"
@@ -32,7 +33,7 @@ public:
 
 	}
 
-	void getEventInfo(CAEN_DGTZ_EventInfo_t &eventInfo, char*&eventPtr);
+	std::pair<CAEN_DGTZ_EventInfo_t, char*> getEventInfo();
 
 	uint32_t readData();
 

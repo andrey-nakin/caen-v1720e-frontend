@@ -603,11 +603,10 @@ int readEvent(char *pevent, int off) {
 			return 0;	//	no events
 		}
 
-		CAEN_DGTZ_EventInfo_t eventInfo;
-		char *eventPtr = nullptr;
-		globals::roBuffer->getEventInfo(eventInfo, eventPtr);
+		std::pair<CAEN_DGTZ_EventInfo_t, char*> evt = globals::roBuffer->getEventInfo();
+		CAEN_DGTZ_EventInfo_t const& eventInfo = evt.first;
 
-		globals::event->decode(eventPtr);
+		globals::event->decode(evt.second);
 
 		bk_init32(pevent);
 

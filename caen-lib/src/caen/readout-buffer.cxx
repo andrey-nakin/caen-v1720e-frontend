@@ -29,12 +29,14 @@ ReadoutBuffer::~ReadoutBuffer() {
 
 }
 
-void ReadoutBuffer::getEventInfo(CAEN_DGTZ_EventInfo_t &eventInfo, char*&eventPtr) {
+std::pair<CAEN_DGTZ_EventInfo_t, char*> ReadoutBuffer::getEventInfo() {
 
-	errorCode = CAEN_DGTZ_GetEventInfo(handle, buffer, bufferSize, 0, &eventInfo, &eventPtr);
+	std::pair<CAEN_DGTZ_EventInfo_t, char*> result;
+	errorCode = CAEN_DGTZ_GetEventInfo(handle, buffer, bufferSize, 0, &result.first, &result.second);
 	if (CAEN_DGTZ_Success != errorCode) {
 		throw Exception(errorCode, "getting event info");
 	}
+	return result;
 
 }
 
