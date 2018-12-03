@@ -315,7 +315,7 @@ static void configure(caen::Handle& hDevice) {
 
 	hDevice.hCommand(
 			"resetting digitizer",
-			[](auto handle) { return CAEN_DGTZ_Reset(handle); }
+			CAEN_DGTZ_Reset
 	);
 
 	hDevice.hCommand(
@@ -423,7 +423,7 @@ static void startAcquisition() {
 
 	globals::hDevice->hCommand(
 			"starting acquisition",
-			[](auto handle) { return CAEN_DGTZ_SWStartAcquisition(handle); }
+			CAEN_DGTZ_SWStartAcquisition
 	);
 
 }
@@ -432,7 +432,7 @@ static void stopAcquisition() {
 
 	globals::hDevice->hCommand(
 			"stopping acquisition",
-			[](auto handle) { return CAEN_DGTZ_SWStopAcquisition(handle); }
+			CAEN_DGTZ_SWStopAcquisition
 	);
 
 	globals::event = nullptr;

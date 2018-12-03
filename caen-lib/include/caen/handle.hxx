@@ -38,6 +38,14 @@ public:
 		);
 	}
 
+	template<class Function>
+	void hCommand(std::string const& msg, CAEN_DGTZ_ErrorCode (*action)(int)) {
+		ErrorHolder::command(
+				msg,
+				[this, action]() {return action(handle);}
+		);
+	}
+
 	template<class MessageBuilder, class Function>
 	void hCommandE(MessageBuilder msgBuilder, Function action) {
 		ErrorHolder::commandE(
