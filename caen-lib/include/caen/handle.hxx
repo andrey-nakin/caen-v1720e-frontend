@@ -31,9 +31,17 @@ public:
 	void writeRegister(uint32_t reg, uint32_t regData);
 
 	template<class Function>
-	void command(std::string const& msg, Function action) {
+	void hCommand(std::string const& msg, Function action) {
 		ErrorHolder::command(
 				msg,
+				[this, action]() {return action(handle);}
+		);
+	}
+
+	template<class MessageBuilder, class Function>
+	void hCommandE(MessageBuilder msgBuilder, Function action) {
+		ErrorHolder::commandE(
+				msgBuilder,
 				[this, action]() {return action(handle);}
 		);
 	}

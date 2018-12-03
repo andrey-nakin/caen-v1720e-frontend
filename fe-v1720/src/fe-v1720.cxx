@@ -305,7 +305,7 @@ static void configure(caen::Handle& hDevice) {
 	uint32_t regData;
 
 	decltype(globals::boardInfo) boardInfo;
-	hDevice.command(
+	hDevice.hCommand(
 			"getting digitizer info",
 			[&boardInfo](auto handle) { return CAEN_DGTZ_GetInfo(handle, &boardInfo); }
 	);
@@ -313,17 +313,17 @@ static void configure(caen::Handle& hDevice) {
 	globals::enabledChannels.resize(globals::boardInfo.Channels);
 	globals::dcOffsets.resize(globals::boardInfo.Channels);
 
-	hDevice.command(
+	hDevice.hCommand(
 			"resetting digitizer",
 			[](auto handle) { return CAEN_DGTZ_Reset(handle); }
 	);
 
-	hDevice.command(
+	hDevice.hCommand(
 			"setting IO level",
 			[](auto handle) { return CAEN_DGTZ_SetIOLevel(handle, CAEN_DGTZ_IOLevel_NIM); }
 	);
 
-	hDevice.command(
+	hDevice.hCommand(
 			"setting external trigger input mode",
 			[](auto handle) { return CAEN_DGTZ_SetExtTriggerInputMode(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY); }
 	);
@@ -336,12 +336,12 @@ static void configure(caen::Handle& hDevice) {
 			channelMask |= 0x0001 << i;
 		}
 	}
-	hDevice.command(
+	hDevice.hCommand(
 			"setting channel enable mask",
 			[channelMask](auto handle) { return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask); }
 	);
 
-	hDevice.command(
+	hDevice.hCommand(
 			"setting run sync mode",
 			[](auto handle) { return CAEN_DGTZ_SetRunSynchronizationMode(handle, CAEN_DGTZ_RUN_SYNC_Disabled); }
 	);
@@ -351,7 +351,7 @@ static void configure(caen::Handle& hDevice) {
 	globals::recordLength = recordLength;
 
 	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
-		hDevice.command(
+		hDevice.hCommand(
 				"setting record length",
 				[recordLength, i](auto handle) { return CAEN_DGTZ_SetRecordLength(handle, recordLength, i); }
 		);
@@ -360,7 +360,7 @@ static void configure(caen::Handle& hDevice) {
 				channelKey(i, "dc_offset"), TRUE, defaults::channel::dcOffset);
 
 		decltype(globals::dcOffsets[i]) dcOffset = globals::dcOffsets[i];
-		hDevice.command(
+		hDevice.hCommand(
 				"setting channel DC offset",
 				[dcOffset, i](auto handle) { return CAEN_DGTZ_SetChannelDCOffset(handle, i, dcOffset); }
 		);
@@ -368,31 +368,31 @@ static void configure(caen::Handle& hDevice) {
 
 	uint8_t const triggerChannel = odb::getValueUInt8(hDB, hSet,
 			"trigger_channel", TRUE, defaults::triggerChannel);
-	hDevice.command(
+	hDevice.hCommand(
 			"setting channel self trigger",
 			[triggerChannel](auto handle) { return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel)); }
 	);
 
 	uint16_t const triggerThreshold = odb::getValueUInt16(hDB, hSet,
 			"trigger_threshold", TRUE, defaults::triggerThreshold);
-	hDevice.command(
+	hDevice.hCommand(
 			"setting channel trigger threshold",
 			[triggerChannel, triggerThreshold](auto handle) { return CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold); }
 	);
 
 	bool const triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
 			"trigger_raising_polarity", TRUE, defaults::triggerRaisingPolarity);
-	hDevice.command(
+	hDevice.hCommand(
 			"setting trigger polarity",
 			[triggerChannel, triggerRaisingPolarity](auto handle) { return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge); }
 	);
 
-	hDevice.command(
+	hDevice.hCommand(
 			"setting max num events",
 			[](auto handle) { return CAEN_DGTZ_SetMaxNumEventsBLT(handle, 1); }
 	);
 
-	hDevice.command(
+	hDevice.hCommand(
 			"setting acquisition mode",
 			[](auto handle) { return CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED); }
 	);
@@ -421,7 +421,7 @@ static void startAcquisition() {
 
 	globals::event = std::make_unique<caen::Event>(*globals::hDevice);
 
-	globals::hDevice->command(
+	globals::hDevice->hCommand(
 			"starting acquisition",
 			[](auto handle) { return CAEN_DGTZ_SWStartAcquisition(handle); }
 	);
@@ -430,7 +430,7 @@ static void startAcquisition() {
 
 static void stopAcquisition() {
 
-	globals::hDevice->command(
+	globals::hDevice->hCommand(
 			"stopping acquisition",
 			[](auto handle) { return CAEN_DGTZ_SWStopAcquisition(handle); }
 	);

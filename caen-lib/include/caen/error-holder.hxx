@@ -22,6 +22,14 @@ public:
 		}
 	}
 
+	template<class MessageBuilder, class Function>
+	void commandE(MessageBuilder msgBuilder, Function action) {
+		auto const status = action();
+		if (CAEN_DGTZ_Success != status) {
+			throw Exception(status, msgBuilder());
+		}
+	}
+
 };
 
 }
