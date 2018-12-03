@@ -32,10 +32,10 @@ public:
 
 	template<class Function>
 	void command(std::string const& msg, Function action) {
-		auto const res = action(handle);
-		if (CAEN_DGTZ_Success != res) {
-			throw Exception(res, msg);
-		}
+		ErrorHolder::command(
+				msg,
+				[this, action]() {return action(handle);}
+		);
 	}
 
 };
