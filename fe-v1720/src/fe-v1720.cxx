@@ -366,6 +366,9 @@ static void configure(caen::Handle& hDevice) {
 		);
 	}
 
+	std::string const triggerMode = odb::getValueString(hDB, hSet,
+			"trigger_mode", TRUE, defaults::triggerMode);
+
 	uint8_t const triggerChannel = odb::getValueUInt8(hDB, hSet,
 			"trigger_channel", TRUE, defaults::triggerChannel);
 	hDevice.hCommand(
@@ -407,9 +410,6 @@ static void configure(caen::Handle& hDevice) {
 			"pre_trigger_length", TRUE, defaults::preTriggerLength);
 
 	hDevice.writeRegister(caen::v1720::REG_POST_TRIGGER, (globals::recordLength - globals::preTriggerLength) / 4);
-
-	std::string const triggerMode = odb::getValueString(hDB, hSet,
-			"trigger_mode", TRUE, defaults::triggerMode);
 
 	cm_msg(MDEBUG, frontend_name, "Device is successfully configured");
 
