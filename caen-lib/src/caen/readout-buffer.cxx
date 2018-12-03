@@ -1,14 +1,13 @@
-#include <CAENDigitizer.h>
 #include <caen/readout-buffer.hxx>
 
 namespace caen {
 
 ReadoutBuffer::ReadoutBuffer(Handle& aHandle) : handle(aHandle), buffer(nullptr), bufferSize(0) {
 
-	errorCode = CAEN_DGTZ_MallocReadoutBuffer(handle, &buffer, &bufferSize);
-	if (CAEN_DGTZ_Success != errorCode) {
-		throw Exception(errorCode, "allocating readout buffer");
-	}
+	command(
+			"allocating readout buffer",
+			[this]() {return CAEN_DGTZ_MallocReadoutBuffer(handle, &buffer, &bufferSize);}
+	);
 
 }
 
@@ -29,24 +28,13 @@ ReadoutBuffer::~ReadoutBuffer() {
 
 }
 
-std::pair<CAEN_DGTZ_EventInfo_t, char*> ReadoutBuffer::getEventInfo() {
-
-	std::pair<CAEN_DGTZ_EventInfo_t, char*> result;
-	errorCode = CAEN_DGTZ_GetEventInfo(handle, buffer, bufferSize, 0, &result.first, &result.second);
-	if (CAEN_DGTZ_Success != errorCode) {
-		throw Exception(errorCode, "getting event info");
-	}
-	return result;
-
-}
-
 uint32_t ReadoutBuffer::readData() {
 
 	uint32_t dataSize;
-	errorCode = CAEN_DGTZ_ReadData(handle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &dataSize);
-	if (CAEN_DGTZ_Success != errorCode) {
-		throw Exception(errorCode, "reading data");
-	}
+	command(
+			"reading data",
+			[this, &dataSize]() {return CAEN_DGTZ_ReadData(handle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &dataSize);}
+	);
 	return dataSize;
 
 }
@@ -54,11 +42,22 @@ uint32_t ReadoutBuffer::readData() {
 uint32_t ReadoutBuffer::getNumEvents(uint32_t const dataSize) {
 
 	uint32_t numEvents;
-	errorCode = CAEN_DGTZ_GetNumEvents(handle, buffer, dataSize, &numEvents);
-	if (CAEN_DGTZ_Success != errorCode) {
-		throw Exception(errorCode, "getting num events");
-	}
+	command(
+			"getting num events",
+			[this, dataSize, &numEvents]() {return CAEN_DGTZ_GetNumEvents(handle, buffer, dataSize, &numEvents);}
+	);
 	return numEvents;
+
+}
+
+std::pair<CAEN_DGTZ_EventInfo_t, char*> ReadoutBuffer::getEventInfo(int32_t const numEvent) {
+
+	std::pair<CAEN_DGTZ_EventInfo_t, char*> result;
+	command(
+			"getting event info",
+			[this, numEvent, &result]() {return CAEN_DGTZ_GetEventInfo(handle, buffer, bufferSize, numEvent, &result.first, &result.second);}
+	);
+	return result;
 
 }
 

@@ -4,10 +4,10 @@ namespace caen {
 
 Event::Event(Handle& aHandle) : handle(aHandle), event(nullptr) {
 
-	errorCode = CAEN_DGTZ_AllocateEvent(handle, &event);
-	if (CAEN_DGTZ_Success != errorCode) {
-		throw Exception(errorCode, "allocating event");
-	}
+	command(
+			"allocating event",
+			[this]() {return CAEN_DGTZ_AllocateEvent(handle, &event); }
+	);
 
 }
 
@@ -28,10 +28,11 @@ Event::~Event() {
 
 void Event::decode(char* const eventPtr) {
 
-	errorCode = CAEN_DGTZ_DecodeEvent(handle, eventPtr, &event);
-	if (CAEN_DGTZ_Success != errorCode) {
-		throw Exception(errorCode, "decoding event");
-	}
+
+	command(
+			"decoding event",
+			[this, eventPtr]() {return CAEN_DGTZ_DecodeEvent(handle, eventPtr, &event); }
+	);
 
 }
 

@@ -20,6 +20,10 @@
 
 #include "defaults.hxx"
 
+#define EQUIP_NAME "v1720"
+constexpr int32_t FIRST_EVENT = 0;
+constexpr int EVID = 1;
+
 namespace globals {
 
 static CAEN_DGTZ_BoardInfo_t boardInfo;
@@ -33,9 +37,6 @@ static std::unique_ptr<caen::ReadoutBuffer> roBuffer;
 static std::unique_ptr<caen::Event> event;
 
 }
-
-#define EQUIP_NAME "v1720"
-#define EVID 1
 
 #ifndef NEED_NO_EXTERN_C
 extern "C" {
@@ -603,7 +604,7 @@ int readEvent(char *pevent, int off) {
 			return 0;	//	no events
 		}
 
-		std::pair<CAEN_DGTZ_EventInfo_t, char*> evt = globals::roBuffer->getEventInfo();
+		std::pair<CAEN_DGTZ_EventInfo_t, char*> evt = globals::roBuffer->getEventInfo(FIRST_EVENT);
 		CAEN_DGTZ_EventInfo_t const& eventInfo = evt.first;
 
 		globals::event->decode(evt.second);

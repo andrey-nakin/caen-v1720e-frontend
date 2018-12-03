@@ -1,26 +1,25 @@
 #ifndef	__CAEN_ERROR_HOLDER_HXX__
 #define	__CAEN_ERROR_HOLDER_HXX__
 
+#include <string>
 #include <CAENDigitizer.h>
+#include "exception.hxx"
 
 namespace caen {
 
 class ErrorHolder {
 protected:
 
-	CAEN_DGTZ_ErrorCode errorCode;
+	ErrorHolder();
 
 public:
 
-	ErrorHolder();
-	ErrorHolder(CAEN_DGTZ_ErrorCode errorCode);
-
-	operator bool() const;
-
-	CAEN_DGTZ_ErrorCode getErrorCode() const {
-
-		return errorCode;
-
+	template<class Function>
+	void command(std::string const& msg, Function action) {
+		auto const status = action();
+		if (CAEN_DGTZ_Success != status) {
+			throw Exception(status, msg);
+		}
 	}
 
 };

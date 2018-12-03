@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <utility>
+#include <CAENDigitizer.h>
 #include "noncopyable.hxx"
 #include "error-holder.hxx"
 #include "handle.hxx"
@@ -33,11 +34,11 @@ public:
 
 	}
 
-	std::pair<CAEN_DGTZ_EventInfo_t, char*> getEventInfo();
-
 	uint32_t readData();
 
 	uint32_t getNumEvents(uint32_t dataSize);
+
+	std::pair<CAEN_DGTZ_EventInfo_t, char*> getEventInfo(int32_t numEvent);
 
 };
 
