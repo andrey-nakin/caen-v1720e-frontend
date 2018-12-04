@@ -35,6 +35,7 @@ static std::vector<uint16_t> sample;
 static std::unique_ptr<caen::Handle> hDevice;
 static std::unique_ptr<caen::ReadoutBuffer> roBuffer;
 static std::unique_ptr<caen::Event> event;
+static uint32_t eventCounter;
 
 }
 
@@ -211,7 +212,6 @@ INT poll_event(INT source, INT count, BOOL test)
  flag is used to time the polling */
 {
 
-
 	if (test) {
 		ss_sleep(count);
 	}
@@ -281,19 +281,13 @@ static caen::Handle connect() {
 	uint32_t const vmeBaseAddr = odb::getValueUInt32(hDB, hSet, "vme_base_addr",
 			TRUE, defaults::vmeBaseAddr);
 
-	cm_msg(MDEBUG, frontend_name, "Connecting to device");
-
 	caen::Handle result(linkNum, conetNode, vmeBaseAddr);
-
-	cm_msg(MINFO, frontend_name, "Connected to device");
 
 	return result;
 
 }
 
 static void configure(caen::Handle& hDevice) {
-
-	cm_msg(MDEBUG, frontend_name, "Configuring device");
 
 	HNDLE const hSet = getSettingsKey();
 	uint32_t regData;
@@ -379,8 +373,6 @@ static void configure(caen::Handle& hDevice) {
 
 	hDevice.writeRegister(caen::v1720::REG_POST_TRIGGER,
 			(globals::recordLength - globals::preTriggerLength) / 4);
-
-	cm_msg(MDEBUG, frontend_name, "Device is successfully configured");
 
 }
 
@@ -563,6 +555,12 @@ int readEvent(char *pevent, int off) {
 		std::pair<CAEN_DGTZ_EventInfo_t, char*> evt =
 				globals::roBuffer->getEventInfo(FIRST_EVENT);
 		CAEN_DGTZ_EventInfo_t const& eventInfo = evt.first;
+
+		if (eventInfo.EventCounter > globals::eventCounter + 1) {
+			cm_msg(MERROR, frontend_name, "%u event(s) has been lost",
+					eventInfo.EventCounter - globals::eventCounter - 1);
+		}
+		globals::eventCounter = eventInfo.EventCounter;
 
 		globals::event->decode(evt.second);
 
