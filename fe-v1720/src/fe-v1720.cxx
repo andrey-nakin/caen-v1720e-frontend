@@ -11,6 +11,7 @@
 
 #include <midas/odb.hxx>
 #include <frontend/types.hxx>
+#include <frontend/locker.hxx>
 #include <caen/handle.hxx>
 #include <caen/error-holder.hxx>
 #include <caen/readout-buffer.hxx>
@@ -37,6 +38,7 @@ static std::unique_ptr<caen::ReadoutBuffer> roBuffer;
 static std::unique_ptr<caen::Event> event;
 static uint32_t eventCounter;
 static midas_thread_t readoutThread;
+static std::atomic_bool isReading;
 
 }
 
@@ -388,9 +390,16 @@ static void startAcquisition() {
 	globals::hDevice->hCommand("starting acquisition",
 			CAEN_DGTZ_SWStartAcquisition);
 
+	globals::isReading = false;
+
 }
 
 static void stopAcquisition() {
+
+	// wait until reading completes
+	while (globals::isReading) {
+		ss_sleep(10);
+	}
 
 	globals::hDevice->hCommand("stopping acquisition",
 			CAEN_DGTZ_SWStopAcquisition);
@@ -452,14 +461,14 @@ INT begin_of_run(INT run_number, char *error) {
 	int status = SUCCESS;
 
 	try {
-//		globals::hDevice = std::unique_ptr < caen::Handle
-//				> (new caen::Handle(connect()));
-//		configure(*globals::hDevice);
+		globals::hDevice = std::unique_ptr < caen::Handle
+				> (new caen::Handle(connect()));
+		configure(*globals::hDevice);
+
+		startAcquisition();
 
 		test_rb_wait_count = 0;
 		test_run_number = run_number; // tell thread to start running
-
-//		startAcquisition();
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
@@ -477,12 +486,12 @@ INT end_of_run(INT run_number, char *error) {
 
 	try {
 
+		test_run_number = 0; // tell thread to stop running
+
 		if (globals::hDevice) {
 			stopAcquisition();
 			globals::hDevice = nullptr;
 		}
-
-		test_run_number = 0; // tell thread to stop running
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
@@ -543,16 +552,9 @@ INT frontend_loop() {
 int readEvent(char *pevent, int off) {
 
 	int result;
+	fe::Locker locker(globals::isReading);
 
 	try {
-		if (!globals::hDevice) {
-			globals::hDevice = std::unique_ptr < caen::Handle
-					> (new caen::Handle(connect()));
-			configure(*globals::hDevice);
-
-			startAcquisition();
-		}
-
 		uint32_t const dataSize = globals::roBuffer->readData();
 
 		uint32_t const numEvents = globals::roBuffer->getNumEvents(dataSize);
