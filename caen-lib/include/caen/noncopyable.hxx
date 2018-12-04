@@ -6,13 +6,13 @@ namespace caen {
 class Noncopyable {
 public:
 
-    Noncopyable() = default;
-    ~Noncopyable() = default;
+	Noncopyable() = default;
+	~Noncopyable() = default;
 
 private:
 
-    Noncopyable(const Noncopyable&) = delete;
-    Noncopyable& operator=(const Noncopyable&) = delete;
+	Noncopyable(const Noncopyable&) = delete;
+	Noncopyable& operator=(const Noncopyable&) = delete;
 
 };
 

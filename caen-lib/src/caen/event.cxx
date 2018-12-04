@@ -2,16 +2,16 @@
 
 namespace caen {
 
-Event::Event(Handle& aHandle) : handle(aHandle), event(nullptr) {
+Event::Event(Handle& aHandle) :
+		handle(aHandle), event(nullptr) {
 
-	command(
-			"allocating event",
-			[this]() {return CAEN_DGTZ_AllocateEvent(handle, &event); }
-	);
+	command("allocating event",
+			[this]() {return CAEN_DGTZ_AllocateEvent(handle, &event);});
 
 }
 
-Event::Event(Event&& rb) : handle(rb.handle), event(nullptr) {
+Event::Event(Event&& rb) :
+		handle(rb.handle), event(nullptr) {
 
 	this->event = rb.event;
 	rb.event = nullptr;
@@ -28,11 +28,8 @@ Event::~Event() {
 
 void Event::decode(char* const eventPtr) {
 
-
-	command(
-			"decoding event",
-			[this, eventPtr]() {return CAEN_DGTZ_DecodeEvent(handle, eventPtr, &event); }
-	);
+	command("decoding event",
+			[this, eventPtr]() {return CAEN_DGTZ_DecodeEvent(handle, eventPtr, &event);});
 
 }
 

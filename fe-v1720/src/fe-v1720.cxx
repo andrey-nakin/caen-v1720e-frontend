@@ -84,8 +84,7 @@ int readEvent(char *pevent, int off);
 
 /*-- Equipment list ------------------------------------------------*/
 
-EQUIPMENT equipment[] = { { EQUIP_NAME, {
-EVID, (1 << EVID), /* event ID, trigger mask */
+EQUIPMENT equipment[] = { { EQUIP_NAME, { EVID, (1 << EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
 EQ_USER, /* equipment type */
 0, /* event source */
@@ -200,7 +199,6 @@ int test_thread(void *param) {
 	return 0;
 }
 
-
 /********************************************************************\
   
  Readout routines for different events
@@ -213,7 +211,8 @@ INT poll_event(INT source, INT count, BOOL test)
  flag is used to time the polling */
 {
 
-	std::cout << "poll_event(" << source << ", " << count << ", " << test << ")" << std::endl;
+	std::cout << "poll_event(" << source << ", " << count << ", " << test << ")"
+			<< std::endl;
 
 	if (test) {
 		ss_sleep(count);
@@ -305,28 +304,19 @@ static void configure(caen::Handle& hDevice) {
 	uint32_t regData;
 
 	decltype(globals::boardInfo) boardInfo;
-	hDevice.hCommand(
-			"getting digitizer info",
-			[&boardInfo](auto handle) { return CAEN_DGTZ_GetInfo(handle, &boardInfo); }
-	);
+	hDevice.hCommand("getting digitizer info",
+			[&boardInfo](int handle) {return CAEN_DGTZ_GetInfo(handle, &boardInfo);});
 	globals::boardInfo = boardInfo;
 	globals::enabledChannels.resize(globals::boardInfo.Channels);
 	globals::dcOffsets.resize(globals::boardInfo.Channels);
 
-	hDevice.hCommand(
-			"resetting digitizer",
-			CAEN_DGTZ_Reset
-	);
+	hDevice.hCommand("resetting digitizer", CAEN_DGTZ_Reset);
 
-	hDevice.hCommand(
-			"setting IO level",
-			[](auto handle) { return CAEN_DGTZ_SetIOLevel(handle, CAEN_DGTZ_IOLevel_NIM); }
-	);
+	hDevice.hCommand("setting IO level",
+			[](int handle) {return CAEN_DGTZ_SetIOLevel(handle, CAEN_DGTZ_IOLevel_NIM);});
 
-	hDevice.hCommand(
-			"setting external trigger input mode",
-			[](auto handle) { return CAEN_DGTZ_SetExtTriggerInputMode(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY); }
-	);
+	hDevice.hCommand("setting external trigger input mode",
+			[](int handle) {return CAEN_DGTZ_SetExtTriggerInputMode(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY);});
 
 	uint32_t channelMask = 0x0000;
 	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
@@ -336,34 +326,26 @@ static void configure(caen::Handle& hDevice) {
 			channelMask |= 0x0001 << i;
 		}
 	}
-	hDevice.hCommand(
-			"setting channel enable mask",
-			[channelMask](auto handle) { return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask); }
-	);
+	hDevice.hCommand("setting channel enable mask",
+			[channelMask](int handle) {return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask);});
 
-	hDevice.hCommand(
-			"setting run sync mode",
-			[](auto handle) { return CAEN_DGTZ_SetRunSynchronizationMode(handle, CAEN_DGTZ_RUN_SYNC_Disabled); }
-	);
+	hDevice.hCommand("setting run sync mode",
+			[](int handle) {return CAEN_DGTZ_SetRunSynchronizationMode(handle, CAEN_DGTZ_RUN_SYNC_Disabled);});
 
-	decltype(globals::recordLength) const recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
-			TRUE, defaults::recordLength);
+	decltype(globals::recordLength) const recordLength = odb::getValueUInt32(
+			hDB, hSet, "waveform_length", TRUE, defaults::recordLength);
 	globals::recordLength = recordLength;
 
 	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
-		hDevice.hCommand(
-				"setting record length",
-				[recordLength, i](auto handle) { return CAEN_DGTZ_SetRecordLength(handle, recordLength, i); }
-		);
+		hDevice.hCommand("setting record length",
+				[recordLength, i](int handle) {return CAEN_DGTZ_SetRecordLength(handle, recordLength, i);});
 
 		globals::dcOffsets[i] = odb::getValueUInt16(hDB, hSet,
 				channelKey(i, "dc_offset"), TRUE, defaults::channel::dcOffset);
 
 		decltype(globals::dcOffsets[i]) dcOffset = globals::dcOffsets[i];
-		hDevice.hCommand(
-				"setting channel DC offset",
-				[dcOffset, i](auto handle) { return CAEN_DGTZ_SetChannelDCOffset(handle, i, dcOffset); }
-		);
+		hDevice.hCommand("setting channel DC offset",
+				[dcOffset, i](int handle) {return CAEN_DGTZ_SetChannelDCOffset(handle, i, dcOffset);});
 	}
 
 	std::string const triggerMode = odb::getValueString(hDB, hSet,
@@ -371,45 +353,37 @@ static void configure(caen::Handle& hDevice) {
 
 	uint8_t const triggerChannel = odb::getValueUInt8(hDB, hSet,
 			"trigger_channel", TRUE, defaults::triggerChannel);
-	hDevice.hCommand(
-			"setting channel self trigger",
-			[triggerChannel](auto handle) { return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel)); }
-	);
+	hDevice.hCommand("setting channel self trigger",
+			[triggerChannel](int handle) {return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel));});
 
 	uint16_t const triggerThreshold = odb::getValueUInt16(hDB, hSet,
 			"trigger_threshold", TRUE, defaults::triggerThreshold);
-	hDevice.hCommand(
-			"setting channel trigger threshold",
-			[triggerChannel, triggerThreshold](auto handle) { return CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold); }
-	);
+	hDevice.hCommand("setting channel trigger threshold",
+			[triggerChannel, triggerThreshold](int handle) {return CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold);});
 
 	bool const triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
 			"trigger_raising_polarity", TRUE, defaults::triggerRaisingPolarity);
-	hDevice.hCommand(
-			"setting trigger polarity",
-			[triggerChannel, triggerRaisingPolarity](auto handle) { return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge); }
-	);
+	hDevice.hCommand("setting trigger polarity",
+			[triggerChannel, triggerRaisingPolarity](int handle) {return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge);});
 
-	hDevice.hCommand(
-			"setting max num events",
-			[](auto handle) { return CAEN_DGTZ_SetMaxNumEventsBLT(handle, 1); }
-	);
+	hDevice.hCommand("setting max num events",
+			[](int handle) {return CAEN_DGTZ_SetMaxNumEventsBLT(handle, 1);});
 
-	hDevice.hCommand(
-			"setting acquisition mode",
-			[](auto handle) { return CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED); }
-	);
+	hDevice.hCommand("setting acquisition mode",
+			[](int handle) {return CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED);});
 
 	regData = hDevice.readRegister(caen::v1720::REG_CHANNEL_CONFIG);
 	if (regData & caen::v1720::REG_BIT_TRIGGER_OVERLAP) {
 		// disable trigger overlap
-		hDevice.writeRegister(caen::v1720::REG_CHANNEL_CONFIG, regData & ~caen::v1720::REG_BIT_TRIGGER_OVERLAP);
+		hDevice.writeRegister(caen::v1720::REG_CHANNEL_CONFIG,
+				regData & ~caen::v1720::REG_BIT_TRIGGER_OVERLAP);
 	}
 
 	globals::preTriggerLength = odb::getValueUInt32(hDB, hSet,
 			"pre_trigger_length", TRUE, defaults::preTriggerLength);
 
-	hDevice.writeRegister(caen::v1720::REG_POST_TRIGGER, (globals::recordLength - globals::preTriggerLength) / 4);
+	hDevice.writeRegister(caen::v1720::REG_POST_TRIGGER,
+			(globals::recordLength - globals::preTriggerLength) / 4);
 
 	cm_msg(MDEBUG, frontend_name, "Device is successfully configured");
 
@@ -417,23 +391,21 @@ static void configure(caen::Handle& hDevice) {
 
 static void startAcquisition() {
 
-	globals::roBuffer = std::make_unique<caen::ReadoutBuffer>(*globals::hDevice);
+	globals::roBuffer = std::unique_ptr < caen::ReadoutBuffer
+			> (new caen::ReadoutBuffer(*globals::hDevice));
 
-	globals::event = std::make_unique<caen::Event>(*globals::hDevice);
+	globals::event = std::unique_ptr < caen::Event
+			> (new caen::Event(*globals::hDevice));
 
-	globals::hDevice->hCommand(
-			"starting acquisition",
-			CAEN_DGTZ_SWStartAcquisition
-	);
+	globals::hDevice->hCommand("starting acquisition",
+			CAEN_DGTZ_SWStartAcquisition);
 
 }
 
 static void stopAcquisition() {
 
-	globals::hDevice->hCommand(
-			"stopping acquisition",
-			CAEN_DGTZ_SWStopAcquisition
-	);
+	globals::hDevice->hCommand("stopping acquisition",
+			CAEN_DGTZ_SWStopAcquisition);
 
 	globals::event = nullptr;
 	globals::roBuffer = nullptr;
@@ -447,8 +419,9 @@ INT frontend_init() {
 
 	try {
 		// create subtree
-		odb::getValueInt32(hDB, 0, "/equipment/" EQUIP_NAME "/Settings/link_num",
-				TRUE, defaults::linkNum);
+		odb::getValueInt32(hDB, 0,
+				"/equipment/" EQUIP_NAME "/Settings/link_num", TRUE,
+				defaults::linkNum);
 
 		create_event_rb(test_rbh);
 		ss_thread_create(test_thread, 0);
@@ -496,7 +469,8 @@ INT begin_of_run(INT run_number, char *error) {
 	int status = SUCCESS;
 
 	try {
-		globals::hDevice = std::make_unique<caen::Handle>(connect());
+		globals::hDevice = std::unique_ptr < caen::Handle
+				> (new caen::Handle(connect()));
 		configure(*globals::hDevice);
 		startAcquisition();
 
@@ -604,7 +578,8 @@ int readEvent(char *pevent, int off) {
 			return 0;	//	no events
 		}
 
-		std::pair<CAEN_DGTZ_EventInfo_t, char*> evt = globals::roBuffer->getEventInfo(FIRST_EVENT);
+		std::pair<CAEN_DGTZ_EventInfo_t, char*> evt =
+				globals::roBuffer->getEventInfo(FIRST_EVENT);
 		CAEN_DGTZ_EventInfo_t const& eventInfo = evt.first;
 
 		globals::event->decode(evt.second);
