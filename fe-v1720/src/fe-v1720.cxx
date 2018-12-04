@@ -36,6 +36,7 @@ static std::unique_ptr<caen::Handle> hDevice;
 static std::unique_ptr<caen::ReadoutBuffer> roBuffer;
 static std::unique_ptr<caen::Event> event;
 static uint32_t eventCounter;
+static midas_thread_t readoutThread;
 
 }
 
@@ -127,7 +128,7 @@ int test_thread(void *param) {
 	while (!stop_all_threads) {
 		if (test_run_number == 0) {
 			// no run, wait
-			ss_sleep(10);
+			ss_sleep(1);
 			continue;
 		}
 
@@ -192,7 +193,7 @@ int test_thread(void *param) {
 
 		} else
 			// readout_enabled
-			ss_sleep(10);
+			ss_sleep(1);
 	}
 
 	signal_readout_thread_active(test_rbh, 0);
@@ -409,11 +410,9 @@ INT frontend_init() {
 				defaults::linkNum);
 
 		create_event_rb(test_rbh);
-		ss_thread_create(test_thread, 0);
+		globals::readoutThread = ss_thread_create(test_thread, 0);
 
-		cm_msg(MERROR, frontend_name, "frontend_init() creating handle");
 		caen::Handle hDevice = connect();
-		cm_msg(MERROR, frontend_name, "frontend_init() created handle");
 		configure(hDevice);
 
 	} catch (midas::Exception& ex) {
@@ -421,7 +420,6 @@ INT frontend_init() {
 	} catch (caen::Exception& ex) {
 		status = handleCaenException(ex);
 	}
-	cm_msg(MERROR, frontend_name, "frontend_init() return");
 
 	return status;
 }
@@ -436,6 +434,8 @@ INT frontend_exit() {
 			stopAcquisition();
 			globals::hDevice = nullptr;
 		}
+
+		ss_thread_kill(globals::readoutThread);
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
@@ -452,13 +452,14 @@ INT begin_of_run(INT run_number, char *error) {
 	int status = SUCCESS;
 
 	try {
-		globals::hDevice = std::unique_ptr < caen::Handle
-				> (new caen::Handle(connect()));
-		configure(*globals::hDevice);
-		startAcquisition();
+//		globals::hDevice = std::unique_ptr < caen::Handle
+//				> (new caen::Handle(connect()));
+//		configure(*globals::hDevice);
 
 		test_rb_wait_count = 0;
 		test_run_number = run_number; // tell thread to start running
+
+//		startAcquisition();
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
@@ -544,6 +545,14 @@ int readEvent(char *pevent, int off) {
 	int result;
 
 	try {
+		if (!globals::hDevice) {
+			globals::hDevice = std::unique_ptr < caen::Handle
+					> (new caen::Handle(connect()));
+			configure(*globals::hDevice);
+
+			startAcquisition();
+		}
+
 		uint32_t const dataSize = globals::roBuffer->readData();
 
 		uint32_t const numEvents = globals::roBuffer->getNumEvents(dataSize);
