@@ -1,13 +1,29 @@
 #include <sstream>
 #include <CAENDigitizer.h>
+#include <midas.h>
 #include <caen/handle.hxx>
+
+#ifndef NEED_NO_EXTERN_C
+extern "C" {
+#endif
+
+extern const char *frontend_name;
+
+#ifndef NEED_NO_EXTERN_C
+}
+#endif
 
 namespace caen {
 
+constexpr int INVALID_HANDLE_VALUE = -1;
+
 Handle::Handle(int const linkNum, int const conetNode,
 		::uint32_t const vmeBaseAddr) :
-		handle(0) {
+		handle(INVALID_HANDLE_VALUE) {
 
+	cm_msg(MERROR, frontend_name,
+			"Handle::Handle() creating handle, linkNum=%d, conetNode=%d, VME base addr=%x",
+			linkNum, conetNode, vmeBaseAddr);
 	commandE(
 			[linkNum, conetNode, vmeBaseAddr]() {
 				std::stringstream s;
@@ -17,21 +33,28 @@ Handle::Handle(int const linkNum, int const conetNode,
 			[this, linkNum, conetNode, vmeBaseAddr]() {
 				return CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_OpticalLink, linkNum, conetNode, vmeBaseAddr, &handle);
 			});
+	cm_msg(MERROR, frontend_name,
+			"Handle::Handle() created handle, linkNum=%d, conetNode=%d, VME base addr=%x, handle=%d",
+			linkNum, conetNode, vmeBaseAddr, handle);
 
 }
 
 Handle::Handle(Handle&& h) :
-		handle(0) {
+		handle(INVALID_HANDLE_VALUE) {
 
+	cm_msg(MERROR, frontend_name, "Handle::Handle(Handle&& h=%d)", h.handle);
 	this->handle = h.handle;
-	h.handle = 0;
+	h.handle = INVALID_HANDLE_VALUE;
 
 }
 
 Handle::~Handle() {
 
-	if (handle) {
+	cm_msg(MERROR, frontend_name, "Handle::~Handle() handle=%d", handle);
+	if (INVALID_HANDLE_VALUE != handle) {
 		CAEN_DGTZ_CloseDigitizer(handle);
+		cm_msg(MERROR, frontend_name, "Handle::~Handle() closed handle=%d",
+				handle);
 	}
 
 }

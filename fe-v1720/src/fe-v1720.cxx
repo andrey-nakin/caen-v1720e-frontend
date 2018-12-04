@@ -211,8 +211,6 @@ INT poll_event(INT source, INT count, BOOL test)
  flag is used to time the polling */
 {
 
-	std::cout << "poll_event(" << source << ", " << count << ", " << test << ")"
-			<< std::endl;
 
 	if (test) {
 		ss_sleep(count);
@@ -224,9 +222,6 @@ INT poll_event(INT source, INT count, BOOL test)
 /*-- Interrupt configuration ---------------------------------------*/
 
 INT interrupt_configure(INT cmd, INT source, PTYPE adr) {
-	std::cout << "interrupt_configure(" << cmd << ", " << source << ")"
-			<< std::endl;
-
 	switch (cmd) {
 	case CMD_INTERRUPT_ENABLE:
 		break;
@@ -413,8 +408,6 @@ static void stopAcquisition() {
 }
 
 INT frontend_init() {
-	std::cout << "frontend_init()" << std::endl;
-
 	int status = SUCCESS;
 
 	try {
@@ -426,7 +419,9 @@ INT frontend_init() {
 		create_event_rb(test_rbh);
 		ss_thread_create(test_thread, 0);
 
+		cm_msg(MERROR, frontend_name, "frontend_init() creating handle");
 		caen::Handle hDevice = connect();
+		cm_msg(MERROR, frontend_name, "frontend_init() created handle");
 		configure(hDevice);
 
 	} catch (midas::Exception& ex) {
@@ -434,13 +429,12 @@ INT frontend_init() {
 	} catch (caen::Exception& ex) {
 		status = handleCaenException(ex);
 	}
+	cm_msg(MERROR, frontend_name, "frontend_init() return");
 
 	return status;
 }
 
 INT frontend_exit() {
-
-	std::cout << "frontend_exit()" << std::endl;
 
 	int status = SUCCESS;
 
@@ -462,9 +456,6 @@ INT frontend_exit() {
 }
 
 INT begin_of_run(INT run_number, char *error) {
-
-	std::cout << "begin_of_run(" << run_number << ", " << error << ")"
-			<< std::endl;
 
 	int status = SUCCESS;
 
@@ -489,9 +480,6 @@ INT begin_of_run(INT run_number, char *error) {
 
 INT end_of_run(INT run_number, char *error) {
 
-	std::cout << "end_of_run(" << run_number << ", " << error << ")"
-			<< std::endl;
-
 	int status = SUCCESS;
 
 	try {
@@ -515,9 +503,6 @@ INT end_of_run(INT run_number, char *error) {
 
 INT pause_run(INT run_number, char *error) {
 
-	std::cout << "pause_run(" << run_number << ", " << error << ")"
-			<< std::endl;
-
 	int status = SUCCESS;
 
 	try {
@@ -537,9 +522,6 @@ INT pause_run(INT run_number, char *error) {
 }
 
 INT resume_run(INT run_number, char *error) {
-
-	std::cout << "resume_run(" << run_number << ", " << error << ")"
-			<< std::endl;
 
 	int status = SUCCESS;
 
