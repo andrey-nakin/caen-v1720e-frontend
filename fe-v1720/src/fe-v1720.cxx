@@ -381,6 +381,8 @@ static void configure(caen::Handle& hDevice) {
 
 static void startAcquisition() {
 
+	globals::isReading = false;
+
 	globals::roBuffer = std::unique_ptr < caen::ReadoutBuffer
 			> (new caen::ReadoutBuffer(*globals::hDevice));
 
@@ -389,8 +391,6 @@ static void startAcquisition() {
 
 	globals::hDevice->hCommand("starting acquisition",
 			CAEN_DGTZ_SWStartAcquisition);
-
-	globals::isReading = false;
 
 }
 
