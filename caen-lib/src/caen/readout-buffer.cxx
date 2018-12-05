@@ -47,11 +47,11 @@ uint32_t ReadoutBuffer::getNumEvents(uint32_t const dataSize) {
 }
 
 std::pair<CAEN_DGTZ_EventInfo_t, char*> ReadoutBuffer::getEventInfo(
-		int32_t const numEvent) {
+		uint32_t const dataSize, int32_t const numEvent) {
 
 	std::pair<CAEN_DGTZ_EventInfo_t, char*> result;
 	command("getting event info",
-			[this, numEvent, &result]() {return CAEN_DGTZ_GetEventInfo(handle, buffer, bufferSize, numEvent, &result.first, &result.second);});
+			[this, dataSize, numEvent, &result]() {return CAEN_DGTZ_GetEventInfo(handle, buffer, dataSize, numEvent, &result.first, &result.second);});
 	return result;
 
 }

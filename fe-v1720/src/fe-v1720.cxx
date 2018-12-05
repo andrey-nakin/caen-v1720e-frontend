@@ -533,6 +533,76 @@ INT frontend_loop() {
 
 }
 
+static int parseEvent(char * const pevent, uint32_t const dataSize, int32_t const numEvent) {
+
+	std::pair<CAEN_DGTZ_EventInfo_t, char*> evt =
+			globals::roBuffer->getEventInfo(dataSize, numEvent);
+	CAEN_DGTZ_EventInfo_t const& eventInfo = evt.first;
+
+	if (eventInfo.EventCounter > globals::eventCounter + 1) {
+		cm_msg(MERROR, frontend_name, "%u event(s) has been lost",
+				eventInfo.EventCounter - globals::eventCounter - 1);
+	}
+	globals::eventCounter = eventInfo.EventCounter;
+
+	globals::event->decode(evt.second);
+
+	bk_init32(pevent);
+
+	{
+		// store general information
+		uint8_t* pdata;
+		bk_create(pevent, "INFO", TID_DWORD, (void**) &pdata);
+		fe::InfoBank* info = (fe::InfoBank*) pdata;
+		info->dataType = fe::DataType::WaveForm16bitVer1;
+		info->device = fe::Device::CaenV1720E;
+		info->recordLength = globals::recordLength;
+		info->preTriggerLength = globals::preTriggerLength;
+		info->timeStamp = 0;	// TODO
+		bk_close(pevent, pdata + sizeof(*info));
+	}
+
+	{
+		// store channel enabled status
+		uint8_t* pdata;
+		bk_create(pevent, "CHEN", TID_BYTE, (void**) &pdata);
+		for (decltype(globals::boardInfo.Channels) i = 0;
+				i < globals::boardInfo.Channels; i++) {
+			*pdata++ = globals::enabledChannels[i] ? 1 : 0;
+		}
+		bk_close(pevent, pdata);
+	}
+
+	{
+		// store channel DC offset
+		uint16_t* pdata;
+		bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
+		for (decltype(globals::boardInfo.Channels) i = 0;
+				i < globals::boardInfo.Channels; i++) {
+			*pdata++ = globals::dcOffsets[i];
+		}
+		bk_close(pevent, pdata);
+	}
+
+	// store wave forms
+	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
+		if (eventInfo.ChannelMask & (0x0001 << i)) {
+			uint32_t const numOfSamples = globals::event->evt()->ChSize[i];
+			uint16_t const *samples = globals::event->evt()->DataChannel[i];
+			uint32_t const dataSize = numOfSamples * sizeof(*samples);
+
+			std::string const name = "WF" + toString(i, 2);
+			uint8_t* pdata;
+			bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
+			std::memcpy(pdata, samples, dataSize);
+			bk_close(pevent, pdata + dataSize);
+		}
+	}
+
+	return bk_size(pevent);
+
+}
+
 int readEvent(char *pevent, int off) {
 
 	fe::Locker locker(globals::isReading);
@@ -547,75 +617,9 @@ int readEvent(char *pevent, int off) {
 
 		uint32_t const numEvents = globals::roBuffer->getNumEvents(dataSize);
 
-		if (!numEvents) {
-			return 0;	//	no events
-		}
-
-		std::pair<CAEN_DGTZ_EventInfo_t, char*> evt =
-				globals::roBuffer->getEventInfo(FIRST_EVENT);
-		CAEN_DGTZ_EventInfo_t const& eventInfo = evt.first;
-
-		if (eventInfo.EventCounter > globals::eventCounter + 1) {
-			cm_msg(MERROR, frontend_name, "%u event(s) has been lost",
-					eventInfo.EventCounter - globals::eventCounter - 1);
-		}
-		globals::eventCounter = eventInfo.EventCounter;
-
-		globals::event->decode(evt.second);
-
-		bk_init32(pevent);
-
-		{
-			// store general information
-			uint8_t* pdata;
-			bk_create(pevent, "INFO", TID_DWORD, (void**) &pdata);
-			fe::InfoBank* info = (fe::InfoBank*) pdata;
-			info->dataType = fe::DataType::WaveForm16bitVer1;
-			info->device = fe::Device::CaenV1720E;
-			info->recordLength = globals::recordLength;
-			info->preTriggerLength = globals::preTriggerLength;
-			info->timeStamp = 0;	// TODO
-			bk_close(pevent, pdata + sizeof(*info));
-		}
-
-		{
-			// store channel enabled status
-			uint8_t* pdata;
-			bk_create(pevent, "CHEN", TID_BYTE, (void**) &pdata);
-			for (decltype(globals::boardInfo.Channels) i = 0;
-					i < globals::boardInfo.Channels; i++) {
-				*pdata++ = globals::enabledChannels[i] ? 1 : 0;
-			}
-			bk_close(pevent, pdata);
-		}
-
-		{
-			// store channel DC offset
-			uint16_t* pdata;
-			bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
-			for (decltype(globals::boardInfo.Channels) i = 0;
-					i < globals::boardInfo.Channels; i++) {
-				*pdata++ = globals::dcOffsets[i];
-			}
-			bk_close(pevent, pdata);
-		}
-
-		// store wave forms
-		for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
-			if (eventInfo.ChannelMask & (0x0001 << i)) {
-				uint32_t const numOfSamples = globals::event->evt()->ChSize[i];
-				uint16_t const *samples = globals::event->evt()->DataChannel[i];
-				uint32_t const dataSize = numOfSamples * sizeof(*samples);
-
-				std::string const name = "WF" + toString(i, 2);
-				uint8_t* pdata;
-				bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
-				std::memcpy(pdata, samples, dataSize);
-				bk_close(pevent, pdata + dataSize);
-			}
-		}
-
-		result = bk_size(pevent);
+		result = numEvents
+				? parseEvent(pevent, dataSize, FIRST_EVENT)
+				: 0;
 
 	} catch (midas::Exception& ex) {
 		result = 0;

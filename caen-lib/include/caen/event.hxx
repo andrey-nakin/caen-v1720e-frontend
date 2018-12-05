@@ -26,12 +26,6 @@ public:
 
 	}
 
-	operator void*() {
-
-		return event;
-
-	}
-
 	void decode(char* eventPtr);
 
 };

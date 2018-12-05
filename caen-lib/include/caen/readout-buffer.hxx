@@ -22,23 +22,11 @@ public:
 	ReadoutBuffer(ReadoutBuffer&&);
 	~ReadoutBuffer();
 
-	uint32_t size() const {
-
-		return bufferSize;
-
-	}
-
-	operator char*() {
-
-		return buffer;
-
-	}
-
 	uint32_t readData();
 
 	uint32_t getNumEvents(uint32_t dataSize);
 
-	std::pair<CAEN_DGTZ_EventInfo_t, char*> getEventInfo(int32_t numEvent);
+	std::pair<CAEN_DGTZ_EventInfo_t, char*> getEventInfo(uint32_t dataSize, int32_t numEvent);
 
 };
 
