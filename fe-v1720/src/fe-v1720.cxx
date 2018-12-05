@@ -38,7 +38,8 @@ static std::unique_ptr<caen::ReadoutBuffer> roBuffer;
 static std::unique_ptr<caen::Event> event;
 static uint32_t eventCounter;
 static midas_thread_t readoutThread;
-static std::atomic_bool isReading;
+static std::atomic_bool isReading(false);
+static std::atomic_bool acquisitionStarted(false);
 
 }
 
@@ -114,7 +115,6 @@ int test_rb_wait_sleep = 1;
 
 #include "msystem.h"
 
-int test_run_number = 0;
 int test_rb_wait_count = 0;
 int test_rbh = 0;
 
@@ -128,7 +128,7 @@ int test_thread(void *param) {
 	signal_readout_thread_active(test_rbh, 1);
 
 	while (!stop_all_threads) {
-		if (test_run_number == 0) {
+		if (!globals::acquisitionStarted) {
 			// no run, wait
 			ss_sleep(1);
 			continue;
@@ -203,12 +203,6 @@ int test_thread(void *param) {
 	return 0;
 }
 
-/********************************************************************\
-  
- Readout routines for different events
-
- \********************************************************************/
-
 INT poll_event(INT source, INT count, BOOL test)
 /* Polling routine for events. Returns TRUE if event
  is available. If test equals TRUE, don't return. The test
@@ -221,8 +215,6 @@ INT poll_event(INT source, INT count, BOOL test)
 	return (0);
 
 }
-
-/*-- Interrupt configuration ---------------------------------------*/
 
 INT interrupt_configure(INT cmd, INT source, PTYPE adr) {
 	switch (cmd) {
@@ -238,12 +230,10 @@ INT interrupt_configure(INT cmd, INT source, PTYPE adr) {
 	return SUCCESS;
 }
 
-/*-- Event readout -------------------------------------------------*/
-
 template<typename T>
 static std::string toString(T const v, std::size_t const len) {
 
-	std::string s = std::to_string(v);
+	auto s = std::to_string(v);
 	while (s.size() < len) {
 		s = "0" + s;
 	}
@@ -275,13 +265,13 @@ static INT handleCaenException(caen::Exception const& ex) {
 static caen::Handle connect() {
 
 	// save reference to settings tree
-	HNDLE const hSet = getSettingsKey();
+	auto const hSet = getSettingsKey();
 
-	int32_t const linkNum = odb::getValueInt32(hDB, hSet, "link_num", TRUE,
+	auto const linkNum = odb::getValueInt32(hDB, hSet, "link_num", TRUE,
 			defaults::linkNum);
-	int32_t const conetNode = odb::getValueInt32(hDB, hSet, "conet_node", TRUE,
+	auto const conetNode = odb::getValueInt32(hDB, hSet, "conet_node", TRUE,
 			defaults::conetNode);
-	uint32_t const vmeBaseAddr = odb::getValueUInt32(hDB, hSet, "vme_base_addr",
+	auto const vmeBaseAddr = odb::getValueUInt32(hDB, hSet, "vme_base_addr",
 			TRUE, defaults::vmeBaseAddr);
 
 	caen::Handle result(linkNum, conetNode, vmeBaseAddr);
@@ -292,8 +282,7 @@ static caen::Handle connect() {
 
 static void configure(caen::Handle& hDevice) {
 
-	HNDLE const hSet = getSettingsKey();
-	uint32_t regData;
+	auto const hSet = getSettingsKey();
 
 	decltype(globals::boardInfo) boardInfo;
 	hDevice.hCommand("getting digitizer info",
@@ -340,20 +329,20 @@ static void configure(caen::Handle& hDevice) {
 				[dcOffset, i](int handle) {return CAEN_DGTZ_SetChannelDCOffset(handle, i, dcOffset);});
 	}
 
-	std::string const triggerMode = odb::getValueString(hDB, hSet,
+	auto const triggerMode = odb::getValueString(hDB, hSet,
 			"trigger_mode", TRUE, defaults::triggerMode);
 
-	uint8_t const triggerChannel = odb::getValueUInt8(hDB, hSet,
+	auto const triggerChannel = odb::getValueUInt8(hDB, hSet,
 			"trigger_channel", TRUE, defaults::triggerChannel);
 	hDevice.hCommand("setting channel self trigger",
 			[triggerChannel](int handle) {return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel));});
 
-	uint16_t const triggerThreshold = odb::getValueUInt16(hDB, hSet,
+	auto const triggerThreshold = odb::getValueUInt16(hDB, hSet,
 			"trigger_threshold", TRUE, defaults::triggerThreshold);
 	hDevice.hCommand("setting channel trigger threshold",
 			[triggerChannel, triggerThreshold](int handle) {return CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold);});
 
-	bool const triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
+	auto const triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
 			"trigger_raising_polarity", TRUE, defaults::triggerRaisingPolarity);
 	hDevice.hCommand("setting trigger polarity",
 			[triggerChannel, triggerRaisingPolarity](int handle) {return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge);});
@@ -364,7 +353,7 @@ static void configure(caen::Handle& hDevice) {
 	hDevice.hCommand("setting acquisition mode",
 			[](int handle) {return CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED);});
 
-	regData = hDevice.readRegister(caen::v1720::REG_CHANNEL_CONFIG);
+	auto const regData = hDevice.readRegister(caen::v1720::REG_CHANNEL_CONFIG);
 	if (regData & caen::v1720::REG_BIT_TRIGGER_OVERLAP) {
 		// disable trigger overlap
 		hDevice.writeRegister(caen::v1720::REG_CHANNEL_CONFIG,
@@ -381,8 +370,6 @@ static void configure(caen::Handle& hDevice) {
 
 static void startAcquisition() {
 
-	globals::isReading = false;
-
 	globals::roBuffer = std::unique_ptr < caen::ReadoutBuffer
 			> (new caen::ReadoutBuffer(*globals::hDevice));
 
@@ -392,9 +379,13 @@ static void startAcquisition() {
 	globals::hDevice->hCommand("starting acquisition",
 			CAEN_DGTZ_SWStartAcquisition);
 
+	globals::acquisitionStarted = true;
+
 }
 
 static void stopAcquisition() {
+
+	globals::acquisitionStarted = false;
 
 	// wait until reading completes
 	while (globals::isReading) {
@@ -468,7 +459,6 @@ INT begin_of_run(INT run_number, char *error) {
 		startAcquisition();
 
 		test_rb_wait_count = 0;
-		test_run_number = run_number; // tell thread to start running
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
@@ -485,8 +475,6 @@ INT end_of_run(INT run_number, char *error) {
 	int status = SUCCESS;
 
 	try {
-
-		test_run_number = 0; // tell thread to stop running
 
 		if (globals::hDevice) {
 			stopAcquisition();
@@ -511,8 +499,6 @@ INT pause_run(INT run_number, char *error) {
 
 		stopAcquisition();
 
-		test_run_number = 0; // tell thread to stop running
-
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
 	} catch (caen::Exception& ex) {
@@ -530,8 +516,6 @@ INT resume_run(INT run_number, char *error) {
 	try {
 
 		startAcquisition();
-
-		test_run_number = run_number; // tell thread to start running
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();

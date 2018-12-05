@@ -12,10 +12,8 @@ class Locker {
 public:
 
 	Locker(std::atomic_bool&);
-	~Locker();
-
 	Locker(const Locker&) = delete;
-	Locker& operator=(const Locker&) = delete;
+	~Locker();
 
 };
 
