@@ -1,6 +1,5 @@
 #include <sstream>
 #include <CAENDigitizer.h>
-#include <midas.h>
 #include <caen/handle.hxx>
 
 #ifndef NEED_NO_EXTERN_C

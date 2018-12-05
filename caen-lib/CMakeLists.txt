@@ -3,12 +3,7 @@
 #
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(CaenLib VERSION 1.0.0 LANGUAGES CXX DESCRIPTION "CAEN Digitizer Library")
-
 set (CMAKE_CXX_STANDARD 14)
-add_definitions(
-  -DCAENLIB_VERSION_MAJOR=${CaenLib_VERSION_MAJOR}
-  -DCAENLIB_VERSION_MINOR=${CaenLib_VERSION_MINOR}
-  -DCAENLIB_VERSION_PATCH=${CaenLib_VERSION_PATCH})
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
