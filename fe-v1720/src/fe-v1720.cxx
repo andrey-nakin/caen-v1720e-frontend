@@ -22,6 +22,7 @@
 #include "defaults.hxx"
 
 #define EQUIP_NAME "v1720"
+constexpr uint32_t MAX_NUM_OF_EVENTS = 1;
 constexpr int32_t FIRST_EVENT = 0;
 constexpr int EVID = 1;
 
@@ -348,7 +349,7 @@ static void configure(caen::Handle& hDevice) {
 			[triggerChannel, triggerRaisingPolarity](int handle) {return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge);});
 
 	hDevice.hCommand("setting max num events",
-			[](int handle) {return CAEN_DGTZ_SetMaxNumEventsBLT(handle, 1);});
+			[](int handle) {return CAEN_DGTZ_SetMaxNumEventsBLT(handle, MAX_NUM_OF_EVENTS);});
 
 	hDevice.hCommand("setting acquisition mode",
 			[](int handle) {return CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED);});
