@@ -586,10 +586,10 @@ static int parseEvent(char * const pevent, uint32_t const dataSize, int32_t cons
 	}
 
 	// store wave forms
-	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
+	for (unsigned i = 0, idx = 0; i < globals::boardInfo.Channels; i++) {
 		if (eventInfo.ChannelMask & (0x0001 << i)) {
-			uint32_t const numOfSamples = globals::event->evt()->ChSize[i];
-			uint16_t const *samples = globals::event->evt()->DataChannel[i];
+			uint32_t const numOfSamples = globals::event->evt()->ChSize[idx];
+			uint16_t const *samples = globals::event->evt()->DataChannel[idx];
 			uint32_t const dataSize = numOfSamples * sizeof(*samples);
 
 			std::string const name = "WF" + toString(i, 2);
@@ -597,6 +597,8 @@ static int parseEvent(char * const pevent, uint32_t const dataSize, int32_t cons
 			bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
 			std::memcpy(pdata, samples, dataSize);
 			bk_close(pevent, pdata + dataSize);
+
+			idx++;
 		}
 	}
 
