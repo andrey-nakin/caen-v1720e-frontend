@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+project(AnalyzerBasic VERSION 1.0.0 LANGUAGES CXX DESCRIPTION "MIDAS Basic Wave Form Analyzer")
+set (CMAKE_CXX_STANDARD 14)
+set (MIDASLIBDIR $ENV{MIDASSYS}/linux/lib)
+include_directories(${PROJECT_SOURCE_DIR}/include/)
+include_directories($ENV{MIDASSYS}/include)
+include_directories($ENV{ROOTSYS}/include)
+include_directories($ENV{ROOTANASYS}/include)
+link_directories(${MIDASLIBDIR})
+link_directories($ENV{ROOTSYS}/lib)
+link_directories($ENV{ROOTANASYS}/lib)
+
+file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cxx)
+file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/include/*.hxx)
+
+add_executable(${PROJECT_NAME} ${SOURCES})
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME analyzer-basic)
+target_link_libraries(${PROJECT_NAME} RHTTP)
+target_link_libraries(${PROJECT_NAME} Thread)
+target_link_libraries(${PROJECT_NAME} rootana)
+target_link_libraries(${PROJECT_NAME} FrontendUtilLib)
+
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
