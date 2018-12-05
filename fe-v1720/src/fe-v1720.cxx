@@ -617,7 +617,7 @@ int readEvent(char *pevent, int off) {
 
 		uint32_t const numEvents = globals::roBuffer->getNumEvents(dataSize);
 
-		result = numEvents
+		result = numEvents > 0
 				? parseEvent(pevent, dataSize, FIRST_EVENT)
 				: 0;
 
