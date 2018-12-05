@@ -536,7 +536,7 @@ INT frontend_loop() {
 int readEvent(char *pevent, int off) {
 
 	fe::Locker locker(globals::isReading);
-	if (!globals::acquisitionStarted.load(std::memory_order_acq_rel)) {
+	if (!globals::acquisitionStarted.load(std::memory_order_acquire)) {
 		return 0;
 	}
 
