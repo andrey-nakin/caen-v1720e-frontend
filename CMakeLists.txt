@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(CaenV1720eFrontend VERSION 1.0.0 LANGUAGES CXX C DESCRIPTION "MIDAS Frontend for CAEN V1720E Digitizer")
 add_subdirectory(caen-lib)
-#add_subdirectory(readout-example)
 add_subdirectory(midas-util-lib)
 add_subdirectory(frontend-util-lib)
 add_subdirectory(fe-v1720)
+#add_subdirectory(readout-example)
