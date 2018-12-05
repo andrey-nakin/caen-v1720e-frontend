@@ -289,6 +289,17 @@ static void configure(caen::Handle& hDevice) {
 	hDevice.hCommand("getting digitizer info",
 			[&boardInfo](int handle) {return CAEN_DGTZ_GetInfo(handle, &boardInfo);});
 	globals::boardInfo = boardInfo;
+
+	if (boardInfo.Model != CAEN_DGTZ_V1720) {
+		throw caen::Exception(CAEN_DGTZ_GenericError, "The device is not CAEN V1720");
+	}
+
+	int majorNumber;
+	sscanf(boardInfo.AMC_FirmwareRel, "%d", &majorNumber);
+	if (majorNumber >= 128) {
+		throw caen::Exception(CAEN_DGTZ_GenericError, "This digitizer has a DPP firmware");
+	}
+
 	globals::enabledChannels.resize(globals::boardInfo.Channels);
 	globals::dcOffsets.resize(globals::boardInfo.Channels);
 
@@ -556,10 +567,13 @@ static int parseEvent(char * const pevent, uint32_t const dataSize, int32_t cons
 		bk_create(pevent, "INFO", TID_DWORD, (void**) &pdata);
 		fe::InfoBank* info = (fe::InfoBank*) pdata;
 		info->dataType = fe::DataType::WaveForm16bitVer1;
-		info->device = fe::Device::CaenV1720E;
+		info->deviceType = fe::DeviceType::CaenV1720E;
+		info->boardId = eventInfo.BoardId;
+		info->channelMask = eventInfo.ChannelMask;
+		info->eventCounter = eventInfo.EventCounter;
+		info->timeStamp = (uint64_t) eventInfo.Pattern << 32 | eventInfo.TriggerTimeTag;
 		info->recordLength = globals::recordLength;
 		info->preTriggerLength = globals::preTriggerLength;
-		info->timeStamp = 0;	// TODO
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 

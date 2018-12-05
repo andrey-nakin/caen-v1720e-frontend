@@ -5,8 +5,8 @@ namespace caen {
 ReadoutBuffer::ReadoutBuffer(Handle& aHandle) :
 		handle(aHandle), buffer(nullptr), bufferSize(0) {
 
-	command("allocating readout buffer",
-			[this]() {return CAEN_DGTZ_MallocReadoutBuffer(handle, &buffer, &bufferSize);});
+	handle.hCommand("allocating readout buffer",
+			[this](int handle) {return CAEN_DGTZ_MallocReadoutBuffer(handle, &buffer, &bufferSize);});
 
 }
 
@@ -31,8 +31,8 @@ ReadoutBuffer::~ReadoutBuffer() {
 uint32_t ReadoutBuffer::readData() {
 
 	uint32_t dataSize;
-	command("reading data",
-			[this, &dataSize]() {return CAEN_DGTZ_ReadData(handle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &dataSize);});
+	handle.hCommand("reading data",
+			[this, &dataSize](int handle) {return CAEN_DGTZ_ReadData(handle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &dataSize);});
 	return dataSize;
 
 }
@@ -40,8 +40,8 @@ uint32_t ReadoutBuffer::readData() {
 uint32_t ReadoutBuffer::getNumEvents(uint32_t const dataSize) {
 
 	uint32_t numEvents;
-	command("getting num events",
-			[this, dataSize, &numEvents]() {return CAEN_DGTZ_GetNumEvents(handle, buffer, dataSize, &numEvents);});
+	handle.hCommand("getting num events",
+			[this, dataSize, &numEvents](int handle) {return CAEN_DGTZ_GetNumEvents(handle, buffer, dataSize, &numEvents);});
 	return numEvents;
 
 }
@@ -50,8 +50,8 @@ std::pair<CAEN_DGTZ_EventInfo_t, char*> ReadoutBuffer::getEventInfo(
 		uint32_t const dataSize, int32_t const numEvent) {
 
 	std::pair<CAEN_DGTZ_EventInfo_t, char*> result;
-	command("getting event info",
-			[this, dataSize, numEvent, &result]() {return CAEN_DGTZ_GetEventInfo(handle, buffer, dataSize, numEvent, &result.first, &result.second);});
+	handle.hCommand("getting event info",
+			[this, dataSize, numEvent, &result](int handle) {return CAEN_DGTZ_GetEventInfo(handle, buffer, dataSize, numEvent, &result.first, &result.second);});
 	return result;
 
 }
