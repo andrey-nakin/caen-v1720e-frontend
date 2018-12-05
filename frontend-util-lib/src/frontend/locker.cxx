@@ -4,13 +4,13 @@ namespace fe {
 
 Locker::Locker(std::atomic_bool& v) : value(v) {
 
-	value = true;
+	value.store(true, std::memory_order_release);
 
 }
 
 Locker::~Locker() {
 
-	value = false;
+	value.store(false, std::memory_order_release);
 
 }
 

@@ -128,7 +128,7 @@ int test_thread(void *param) {
 	signal_readout_thread_active(test_rbh, 1);
 
 	while (!stop_all_threads) {
-		if (!globals::acquisitionStarted) {
+		if (!globals::acquisitionStarted.load(std::memory_order_acquire)) {
 			// no run, wait
 			ss_sleep(1);
 			continue;
@@ -379,16 +379,16 @@ static void startAcquisition() {
 	globals::hDevice->hCommand("starting acquisition",
 			CAEN_DGTZ_SWStartAcquisition);
 
-	globals::acquisitionStarted = true;
+	globals::acquisitionStarted.store(true);
 
 }
 
 static void stopAcquisition() {
 
-	globals::acquisitionStarted = false;
+	globals::acquisitionStarted.store(false);
 
 	// wait until reading completes
-	while (globals::isReading) {
+	while (globals::isReading.load()) {
 		ss_sleep(10);
 	}
 
@@ -535,8 +535,12 @@ INT frontend_loop() {
 
 int readEvent(char *pevent, int off) {
 
-	int result;
 	fe::Locker locker(globals::isReading);
+	if (!globals::acquisitionStarted.load(std::memory_order_acq_rel)) {
+		return 0;
+	}
+
+	int result;
 
 	try {
 		uint32_t const dataSize = globals::roBuffer->readData();
