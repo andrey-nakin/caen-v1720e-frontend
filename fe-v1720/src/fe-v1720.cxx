@@ -603,7 +603,7 @@ static int parseEvent(char * const pevent, uint32_t const dataSize, int32_t cons
 
 }
 
-int readEvent(char *pevent, int off) {
+int readEvent(char * const pevent, const int off) {
 
 	fe::Locker locker(globals::isReading);
 	if (!globals::acquisitionStarted.load(std::memory_order_acquire)) {
@@ -613,9 +613,9 @@ int readEvent(char *pevent, int off) {
 	int result;
 
 	try {
-		uint32_t const dataSize = globals::roBuffer->readData();
+		auto const dataSize = globals::roBuffer->readData();
 
-		uint32_t const numEvents = globals::roBuffer->getNumEvents(dataSize);
+		auto const numEvents = globals::roBuffer->getNumEvents(dataSize);
 
 		result = numEvents > 0
 				? parseEvent(pevent, dataSize, FIRST_EVENT)
