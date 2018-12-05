@@ -7,11 +7,12 @@
 #include <cstring>
 #include <memory>
 #include <sstream>
+#include <mutex>
+#include <atomic>
 #include <midas.h>
 
 #include <midas/odb.hxx>
 #include <frontend/types.hxx>
-#include <frontend/locker.hxx>
 #include <caen/handle.hxx>
 #include <caen/error-holder.hxx>
 #include <caen/readout-buffer.hxx>
@@ -39,8 +40,8 @@ static std::unique_ptr<caen::ReadoutBuffer> roBuffer;
 static std::unique_ptr<caen::Event> event;
 static uint32_t eventCounter;
 static midas_thread_t readoutThread;
-static std::atomic_bool isReading(false);
-static std::atomic_bool acquisitionStarted(false);
+static std::atomic_bool acquisitionIsOn(false);
+static std::mutex readingMutex;
 
 }
 
@@ -129,7 +130,7 @@ int test_thread(void *param) {
 	signal_readout_thread_active(test_rbh, 1);
 
 	while (!stop_all_threads) {
-		if (!globals::acquisitionStarted.load(std::memory_order_acquire)) {
+		if (!globals::acquisitionIsOn.load(std::memory_order_relaxed)) {
 			// no run, wait
 			ss_sleep(1);
 			continue;
@@ -391,18 +392,15 @@ static void startAcquisition() {
 	globals::hDevice->hCommand("starting acquisition",
 			CAEN_DGTZ_SWStartAcquisition);
 
-	globals::acquisitionStarted.store(true);
+	globals::acquisitionIsOn.store(true);
 
 }
 
 static void stopAcquisition() {
 
-	globals::acquisitionStarted.store(false);
+	globals::acquisitionIsOn.store(false);
 
-	// wait until reading completes
-	while (globals::isReading.load()) {
-		ss_sleep(10);
-	}
+	std::lock_guard<std::mutex> lock(globals::readingMutex);
 
 	globals::hDevice->hCommand("stopping acquisition",
 			CAEN_DGTZ_SWStopAcquisition);
@@ -622,26 +620,26 @@ static int parseEvent(char * const pevent, uint32_t const dataSize, int32_t cons
 
 int readEvent(char * const pevent, const int off) {
 
-	fe::Locker locker(globals::isReading);
-	if (!globals::acquisitionStarted.load(std::memory_order_acquire)) {
-		return 0;
-	}
-
+	std::lock_guard<std::mutex> lock(globals::readingMutex);
 	int result;
 
-	try {
-		auto const dataSize = globals::roBuffer->readData();
+	if (globals::acquisitionIsOn.load(std::memory_order_relaxed)) {
+		try {
+			auto const dataSize = globals::roBuffer->readData();
 
-		auto const numEvents = globals::roBuffer->getNumEvents(dataSize);
+			auto const numEvents = globals::roBuffer->getNumEvents(dataSize);
 
-		result = numEvents > 0
-				? parseEvent(pevent, dataSize, FIRST_EVENT)
-				: 0;
+			result = numEvents > 0
+					? parseEvent(pevent, dataSize, FIRST_EVENT)
+					: 0;
 
-	} catch (midas::Exception& ex) {
-		result = 0;
-	} catch (caen::Exception& ex) {
-		handleCaenException(ex);
+		} catch (midas::Exception& ex) {
+			result = 0;
+		} catch (caen::Exception& ex) {
+			handleCaenException(ex);
+			result = 0;
+		}
+	} else {
 		result = 0;
 	}
 
