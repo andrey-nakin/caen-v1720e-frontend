@@ -322,7 +322,7 @@ INT frontend_init() {
 
 	try {
 		// create subtree
-		odb::getValueInt32(hDB, 0,
+		odb::getValueUInt8(hDB, 0,
 				"/equipment/" EQUIP_NAME "/Settings/num_of_channels", TRUE,
 				defaults::numOfChannels);
 

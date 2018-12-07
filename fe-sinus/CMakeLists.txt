@@ -13,7 +13,7 @@ add_library(MidasMfe OBJECT IMPORTED LOCAL)
 set_property(TARGET MidasMfe PROPERTY IMPORTED_OBJECTS ${MIDASLIBDIR}/mfe.o)
 
 add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:MidasMfe> ${SOURCES})
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME fe-v1720)
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME fe-sinus)
 target_link_libraries(${PROJECT_NAME} pthread)
 target_link_libraries(${PROJECT_NAME} rt)
 target_link_libraries(${PROJECT_NAME} midas)
