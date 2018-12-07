@@ -58,6 +58,7 @@ uint32_t Handle::readRegister(uint32_t const reg) {
 	}, [reg, &regData](int handle) {
 		return CAEN_DGTZ_ReadRegister(handle, reg, &regData);
 	});
+	return regData;
 
 }
 

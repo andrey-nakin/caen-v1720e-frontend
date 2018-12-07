@@ -184,7 +184,7 @@ int test_thread(void * /*param */) {
 							"Event size %ld larger than maximum size %d",
 							(long) (pevent->data_size + sizeof(EVENT_HEADER)),
 							max_event_size);
-					assert(FALSE);
+					assert (FALSE);
 				}
 
 				if (pevent->data_size > 0) {
@@ -205,8 +205,7 @@ int test_thread(void * /*param */) {
 	return 0;
 }
 
-INT poll_event(INT /* source */, INT count, BOOL test)
-{
+INT poll_event(INT /* source */, INT count, BOOL test) {
 
 	if (test) {
 		ss_sleep(count);
@@ -271,7 +270,7 @@ static caen::Handle connect() {
 	auto const conetNode = odb::getValueInt32(hDB, hSet, "conet_node", TRUE,
 			defaults::conetNode);
 	auto const vmeBaseAddr = odb::getValueUInt32(hDB, hSet, "vme_base_addr",
-	TRUE, defaults::vmeBaseAddr);
+			TRUE, defaults::vmeBaseAddr);
 
 	caen::Handle result(linkNum, conetNode, vmeBaseAddr);
 
@@ -342,10 +341,10 @@ static void configure(caen::Handle& hDevice) {
 	}
 
 	auto const triggerMode = odb::getValueString(hDB, hSet, "trigger_mode",
-	TRUE, defaults::triggerMode);
+			TRUE, defaults::triggerMode);
 
 	auto const triggerChannel = odb::getValueUInt8(hDB, hSet, "trigger_channel",
-	TRUE, defaults::triggerChannel);
+			TRUE, defaults::triggerChannel);
 	hDevice.hCommand("setting channel self trigger",
 			[triggerChannel](int handle) {return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel));});
 
@@ -382,11 +381,11 @@ static void configure(caen::Handle& hDevice) {
 
 static void startAcquisition() {
 
-	globals::roBuffer = std::unique_ptr<caen::ReadoutBuffer>(
-			new caen::ReadoutBuffer(*globals::hDevice));
+	globals::roBuffer = std::unique_ptr < caen::ReadoutBuffer
+			> (new caen::ReadoutBuffer(*globals::hDevice));
 
-	globals::event = std::unique_ptr<caen::Event>(
-			new caen::Event(*globals::hDevice));
+	globals::event = std::unique_ptr < caen::Event
+			> (new caen::Event(*globals::hDevice));
 
 	globals::hDevice->hCommand("starting acquisition",
 			CAEN_DGTZ_SWStartAcquisition);
@@ -399,7 +398,7 @@ static void stopAcquisition() {
 
 	globals::acquisitionIsOn.store(false);
 
-	std::lock_guard<std::mutex> lock(globals::readingMutex);
+	std::lock_guard < std::mutex > lock(globals::readingMutex);
 
 	globals::hDevice->hCommand("stopping acquisition",
 			CAEN_DGTZ_SWStopAcquisition);
@@ -461,8 +460,8 @@ INT begin_of_run(INT /* run_number */, char * /* error */) {
 	int status = SUCCESS;
 
 	try {
-		globals::hDevice = std::unique_ptr<caen::Handle>(
-				new caen::Handle(connect()));
+		globals::hDevice = std::unique_ptr < caen::Handle
+				> (new caen::Handle(connect()));
 		configure(*globals::hDevice);
 
 		startAcquisition();
@@ -610,7 +609,7 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 
 int readEvent(char * const pevent, const int /* off */) {
 
-	std::lock_guard<std::mutex> lock(globals::readingMutex);
+	std::lock_guard < std::mutex > lock(globals::readingMutex);
 	int result;
 
 	if (globals::acquisitionIsOn.load(std::memory_order_relaxed)) {
