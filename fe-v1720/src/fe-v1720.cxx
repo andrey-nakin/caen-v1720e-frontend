@@ -239,13 +239,6 @@ static std::string toString(T const v, std::size_t const len) {
 
 }
 
-static std::string channelKey(unsigned const channelNo,
-		char const * const keyName) {
-
-	return std::string("channel_") + std::to_string(channelNo) + "_" + keyName;
-
-}
-
 static HNDLE getSettingsKey() {
 
 	return odb::findKey(hDB, 0, "/equipment/" EQUIP_NAME "/Settings");
@@ -310,10 +303,11 @@ static void configure(caen::Handle& hDevice) {
 	hDevice.hCommand("setting external trigger input mode",
 			[](int handle) {return CAEN_DGTZ_SetExtTriggerInputMode(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY);});
 
+	globals::enabledChannels = odb::getValueBoolV(hDB, hSet, "channel_enabled",
+			boardInfo.Channels, defaults::channel::enabled, true);
+
 	uint32_t channelMask = 0x0000;
 	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
-		globals::enabledChannels[i] = odb::getValueBool(hDB, hSet,
-				channelKey(i, "enabled"), defaults::channel::enabled, true);
 		if (globals::enabledChannels[i]) {
 			channelMask |= 0x0001 << i;
 		}
@@ -328,12 +322,12 @@ static void configure(caen::Handle& hDevice) {
 			hDB, hSet, "waveform_length", defaults::recordLength, true);
 	globals::recordLength = recordLength;
 
-	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
+	globals::dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
+			boardInfo.Channels, defaults::channel::dcOffset, true);
+
+	for (unsigned i = 0; i < boardInfo.Channels; i++) {
 		hDevice.hCommand("setting record length",
 				[recordLength, i](int handle) {return CAEN_DGTZ_SetRecordLength(handle, recordLength, i);});
-
-		globals::dcOffsets[i] = odb::getValueUInt16(hDB, hSet,
-				channelKey(i, "dc_offset"), defaults::channel::dcOffset, true);
 
 		decltype(globals::dcOffsets[i]) dcOffset = globals::dcOffsets[i];
 		hDevice.hCommand("setting channel DC offset",
