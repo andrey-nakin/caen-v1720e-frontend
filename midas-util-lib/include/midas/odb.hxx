@@ -17,7 +17,8 @@ T getValue(HNDLE const hDB, HNDLE const hKeyRoot, std::string const& keyName,
 			&bufSize, type, create);
 
 	if (DB_SUCCESS != status) {
-		throw midas::Exception(status, std::string("Error reading ODB key ") + keyName);
+		throw midas::Exception(status,
+				std::string("Error reading ODB key ") + keyName);
 	}
 
 	return value;
@@ -31,7 +32,7 @@ std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, BOOL const create, std::string const& value,
 		std::size_t const size = 256);
 
-HNDLE findKey(HNDLE 	const hDB,	HNDLE 	const hKey,	std::string const& keyName);
+HNDLE findKey(HNDLE const hDB, HNDLE const hKey, std::string const& keyName);
 
 auto const getValueChar = getValue<char, TID_CHAR>;
 

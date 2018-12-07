@@ -2,12 +2,13 @@
 
 namespace odb {
 
-HNDLE findKey(HNDLE 	const hDB,	HNDLE 	const hKey,	std::string const& keyName) {
+HNDLE findKey(HNDLE const hDB, HNDLE const hKey, std::string const& keyName) {
 
 	HNDLE hResult;
 	INT const status = db_find_key(hDB, hKey, keyName.c_str(), &hResult);
 	if (DB_SUCCESS != status) {
-		throw midas::Exception(status, std::string("Error finding ODB key ") + keyName);
+		throw midas::Exception(status,
+				std::string("Error finding ODB key ") + keyName);
 	}
 	return hResult;
 
@@ -22,7 +23,8 @@ bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
 			&bufSize, TID_BOOL, create);
 
 	if (DB_SUCCESS != status) {
-		throw midas::Exception(status, std::string("Error reading ODB key ") + keyName);
+		throw midas::Exception(status,
+				std::string("Error reading ODB key ") + keyName);
 	}
 
 	return v ? true : false;
@@ -40,7 +42,8 @@ std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
 			&bufSize, TID_STRING, create);
 
 	if (DB_SUCCESS != status) {
-		throw midas::Exception(status, std::string("Error reading ODB key ") + keyName);
+		throw midas::Exception(status,
+				std::string("Error reading ODB key ") + keyName);
 	}
 
 	return &str[0];
