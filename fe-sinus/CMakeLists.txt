@@ -1,0 +1,24 @@
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+project(FrontEndSinus VERSION 1.0.0 LANGUAGES CXX DESCRIPTION "MIDAS testing frontend with sinusoidal signal")
+set (CMAKE_CXX_STANDARD 14)
+set (MIDASLIBDIR $ENV{MIDASSYS}/linux/lib)
+include_directories(${PROJECT_SOURCE_DIR}/include/)
+include_directories($ENV{MIDASSYS}/include)
+link_directories(${MIDASLIBDIR})
+
+file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cxx)
+file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/include/*.hxx)
+
+add_library(MidasMfe OBJECT IMPORTED LOCAL)
+set_property(TARGET MidasMfe PROPERTY IMPORTED_OBJECTS ${MIDASLIBDIR}/mfe.o)
+
+add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:MidasMfe> ${SOURCES})
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME fe-v1720)
+target_link_libraries(${PROJECT_NAME} pthread)
+target_link_libraries(${PROJECT_NAME} rt)
+target_link_libraries(${PROJECT_NAME} midas)
+target_link_libraries(${PROJECT_NAME} util)
+target_link_libraries(${PROJECT_NAME} MidasUtilLib)
+target_link_libraries(${PROJECT_NAME} FrontendUtilLib)
+
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
