@@ -120,7 +120,7 @@ int test_rb_wait_sleep = 1;
 int test_rb_wait_count = 0;
 int test_rbh = 0;
 
-int test_thread(void *param) {
+int test_thread(void * /*param */) {
 	int status;
 	EVENT_HEADER *pevent;
 	void *p;
@@ -205,10 +205,7 @@ int test_thread(void *param) {
 	return 0;
 }
 
-INT poll_event(INT source, INT count, BOOL test)
-/* Polling routine for events. Returns TRUE if event
- is available. If test equals TRUE, don't return. The test
- flag is used to time the polling */
+INT poll_event(INT /* source */, INT count, BOOL test)
 {
 
 	if (test) {
@@ -218,7 +215,7 @@ INT poll_event(INT source, INT count, BOOL test)
 
 }
 
-INT interrupt_configure(INT cmd, INT source, PTYPE adr) {
+INT interrupt_configure(INT cmd, INT /* source */, PTYPE /* adr */) {
 	switch (cmd) {
 	case CMD_INTERRUPT_ENABLE:
 		break;
@@ -459,7 +456,7 @@ INT frontend_exit() {
 
 }
 
-INT begin_of_run(INT run_number, char *error) {
+INT begin_of_run(INT /* run_number */, char * /* error */) {
 
 	int status = SUCCESS;
 
@@ -482,7 +479,7 @@ INT begin_of_run(INT run_number, char *error) {
 
 }
 
-INT end_of_run(INT run_number, char *error) {
+INT end_of_run(INT /* run_number */, char * /* error */) {
 
 	int status = SUCCESS;
 
@@ -503,7 +500,7 @@ INT end_of_run(INT run_number, char *error) {
 
 }
 
-INT pause_run(INT run_number, char *error) {
+INT pause_run(INT /* run_number */, char * /* error */) {
 
 	int status = SUCCESS;
 
@@ -521,7 +518,7 @@ INT pause_run(INT run_number, char *error) {
 
 }
 
-INT resume_run(INT run_number, char *error) {
+INT resume_run(INT /* run_number */, char * /* error */) {
 
 	int status = SUCCESS;
 
@@ -611,7 +608,7 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 
 }
 
-int readEvent(char * const pevent, const int off) {
+int readEvent(char * const pevent, const int /* off */) {
 
 	std::lock_guard<std::mutex> lock(globals::readingMutex);
 	int result;
