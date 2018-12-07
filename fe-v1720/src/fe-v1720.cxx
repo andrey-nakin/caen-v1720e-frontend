@@ -265,12 +265,12 @@ static caen::Handle connect() {
 	// save reference to settings tree
 	auto const hSet = getSettingsKey();
 
-	auto const linkNum = odb::getValueInt32(hDB, hSet, "link_num", TRUE,
-			defaults::linkNum);
-	auto const conetNode = odb::getValueInt32(hDB, hSet, "conet_node", TRUE,
-			defaults::conetNode);
+	auto const linkNum = odb::getValueInt32(hDB, hSet, "link_num",
+			defaults::linkNum, true);
+	auto const conetNode = odb::getValueInt32(hDB, hSet, "conet_node",
+			defaults::conetNode, true);
 	auto const vmeBaseAddr = odb::getValueUInt32(hDB, hSet, "vme_base_addr",
-			TRUE, defaults::vmeBaseAddr);
+			defaults::vmeBaseAddr, true);
 
 	caen::Handle result(linkNum, conetNode, vmeBaseAddr);
 
@@ -313,7 +313,7 @@ static void configure(caen::Handle& hDevice) {
 	uint32_t channelMask = 0x0000;
 	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
 		globals::enabledChannels[i] = odb::getValueBool(hDB, hSet,
-				channelKey(i, "enabled"), TRUE, defaults::channel::enabled);
+				channelKey(i, "enabled"), defaults::channel::enabled, true);
 		if (globals::enabledChannels[i]) {
 			channelMask |= 0x0001 << i;
 		}
@@ -325,7 +325,7 @@ static void configure(caen::Handle& hDevice) {
 			[](int handle) {return CAEN_DGTZ_SetRunSynchronizationMode(handle, CAEN_DGTZ_RUN_SYNC_Disabled);});
 
 	decltype(globals::recordLength) const recordLength = odb::getValueUInt32(
-			hDB, hSet, "waveform_length", TRUE, defaults::recordLength);
+			hDB, hSet, "waveform_length", defaults::recordLength, true);
 	globals::recordLength = recordLength;
 
 	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
@@ -333,7 +333,7 @@ static void configure(caen::Handle& hDevice) {
 				[recordLength, i](int handle) {return CAEN_DGTZ_SetRecordLength(handle, recordLength, i);});
 
 		globals::dcOffsets[i] = odb::getValueUInt16(hDB, hSet,
-				channelKey(i, "dc_offset"), TRUE, defaults::channel::dcOffset);
+				channelKey(i, "dc_offset"), defaults::channel::dcOffset, true);
 
 		decltype(globals::dcOffsets[i]) dcOffset = globals::dcOffsets[i];
 		hDevice.hCommand("setting channel DC offset",
@@ -341,20 +341,20 @@ static void configure(caen::Handle& hDevice) {
 	}
 
 	auto const triggerMode = odb::getValueString(hDB, hSet, "trigger_mode",
-			TRUE, defaults::triggerMode);
+			defaults::triggerMode, true);
 
 	auto const triggerChannel = odb::getValueUInt8(hDB, hSet, "trigger_channel",
-			TRUE, defaults::triggerChannel);
+			defaults::triggerChannel, true);
 	hDevice.hCommand("setting channel self trigger",
 			[triggerChannel](int handle) {return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel));});
 
 	auto const triggerThreshold = odb::getValueUInt16(hDB, hSet,
-			"trigger_threshold", TRUE, defaults::triggerThreshold);
+			"trigger_threshold", defaults::triggerThreshold, true);
 	hDevice.hCommand("setting channel trigger threshold",
 			[triggerChannel, triggerThreshold](int handle) {return CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold);});
 
 	auto const triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
-			"trigger_raising_polarity", TRUE, defaults::triggerRaisingPolarity);
+			"trigger_raising_polarity", defaults::triggerRaisingPolarity, true);
 	hDevice.hCommand("setting trigger polarity",
 			[triggerChannel, triggerRaisingPolarity](int handle) {return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge);});
 
@@ -372,7 +372,7 @@ static void configure(caen::Handle& hDevice) {
 	}
 
 	globals::preTriggerLength = odb::getValueUInt32(hDB, hSet,
-			"pre_trigger_length", TRUE, defaults::preTriggerLength);
+			"pre_trigger_length", defaults::preTriggerLength, true);
 
 	hDevice.writeRegister(caen::v1720::REG_POST_TRIGGER,
 			(globals::recordLength - globals::preTriggerLength) / 4);
@@ -414,8 +414,8 @@ INT frontend_init() {
 	try {
 		// create subtree
 		odb::getValueInt32(hDB, 0,
-				"/equipment/" EQUIP_NAME "/Settings/link_num", TRUE,
-				defaults::linkNum);
+				"/equipment/" EQUIP_NAME "/Settings/link_num",
+				defaults::linkNum, true);
 
 		create_event_rb(test_rbh);
 		globals::readoutThread = ss_thread_create(test_thread, 0);

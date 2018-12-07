@@ -11,11 +11,11 @@ namespace odb {
 
 template<typename T, DWORD type>
 T getValue(HNDLE const hDB, HNDLE const hKeyRoot, std::string const& keyName,
-		BOOL const create, T value) {
+		T value, bool const create) {
 
 	INT bufSize = sizeof(value);
 	INT const status = db_get_value(hDB, hKeyRoot, keyName.c_str(), &value,
-			&bufSize, type, create);
+			&bufSize, type, create ? TRUE : FALSE);
 
 	if (DB_SUCCESS != status) {
 		throw midas::Exception(status,
@@ -48,15 +48,15 @@ std::vector<T> getValueV(HNDLE const hDB, HNDLE const hKeyRoot,
 }
 
 bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
-		std::string const& keyName, BOOL const create, bool const value);
+		std::string const& keyName, bool const value, bool const create);
 
 std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
-		std::string const& keyName, BOOL const create, std::string const& value,
+		std::string const& keyName, std::string const& value, bool const create,
 		std::size_t const size = 256);
 
 std::vector<bool> getValueBoolV(HNDLE hDB, HNDLE hKeyRoot,
 		std::string const& keyName, std::size_t numValues, bool defValue,
-		bool create = true);
+		bool create);
 
 HNDLE findKey(HNDLE const hDB, HNDLE const hKey, std::string const& keyName);
 

@@ -238,12 +238,12 @@ static void configure() {
 	auto const hSet = getSettingsKey();
 
 	globals::dFrequency = odb::getValueUInt32(hDB, hSet, "discrete_frequency",
-			TRUE, defaults::dFrequency);
+			defaults::dFrequency, true);
 	globals::recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
-			TRUE, defaults::recordLength);
+			defaults::recordLength, true);
 
 	globals::enabledChannels = odb::getValueBoolV(hDB, hSet, "channel_enabled",
-			NUM_OF_CHANNELS, true);
+			NUM_OF_CHANNELS, true, true);
 	globals::dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
 			NUM_OF_CHANNELS, defaults::channel::dcOffset, true);
 	globals::frequencies = odb::getValueUInt32V(hDB, hSet, "channel_frequency",
@@ -295,8 +295,8 @@ INT frontend_init() {
 	try {
 		// create subtree
 		odb::getValueUInt32(hDB, 0,
-				"Equipment/" EQUIP_NAME "/Settings/waveform_length", TRUE,
-				defaults::recordLength);
+				"Equipment/" EQUIP_NAME "/Settings/waveform_length",
+				defaults::recordLength, true);
 
 		create_event_rb(test_rbh);
 		globals::readoutThread = ss_thread_create(test_thread, 0);
