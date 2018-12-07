@@ -1,20 +1,7 @@
-// Default program for dealing with various standard TRIUMF VME setups:
-// V792, V1190 (VME), L2249 (CAMAC), Agilent current meter
-//
-//
-
-#include <stdio.h>
 #include <iostream>
-#include <time.h>
-
 #include "TRootanaEventLoop.hxx"
 
-
 class Analyzer: public TRootanaEventLoop {
-
-
-
-
 public:
 
   // An analysis manager.  Define and fill histograms in 
@@ -47,27 +34,22 @@ public:
     
   }
   
-  
   void BeginRun(int transition,int run,int time){
     
     InitManager();
     
   }
 
-
   bool ProcessMidasEvent(TDataContainer& dataContainer){
 
 //    if(!anaManager) InitManager();
     
 //    anaManager->ProcessMidasEvent(dataContainer);
-
     
     return true;
   }
 
-
 }; 
-
 
 int main(int argc, char *argv[])
 {
@@ -76,4 +58,3 @@ int main(int argc, char *argv[])
   return Analyzer::Get().ExecuteLoop(argc, argv);
 
 }
-
