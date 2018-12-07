@@ -118,7 +118,7 @@ int test_rb_wait_sleep = 1;
 int test_rb_wait_count = 0;
 int test_rbh = 0;
 
-int test_thread(void *param) {
+int test_thread(void * /* param */) {
 	int status;
 	EVENT_HEADER *pevent;
 	void *p;
@@ -182,7 +182,7 @@ int test_thread(void *param) {
 							"Event size %ld larger than maximum size %d",
 							(long) (pevent->data_size + sizeof(EVENT_HEADER)),
 							max_event_size);
-					assert(FALSE);
+					assert (FALSE);
 				}
 
 				if (pevent->data_size > 0) {
@@ -203,11 +203,7 @@ int test_thread(void *param) {
 	return 0;
 }
 
-INT poll_event(INT source, INT count, BOOL test)
-/* Polling routine for events. Returns TRUE if event
- is available. If test equals TRUE, don't return. The test
- flag is used to time the polling */
-{
+INT poll_event(INT /* source */, INT count, BOOL test) {
 
 	if (test) {
 		ss_sleep(count);
@@ -216,17 +212,7 @@ INT poll_event(INT source, INT count, BOOL test)
 
 }
 
-INT interrupt_configure(INT cmd, INT source, PTYPE adr) {
-	switch (cmd) {
-	case CMD_INTERRUPT_ENABLE:
-		break;
-	case CMD_INTERRUPT_DISABLE:
-		break;
-	case CMD_INTERRUPT_ATTACH:
-		break;
-	case CMD_INTERRUPT_DETACH:
-		break;
-	}
+INT interrupt_configure(INT /* cmd */, INT /* source */, PTYPE /* adr */) {
 	return SUCCESS;
 }
 
@@ -258,8 +244,8 @@ static void configure() {
 
 	auto const hSet = getSettingsKey();
 
-	globals::numOfChannels = odb::getValueUInt8(
-			hDB, hSet, "num_of_channels", TRUE, defaults::numOfChannels);
+	globals::numOfChannels = odb::getValueUInt8(hDB, hSet, "num_of_channels",
+			TRUE, defaults::numOfChannels);
 
 	globals::enabledChannels.resize(globals::numOfChannels);
 	globals::dcOffsets.resize(globals::numOfChannels);
@@ -267,10 +253,10 @@ static void configure() {
 	globals::amplitudes.resize(globals::numOfChannels);
 	globals::phases.resize(globals::numOfChannels);
 
-	globals::dFrequency = odb::getValueUInt32(
-			hDB, hSet, "discrete_frequency", TRUE, defaults::dFrequency);
-	globals::recordLength = odb::getValueUInt32(
-			hDB, hSet, "waveform_length", TRUE, defaults::recordLength);
+	globals::dFrequency = odb::getValueUInt32(hDB, hSet, "discrete_frequency",
+			TRUE, defaults::dFrequency);
+	globals::recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
+			TRUE, defaults::recordLength);
 
 	globals::channelMask = 0x0000;
 	for (uint8_t i = 0; i < globals::numOfChannels; i++) {
@@ -294,9 +280,11 @@ static void configure() {
 
 static uint64_t nanoTime() {
 
-	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+	std::chrono::time_point < std::chrono::system_clock > now =
+			std::chrono::system_clock::now();
 	auto duration = now.time_since_epoch();
-	auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(duration);
+	auto nanoseconds = std::chrono::duration_cast < std::chrono::nanoseconds
+			> (duration);
 	return nanoseconds.count();
 
 }
@@ -313,7 +301,7 @@ static void stopAcquisition() {
 
 	globals::acquisitionIsOn.store(false);
 
-	std::lock_guard<std::mutex> lock(globals::readingMutex);
+	std::lock_guard < std::mutex > lock(globals::readingMutex);
 
 }
 
@@ -353,7 +341,7 @@ INT frontend_exit() {
 
 }
 
-INT begin_of_run(INT run_number, char *error) {
+INT begin_of_run(INT /* run_number */, char * /* error */) {
 
 	int status = SUCCESS;
 
@@ -372,7 +360,7 @@ INT begin_of_run(INT run_number, char *error) {
 
 }
 
-INT end_of_run(INT run_number, char *error) {
+INT end_of_run(INT /* run_number */, char * /* error */) {
 
 	int status = SUCCESS;
 
@@ -386,7 +374,7 @@ INT end_of_run(INT run_number, char *error) {
 
 }
 
-INT pause_run(INT run_number, char *error) {
+INT pause_run(INT /* run_number */, char * /*error */) {
 
 	int status = SUCCESS;
 
@@ -400,7 +388,7 @@ INT pause_run(INT run_number, char *error) {
 
 }
 
-INT resume_run(INT run_number, char *error) {
+INT resume_run(INT /* run_number */, char * /*error */) {
 
 	int status = SUCCESS;
 
@@ -452,7 +440,6 @@ static int buildEvent(char * const pevent) {
 
 	// store wave forms
 	auto const t = nanoTime() - globals::runStartTime;
-	auto const dt = 1000000000 / globals::dFrequency;
 	for (uint8_t i = 0; i < globals::numOfChannels; i++) {
 		if (globals::enabledChannels[i]) {
 			auto const dt = 1.0e9 / globals::frequencies[i];
@@ -461,13 +448,16 @@ static int buildEvent(char * const pevent) {
 				std::string const name = "WF" + toString(i, 2);
 				uint16_t* pdata;
 				bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
+
 				for (uint32_t j = 0; j < globals::recordLength; j++) {
-					auto const ns = static_cast<int64_t>(j) * 1000000000 / globals::dFrequency + t - globals::phases[i];
+					auto const ns = static_cast<int64_t>(j) * 1000000000
+							/ globals::dFrequency + t - globals::phases[i];
 					auto const v = std::sin(2.0 * PI * ns / dt)
-						* globals::amplitudes[i]
-						+ globals::dcOffsets[i];
-					*pdata++ = v < 0.0 ? 0 : v > 0xffff ? 0xffff : static_cast<uint16_t>(v);
+							* globals::amplitudes[i] + globals::dcOffsets[i];
+					*pdata++ = v < 0.0 ? 0 :
+								v > 0xffff ? 0xffff : static_cast<uint16_t>(v);
 				}
+
 				bk_close(pevent, pdata);
 			}
 		}
@@ -477,9 +467,9 @@ static int buildEvent(char * const pevent) {
 
 }
 
-int readEvent(char * const pevent, const int off) {
+int readEvent(char * const pevent, const int /* off */) {
 
-	std::lock_guard<std::mutex> lock(globals::readingMutex);
+	std::lock_guard < std::mutex > lock(globals::readingMutex);
 	int result;
 
 	if (globals::acquisitionIsOn.load(std::memory_order_relaxed)) {

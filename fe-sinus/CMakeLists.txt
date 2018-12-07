@@ -14,6 +14,7 @@ set_property(TARGET MidasMfe PROPERTY IMPORTED_OBJECTS ${MIDASLIBDIR}/mfe.o)
 
 add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:MidasMfe> ${SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME fe-sinus)
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 target_link_libraries(${PROJECT_NAME} pthread)
 target_link_libraries(${PROJECT_NAME} rt)
 target_link_libraries(${PROJECT_NAME} midas)
