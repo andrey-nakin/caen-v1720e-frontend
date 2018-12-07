@@ -184,7 +184,7 @@ int test_thread(void *param) {
 							"Event size %ld larger than maximum size %d",
 							(long) (pevent->data_size + sizeof(EVENT_HEADER)),
 							max_event_size);
-					assert (FALSE);
+					assert(FALSE);
 				}
 
 				if (pevent->data_size > 0) {
@@ -274,7 +274,7 @@ static caen::Handle connect() {
 	auto const conetNode = odb::getValueInt32(hDB, hSet, "conet_node", TRUE,
 			defaults::conetNode);
 	auto const vmeBaseAddr = odb::getValueUInt32(hDB, hSet, "vme_base_addr",
-			TRUE, defaults::vmeBaseAddr);
+	TRUE, defaults::vmeBaseAddr);
 
 	caen::Handle result(linkNum, conetNode, vmeBaseAddr);
 
@@ -292,13 +292,15 @@ static void configure(caen::Handle& hDevice) {
 	globals::boardInfo = boardInfo;
 
 	if (boardInfo.Model != CAEN_DGTZ_V1720) {
-		throw caen::Exception(CAEN_DGTZ_GenericError, "The device is not CAEN V1720");
+		throw caen::Exception(CAEN_DGTZ_GenericError,
+				"The device is not CAEN V1720");
 	}
 
 	int majorNumber;
 	sscanf(boardInfo.AMC_FirmwareRel, "%d", &majorNumber);
 	if (majorNumber >= 128) {
-		throw caen::Exception(CAEN_DGTZ_GenericError, "This digitizer has a DPP firmware");
+		throw caen::Exception(CAEN_DGTZ_GenericError,
+				"This digitizer has a DPP firmware");
 	}
 
 	globals::enabledChannels.resize(globals::boardInfo.Channels);
@@ -342,11 +344,11 @@ static void configure(caen::Handle& hDevice) {
 				[dcOffset, i](int handle) {return CAEN_DGTZ_SetChannelDCOffset(handle, i, dcOffset);});
 	}
 
-	auto const triggerMode = odb::getValueString(hDB, hSet,
-			"trigger_mode", TRUE, defaults::triggerMode);
+	auto const triggerMode = odb::getValueString(hDB, hSet, "trigger_mode",
+	TRUE, defaults::triggerMode);
 
-	auto const triggerChannel = odb::getValueUInt8(hDB, hSet,
-			"trigger_channel", TRUE, defaults::triggerChannel);
+	auto const triggerChannel = odb::getValueUInt8(hDB, hSet, "trigger_channel",
+	TRUE, defaults::triggerChannel);
 	hDevice.hCommand("setting channel self trigger",
 			[triggerChannel](int handle) {return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel));});
 
@@ -383,11 +385,11 @@ static void configure(caen::Handle& hDevice) {
 
 static void startAcquisition() {
 
-	globals::roBuffer = std::unique_ptr < caen::ReadoutBuffer
-			> (new caen::ReadoutBuffer(*globals::hDevice));
+	globals::roBuffer = std::unique_ptr<caen::ReadoutBuffer>(
+			new caen::ReadoutBuffer(*globals::hDevice));
 
-	globals::event = std::unique_ptr < caen::Event
-			> (new caen::Event(*globals::hDevice));
+	globals::event = std::unique_ptr<caen::Event>(
+			new caen::Event(*globals::hDevice));
 
 	globals::hDevice->hCommand("starting acquisition",
 			CAEN_DGTZ_SWStartAcquisition);
@@ -462,8 +464,8 @@ INT begin_of_run(INT run_number, char *error) {
 	int status = SUCCESS;
 
 	try {
-		globals::hDevice = std::unique_ptr < caen::Handle
-				> (new caen::Handle(connect()));
+		globals::hDevice = std::unique_ptr<caen::Handle>(
+				new caen::Handle(connect()));
 		configure(*globals::hDevice);
 
 		startAcquisition();
@@ -543,7 +545,8 @@ INT frontend_loop() {
 
 }
 
-static int parseEvent(char * const pevent, uint32_t const dataSize, int32_t const numEvent) {
+static int parseEvent(char * const pevent, uint32_t const dataSize,
+		int32_t const numEvent) {
 
 	std::pair<CAEN_DGTZ_EventInfo_t, char*> evt =
 			globals::roBuffer->getEventInfo(dataSize, numEvent);
@@ -569,48 +572,38 @@ static int parseEvent(char * const pevent, uint32_t const dataSize, int32_t cons
 		info->boardId = eventInfo.BoardId;
 		info->channelMask = eventInfo.ChannelMask;
 		info->eventCounter = eventInfo.EventCounter;
-		info->timeStamp = (uint64_t) eventInfo.Pattern << 32 | eventInfo.TriggerTimeTag;
+		info->timeStamp = (uint64_t) eventInfo.Pattern << 32
+				| eventInfo.TriggerTimeTag;
 		info->recordLength = globals::recordLength;
 		info->preTriggerLength = globals::preTriggerLength;
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 
 	{
-		// store channel enabled status
-		uint8_t* pdata;
-		bk_create(pevent, "CHEN", TID_BYTE, (void**) &pdata);
-		for (decltype(globals::boardInfo.Channels) i = 0;
-				i < globals::boardInfo.Channels; i++) {
-			*pdata++ = globals::enabledChannels[i] ? 1 : 0;
-		}
-		bk_close(pevent, pdata);
-	}
-
-	{
 		// store channel DC offset
 		uint16_t* pdata;
 		bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
-		for (decltype(globals::boardInfo.Channels) i = 0;
-				i < globals::boardInfo.Channels; i++) {
+		for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
 			*pdata++ = globals::dcOffsets[i];
 		}
 		bk_close(pevent, pdata);
 	}
 
 	// store wave forms
-	for (unsigned i = 0, idx = 0; i < globals::boardInfo.Channels; i++) {
+	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
 		if (eventInfo.ChannelMask & (0x0001 << i)) {
-			uint32_t const numOfSamples = globals::event->evt()->ChSize[idx];
-			uint16_t const *samples = globals::event->evt()->DataChannel[idx];
-			uint32_t const dataSize = numOfSamples * sizeof(*samples);
+			auto const numOfSamples = globals::event->evt()->ChSize[i];
+			if (numOfSamples > 0) {
+				uint16_t const * const samples =
+						globals::event->evt()->DataChannel[i];
+				auto const dataSize = numOfSamples * sizeof(samples[0]);
 
-			std::string const name = "WF" + toString(i, 2);
-			uint8_t* pdata;
-			bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
-			std::memcpy(pdata, samples, dataSize);
-			bk_close(pevent, pdata + dataSize);
-
-			idx++;
+				std::string const name = "WF" + toString(i, 2);
+				uint8_t* pdata;
+				bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
+				std::memcpy(pdata, samples, dataSize);
+				bk_close(pevent, pdata + dataSize);
+			}
 		}
 	}
 
@@ -629,9 +622,9 @@ int readEvent(char * const pevent, const int off) {
 
 			auto const numEvents = globals::roBuffer->getNumEvents(dataSize);
 
-			result = numEvents > 0
-					? parseEvent(pevent, dataSize, FIRST_EVENT)
-					: 0;
+			result =
+					numEvents > 0 ?
+							parseEvent(pevent, dataSize, FIRST_EVENT) : 0;
 
 		} catch (midas::Exception& ex) {
 			result = 0;
