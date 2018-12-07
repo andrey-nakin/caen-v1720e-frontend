@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 #include <midas.h>
 #include "midas/exception.hxx"
 
@@ -25,12 +26,37 @@ T getValue(HNDLE const hDB, HNDLE const hKeyRoot, std::string const& keyName,
 
 }
 
+template<typename T, DWORD type>
+std::vector<T> getValueV(HNDLE const hDB, HNDLE const hKeyRoot,
+		std::string const& keyName, std::size_t const numValues,
+		T const defValue, bool const create) {
+
+	std::vector < T > value(numValues, defValue);
+	if (numValues > 0) {
+		INT bufSize = sizeof(T) * numValues;
+		INT const status = db_get_value(hDB, hKeyRoot, keyName.c_str(),
+				&value[0], &bufSize, type, create ? TRUE : FALSE);
+
+		if (DB_SUCCESS != status) {
+			throw midas::Exception(status,
+					std::string("Error reading ODB key ") + keyName);
+		}
+	}
+
+	return value;
+
+}
+
 bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, BOOL const create, bool const value);
 
 std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, BOOL const create, std::string const& value,
 		std::size_t const size = 256);
+
+std::vector<bool> getValueBoolV(HNDLE hDB, HNDLE hKeyRoot,
+		std::string const& keyName, std::size_t numValues, bool defValue,
+		bool create = true);
 
 HNDLE findKey(HNDLE const hDB, HNDLE const hKey, std::string const& keyName);
 
@@ -51,6 +77,24 @@ auto const getValueUInt32 = getValue<std::uint32_t, TID_DWORD>;
 auto const getValueFloat = getValue<float, TID_FLOAT>;
 
 auto const getValueDouble = getValue<double, TID_DOUBLE>;
+
+auto const getValueCharV = getValueV<char, TID_CHAR>;
+
+auto const getValueInt8V = getValueV<std::int8_t, TID_SBYTE>;
+
+auto const getValueUInt8V = getValueV<std::uint8_t, TID_BYTE>;
+
+auto const getValueInt16V = getValueV<std::int16_t, TID_SHORT>;
+
+auto const getValueUInt16V = getValueV<std::uint16_t, TID_WORD>;
+
+auto const getValueInt32V = getValueV<std::int32_t, TID_INT>;
+
+auto const getValueUInt32V = getValueV<std::uint32_t, TID_DWORD>;
+
+auto const getValueFloatV = getValueV<float, TID_FLOAT>;
+
+auto const getValueDoubleV = getValueV<double, TID_DOUBLE>;
 
 }
 

@@ -22,10 +22,10 @@
 #define EQUIP_NAME "sinus"
 constexpr int EVID = 1;
 constexpr auto PI = 3.1415926536;
+constexpr std::size_t NUM_OF_CHANNELS = 8;
 
 namespace globals {
 
-static uint8_t numOfChannels = 1;
 static uint32_t recordLength = 0;
 static midas_thread_t readoutThread;
 static std::atomic_bool acquisitionIsOn(false);
@@ -227,13 +227,6 @@ static std::string toString(T const v, std::size_t const len) {
 
 }
 
-static std::string channelKey(uint8_t const channelNo,
-		char const * const keyName) {
-
-	return std::string("channel_") + std::to_string(channelNo) + "_" + keyName;
-
-}
-
 static HNDLE getSettingsKey() {
 
 	return odb::findKey(hDB, 0, "/equipment/" EQUIP_NAME "/Settings");
@@ -244,33 +237,24 @@ static void configure() {
 
 	auto const hSet = getSettingsKey();
 
-	globals::numOfChannels = odb::getValueUInt8(hDB, hSet, "num_of_channels",
-			TRUE, defaults::numOfChannels);
-
-	globals::enabledChannels.resize(globals::numOfChannels);
-	globals::dcOffsets.resize(globals::numOfChannels);
-	globals::frequencies.resize(globals::numOfChannels);
-	globals::amplitudes.resize(globals::numOfChannels);
-	globals::phases.resize(globals::numOfChannels);
-
 	globals::dFrequency = odb::getValueUInt32(hDB, hSet, "discrete_frequency",
 			TRUE, defaults::dFrequency);
 	globals::recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
 			TRUE, defaults::recordLength);
 
-	globals::channelMask = 0x0000;
-	for (uint8_t i = 0; i < globals::numOfChannels; i++) {
-		globals::enabledChannels[i] = odb::getValueBool(hDB, hSet,
-				channelKey(i, "enabled"), TRUE, defaults::channel::enabled);
-		globals::dcOffsets[i] = odb::getValueUInt16(hDB, hSet,
-				channelKey(i, "dc_offset"), TRUE, defaults::channel::dcOffset);
-		globals::frequencies[i] = odb::getValueUInt32(hDB, hSet,
-				channelKey(i, "frequency"), TRUE, defaults::channel::frequency);
-		globals::amplitudes[i] = odb::getValueUInt16(hDB, hSet,
-				channelKey(i, "amplitude"), TRUE, defaults::channel::amplitude);
-		globals::phases[i] = odb::getValueInt32(hDB, hSet,
-				channelKey(i, "phase"), TRUE, defaults::channel::phase);
+	globals::enabledChannels = odb::getValueBoolV(hDB, hSet, "channel_enabled",
+			NUM_OF_CHANNELS, true);
+	globals::dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
+			NUM_OF_CHANNELS, defaults::channel::dcOffset, true);
+	globals::frequencies = odb::getValueUInt32V(hDB, hSet, "channel_frequency",
+			NUM_OF_CHANNELS, defaults::channel::frequency, true);
+	globals::amplitudes = odb::getValueUInt16V(hDB, hSet, "channel_amplitude",
+			NUM_OF_CHANNELS, defaults::channel::amplitude, true);
+	globals::phases = odb::getValueInt32V(hDB, hSet, "channel_phase",
+			NUM_OF_CHANNELS, defaults::channel::phase, true);
 
+	globals::channelMask = 0x0000;
+	for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
 		if (globals::enabledChannels[i]) {
 			globals::channelMask |= 0x0001 << i;
 		}
@@ -310,9 +294,9 @@ INT frontend_init() {
 
 	try {
 		// create subtree
-		odb::getValueUInt8(hDB, 0,
-				"/equipment/" EQUIP_NAME "/Settings/num_of_channels", TRUE,
-				defaults::numOfChannels);
+		odb::getValueUInt32(hDB, 0,
+				"Equipment/" EQUIP_NAME "/Settings/waveform_length", TRUE,
+				defaults::recordLength);
 
 		create_event_rb(test_rbh);
 		globals::readoutThread = ss_thread_create(test_thread, 0);
@@ -432,7 +416,7 @@ static int buildEvent(char * const pevent) {
 		// store channel DC offset
 		uint16_t* pdata;
 		bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
-		for (uint8_t i = 0; i < globals::numOfChannels; i++) {
+		for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
 			*pdata++ = globals::dcOffsets[i];
 		}
 		bk_close(pevent, pdata);
@@ -440,7 +424,7 @@ static int buildEvent(char * const pevent) {
 
 	// store wave forms
 	auto const t = nanoTime() - globals::runStartTime;
-	for (uint8_t i = 0; i < globals::numOfChannels; i++) {
+	for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
 		if (globals::enabledChannels[i]) {
 			auto const dt = 1.0e9 / globals::frequencies[i];
 

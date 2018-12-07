@@ -50,4 +50,29 @@ std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
 
 }
 
+std::vector<bool> getValueBoolV(HNDLE const hDB, HNDLE const hKeyRoot,
+		std::string const& keyName, std::size_t const numValues,
+		bool const defValue, bool const create) {
+
+	std::vector < int32_t > v(numValues);
+	for (std::size_t i = 0; i < numValues; i++) {
+		v[i] = defValue;
+	}
+	INT bufSize = sizeof(v[0]) * numValues;
+	INT const status = db_get_value(hDB, hKeyRoot, keyName.c_str(), &v[0],
+			&bufSize, TID_BOOL, create ? TRUE : FALSE);
+
+	if (DB_SUCCESS != status) {
+		throw midas::Exception(status,
+				std::string("Error reading ODB key ") + keyName);
+	}
+
+	std::vector<bool> result(numValues);
+	for (std::size_t i = 0; i < numValues; i++) {
+		result[i] = v[i] ? true : false;
+	}
+	return result;
+
+}
+
 }
