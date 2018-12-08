@@ -12,7 +12,7 @@ Collection of data-acquisition applications used in [GNEIS](http://hepd.pnpi.spb
 
 ## Requirements
 
-* Linux GCC 4.8+
+* GCC 4.8+
 * CMake 3.1+
 
 ## Dependencies
