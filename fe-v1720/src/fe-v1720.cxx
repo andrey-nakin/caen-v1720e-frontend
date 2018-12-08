@@ -256,9 +256,7 @@ static caen::Handle connect() {
 	auto const vmeBaseAddr = odb::getValueUInt32(hDB, hSet, "vme_base_addr",
 			defaults::vmeBaseAddr, true);
 
-	caen::Handle result(linkNum, conetNode, vmeBaseAddr);
-
-	return result;
+	return caen::Handle(linkNum, conetNode, vmeBaseAddr);
 
 }
 
@@ -266,10 +264,9 @@ static void configure(caen::Handle& hDevice) {
 
 	auto const hSet = getSettingsKey();
 
-	decltype(glob::boardInfo) boardInfo;
+	auto& boardInfo = glob::boardInfo;
 	hDevice.hCommand("getting digitizer info",
 			[&boardInfo](int handle) {return CAEN_DGTZ_GetInfo(handle, &boardInfo);});
-	glob::boardInfo = boardInfo;
 
 	if (boardInfo.Model != CAEN_DGTZ_V1720) {
 		throw caen::Exception(CAEN_DGTZ_GenericError,
@@ -283,9 +280,6 @@ static void configure(caen::Handle& hDevice) {
 				"This digitizer has a DPP firmware");
 	}
 
-	glob::enabledChannels.resize(glob::boardInfo.Channels);
-	glob::dcOffsets.resize(glob::boardInfo.Channels);
-
 	hDevice.hCommand("resetting digitizer", CAEN_DGTZ_Reset);
 
 	hDevice.hCommand("setting IO level",
@@ -294,36 +288,35 @@ static void configure(caen::Handle& hDevice) {
 	hDevice.hCommand("setting external trigger input mode",
 			[](int handle) {return CAEN_DGTZ_SetExtTriggerInputMode(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY);});
 
-	glob::enabledChannels = odb::getValueBoolV(hDB, hSet, "channel_enabled",
-			boardInfo.Channels, defaults::channel::enabled, true);
-
-	uint32_t channelMask = 0x0000;
-	for (unsigned i = 0; i < glob::boardInfo.Channels; i++) {
-		if (glob::enabledChannels[i]) {
-			channelMask |= 0x0001 << i;
-		}
-	}
-	hDevice.hCommand("setting channel enable mask",
-			[channelMask](int handle) {return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask);});
-
 	hDevice.hCommand("setting run sync mode",
 			[](int handle) {return CAEN_DGTZ_SetRunSynchronizationMode(handle, CAEN_DGTZ_RUN_SYNC_Disabled);});
 
-	decltype(glob::recordLength) const recordLength = odb::getValueUInt32(hDB,
-			hSet, "waveform_length", defaults::recordLength, true);
+	auto const recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
+			defaults::recordLength, true);
 	glob::recordLength = recordLength;
+
+	glob::enabledChannels = odb::getValueBoolV(hDB, hSet, "channel_enabled",
+			boardInfo.Channels, defaults::channel::enabled, true);
 
 	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
 			boardInfo.Channels, defaults::channel::dcOffset, true);
 
-	for (unsigned i = 0; i < boardInfo.Channels; i++) {
+	uint32_t channelMask = 0x0000;
+	for (std::size_t i = 0; i != glob::enabledChannels.size(); i++) {
+		if (glob::enabledChannels[i]) {
+			channelMask |= 0x0001 << i;
+		}
+
 		hDevice.hCommand("setting record length",
 				[recordLength, i](int handle) {return CAEN_DGTZ_SetRecordLength(handle, recordLength, i);});
 
-		decltype(glob::dcOffsets[i]) dcOffset = glob::dcOffsets[i];
+		auto const& dcOffset = glob::dcOffsets[i];
 		hDevice.hCommand("setting channel DC offset",
 				[dcOffset, i](int handle) {return CAEN_DGTZ_SetChannelDCOffset(handle, i, dcOffset);});
 	}
+
+	hDevice.hCommand("setting channel enable mask",
+			[channelMask](int handle) {return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask);});
 
 	auto const triggerMode = odb::getValueString(hDB, hSet, "trigger_mode",
 			defaults::triggerMode, true);
@@ -567,14 +560,14 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 		// store channel DC offset
 		uint16_t* pdata;
 		bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
-		for (unsigned i = 0; i < glob::boardInfo.Channels; i++) {
-			*pdata++ = glob::dcOffsets[i];
+		for (auto const& dcOffset : glob::dcOffsets) {
+			*pdata++ = dcOffset;
 		}
 		bk_close(pevent, pdata);
 	}
 
 	// store wave forms
-	for (unsigned i = 0; i < glob::boardInfo.Channels; i++) {
+	for (std::size_t i = 0; i < glob::boardInfo.Channels; i++) {
 		if (eventInfo.ChannelMask & (0x0001 << i)) {
 			auto const numOfSamples = glob::event->evt()->ChSize[i];
 			if (numOfSamples > 0) {
