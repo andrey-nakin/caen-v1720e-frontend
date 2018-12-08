@@ -12,16 +12,15 @@
 namespace caen {
 
 class Handle final : public Noncopyable, public ErrorHolder {
-
-	int handle;
-
 public:
+
+	typedef int handle_type;
 
 	Handle(int linkNum, int conetNode, uint32_t vmeBaseAddr);
 	Handle(Handle&& h);
 	~Handle();
 
-	operator int() {
+	operator handle_type() {
 
 		return handle;
 
@@ -35,8 +34,7 @@ public:
 		ErrorHolder::command(msg, [this, action]() {return action(handle);});
 	}
 
-	template<class Function>
-	void hCommand(std::string const& msg, CAEN_DGTZ_ErrorCode (*action)(int)) {
+	void hCommand(std::string const& msg, CAEN_DGTZ_ErrorCode (*action)(handle_type)) {
 		ErrorHolder::command(msg, [this, action]() {return action(handle);});
 	}
 
@@ -45,6 +43,10 @@ public:
 		ErrorHolder::commandE(msgBuilder,
 				[this, action]() {return action(handle);});
 	}
+
+private:
+
+	handle_type handle;
 
 };
 

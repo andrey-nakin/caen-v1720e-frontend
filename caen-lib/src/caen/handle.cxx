@@ -2,19 +2,9 @@
 #include <CAENDigitizer.h>
 #include <caen/handle.hxx>
 
-#ifndef NEED_NO_EXTERN_C
-extern "C" {
-#endif
-
-extern const char *frontend_name;
-
-#ifndef NEED_NO_EXTERN_C
-}
-#endif
-
 namespace caen {
 
-constexpr int INVALID_HANDLE_VALUE = -1;
+constexpr Handle::handle_type INVALID_HANDLE_VALUE = -1;
 
 Handle::Handle(int const linkNum, int const conetNode,
 		::uint32_t const vmeBaseAddr) :
@@ -55,7 +45,7 @@ uint32_t Handle::readRegister(uint32_t const reg) {
 		std::stringstream s;
 		s << "reading register 0x" << std::hex << reg;
 		return s.str();
-	}, [reg, &regData](int handle) {
+	}, [reg, &regData](handle_type handle) {
 		return CAEN_DGTZ_ReadRegister(handle, reg, &regData);
 	});
 	return regData;
@@ -69,7 +59,7 @@ void Handle::writeRegister(uint32_t const reg, uint32_t const regData) {
 				std::stringstream s;
 				s << "writing " << std::hex << regData << " to register 0x" << std::hex << reg;
 				return s.str();
-			}, [reg, regData](int handle) {
+			}, [reg, regData](handle_type handle) {
 				return CAEN_DGTZ_WriteRegister(handle, reg, regData);
 			});
 
