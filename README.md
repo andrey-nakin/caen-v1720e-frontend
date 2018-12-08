@@ -11,6 +11,7 @@ Collection of data-acquisition applications for [GNEIS](http://hepd.pnpi.spb.ru/
 * `caen-lib`: library with light-weight wrappers around CAEN digitizer API.
 * `midas-util-lib`: library with light-weight wrappers around MIDAS API.
 * `frontend-util-lib`: library with commonly used definitions.
+* `an-basic-wave-form`: MIDAS basic wave form analyzer.
 
 ## Requirements
 

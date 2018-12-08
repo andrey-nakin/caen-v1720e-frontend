@@ -155,48 +155,42 @@ static int workingThread(void * /*param */) {
 			ss_sleep(eq->info.period);
 		}
 
-		if (1 /*readout_enabled()*/) {
+		/* check for new event */
+		//source = poll_event(multithread_eq->info.source, multithread_eq->poll_count, FALSE);
+		if (1 /*source > 0*/) {
 
-			/* check for new event */
-			//source = poll_event(multithread_eq->info.source, multithread_eq->poll_count, FALSE);
-			if (1 /*source > 0*/) {
+			if (stop_all_threads)
+				break;
 
-				if (stop_all_threads)
-					break;
+			pevent = (EVENT_HEADER *) p;
 
-				pevent = (EVENT_HEADER *) p;
+			/* compose MIDAS event header */
+			pevent->event_id = eq->info.event_id;
+			pevent->trigger_mask = eq->info.trigger_mask;
+			pevent->data_size = 0;
+			pevent->time_stamp = ss_time();
+			pevent->serial_number = eq->serial_number++;
 
-				/* compose MIDAS event header */
-				pevent->event_id = eq->info.event_id;
-				pevent->trigger_mask = eq->info.trigger_mask;
-				pevent->data_size = 0;
-				pevent->time_stamp = ss_time();
-				pevent->serial_number = eq->serial_number++;
+			/* call user readout routine */
+			pevent->data_size = eq->readout((char *) (pevent + 1), 0);
 
-				/* call user readout routine */
-				pevent->data_size = eq->readout((char *) (pevent + 1), 0);
-
-				/* check event size */
-				if (pevent->data_size + sizeof(EVENT_HEADER)
-						> (DWORD) max_event_size) {
-					cm_msg(MERROR, "readout_thread",
-							"Event size %ld larger than maximum size %d",
-							(long) (pevent->data_size + sizeof(EVENT_HEADER)),
-							max_event_size);
-					assert (FALSE);
-				}
-
-				if (pevent->data_size > 0) {
-					/* put event into ring buffer */
-					rb_increment_wp(get_event_rbh(test_rbh),
-							sizeof(EVENT_HEADER) + pevent->data_size);
-				} else
-					eq->serial_number--;
+			/* check event size */
+			if (pevent->data_size + sizeof(EVENT_HEADER)
+					> (DWORD) max_event_size) {
+				cm_msg(MERROR, "readout_thread",
+						"Event size %ld larger than maximum size %d",
+						(long) (pevent->data_size + sizeof(EVENT_HEADER)),
+						max_event_size);
+				assert (FALSE);
 			}
 
-		} else
-			// readout_enabled
-			ss_sleep(1);
+			if (pevent->data_size > 0) {
+				/* put event into ring buffer */
+				rb_increment_wp(get_event_rbh(test_rbh),
+						sizeof(EVENT_HEADER) + pevent->data_size);
+			} else
+				eq->serial_number--;
+		}
 	}
 
 	signal_readout_thread_active(test_rbh, 0);
