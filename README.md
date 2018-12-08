@@ -1,6 +1,6 @@
 # gneis-daq
 
-Collection of data-acquisition applications used in [GNEIS][http://hepd.pnpi.spb.ru/~gneis/] experiment. Based on [MIDAS](https://midas.triumf.ca/MidasWiki/index.php/Main_Page) toolkit.
+Collection of data-acquisition applications used in [GNEIS](http://hepd.pnpi.spb.ru/~gneis/) experiment. Based on [MIDAS](https://midas.triumf.ca/MidasWiki/index.php/Main_Page) toolkit.
 
 ## Content
 
@@ -17,11 +17,11 @@ Collection of data-acquisition applications used in [GNEIS][http://hepd.pnpi.spb
 
 ## Dependencies
 
-* [ROOT][https://github.com/root-project/root]
-* [MIDAS][https://bitbucket.org/tmidas/midas]
-* [MXML][https://bitbucket.org/tmidas/mxml]
-* [ROOTANA][https://bitbucket.org/tmidas/rootana]
-* [CAEN Digitizer Library][https://www.caen.it/products/caendigitizer-library/] and its dependencies
+* [ROOT](https://github.com/root-project/root)
+* [MIDAS](https://bitbucket.org/tmidas/midas)
+* [MXML](https://bitbucket.org/tmidas/mxml)
+* [ROOTANA](https://bitbucket.org/tmidas/rootana)
+* [CAEN Digitizer Library](https://www.caen.it/products/caendigitizer-library/) and its dependencies
 
 ## Prerequisites
 
