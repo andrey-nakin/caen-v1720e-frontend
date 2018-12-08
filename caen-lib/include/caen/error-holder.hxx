@@ -30,6 +30,8 @@ public:
 		}
 	}
 
+	static const char* errorMessage(CAEN_DGTZ_ErrorCode ec);
+
 };
 
 }

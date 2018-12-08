@@ -65,11 +65,11 @@ BOOL frontend_call_loop = FALSE;
 INT display_period = 1000;
 
 /* maximum event size produced by this frontend */
-INT max_event_size = caen::v1720::TOTAL_MEMORY_SIZE + 1024;
-INT max_event_size_frag = caen::v1720::TOTAL_MEMORY_SIZE + 1024;
+INT max_event_size = 4194304 / 8;
+INT max_event_size_frag = 4194304 / 8;
 
 /* buffer size to hold events */
-INT event_buffer_size = caen::v1720::TOTAL_MEMORY_SIZE + 1024;
+INT event_buffer_size = 4194304;
 
 /*-- Function declarations -----------------------------------------*/
 
@@ -354,9 +354,6 @@ static void configure(caen::Handle& hDevice) {
 
 	hDevice.writeRegister(caen::v1720::REG_POST_TRIGGER,
 			(glob::recordLength - glob::preTriggerLength) / 4);
-
-	max_event_size_frag = max_event_size = glob::recordLength * sizeof(uint16_t)
-			* boardInfo.Channels + sizeof(fe::InfoBank) + 1024;
 
 }
 
