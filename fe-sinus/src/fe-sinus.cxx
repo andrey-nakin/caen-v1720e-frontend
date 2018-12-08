@@ -16,6 +16,9 @@
 
 #include <midas/odb.hxx>
 #include <util/types.hxx>
+#include <util/TInfoRawData.hxx>
+#include <util/TDcOffsetRawData.hxx>
+#include <util/TWaveFormRawData.hxx>
 
 #include "defaults.hxx"
 
@@ -221,17 +224,6 @@ INT interrupt_configure(INT /* cmd */, INT /* source */, PTYPE /* adr */) {
 	return SUCCESS;
 }
 
-template<typename T>
-static std::string toString(T const v, std::size_t const len) {
-
-	auto s = std::to_string(v);
-	while (s.size() < len) {
-		s = "0" + s;
-	}
-	return s;
-
-}
-
 static HNDLE getSettingsKey() {
 
 	return odb::findKey(hDB, 0, "/equipment/" EQUIP_NAME "/Settings");
@@ -404,7 +396,8 @@ static int buildEvent(char * const pevent) {
 	{
 		// store general information
 		uint8_t* pdata;
-		bk_create(pevent, "INFO", TID_DWORD, (void**) &pdata);
+		bk_create(pevent, util::TInfoRawData::BANK_NAME, TID_DWORD,
+				(void**) &pdata);
 		util::InfoBank* info = (util::InfoBank*) pdata;
 		info->dataType = util::DataType::WaveForm16bitVer1;
 		info->deviceType = util::DeviceType::CaenV1720E;
@@ -420,7 +413,8 @@ static int buildEvent(char * const pevent) {
 	{
 		// store channel DC offset
 		uint16_t* pdata;
-		bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
+		bk_create(pevent, util::TDcOffsetRawData::BANK_NAME, TID_WORD,
+				(void**) &pdata);
 		for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
 			*pdata++ = glob::dcOffsets[i];
 		}
@@ -434,9 +428,8 @@ static int buildEvent(char * const pevent) {
 			auto const dt = 1.0e9 / glob::frequencies[i];
 
 			if (glob::recordLength > 0) {
-				std::string const name = "WF" + toString(i, 2);
 				uint16_t* pdata;
-				bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
+				bk_create(pevent, util::TWaveFormRawData::bankName(i), TID_WORD, (void**) &pdata);
 
 				for (uint32_t j = 0; j < glob::recordLength; j++) {
 					auto const ns = static_cast<int64_t>(j) * 1000000000

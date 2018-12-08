@@ -4,6 +4,7 @@ set (CMAKE_CXX_STANDARD 14)
 set (MIDASLIBDIR $ENV{MIDASSYS}/linux/lib)
 include_directories(${PROJECT_SOURCE_DIR}/include/)
 include_directories($ENV{MIDASSYS}/include)
+include_directories($ENV{ROOTANASYS}/include)
 link_directories(${MIDASLIBDIR})
 
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cxx)

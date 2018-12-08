@@ -14,6 +14,9 @@
 
 #include <midas/odb.hxx>
 #include <util/types.hxx>
+#include <util/TInfoRawData.hxx>
+#include <util/TDcOffsetRawData.hxx>
+#include <util/TWaveFormRawData.hxx>
 #include <caen/handle.hxx>
 #include <caen/error-holder.hxx>
 #include <caen/readout-buffer.hxx>
@@ -210,17 +213,6 @@ INT poll_event(INT /* source */, INT count, BOOL test) {
 INT interrupt_configure(INT /* cmd */, INT /* source */, PTYPE /* adr */) {
 
 	return SUCCESS;
-
-}
-
-template<typename T>
-static std::string toString(T const v, std::size_t const len) {
-
-	auto s = std::to_string(v);
-	while (s.size() < len) {
-		s = "0" + s;
-	}
-	return s;
 
 }
 
@@ -533,7 +525,8 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 	{
 		// store general information
 		uint8_t* pdata;
-		bk_create(pevent, "INFO", TID_DWORD, (void**) &pdata);
+		bk_create(pevent, util::TInfoRawData::BANK_NAME, TID_DWORD,
+				(void**) &pdata);
 		util::InfoBank* info = (util::InfoBank*) pdata;
 		info->dataType = util::DataType::WaveForm16bitVer1;
 		info->deviceType = util::DeviceType::CaenV1720E;
@@ -550,7 +543,8 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 	{
 		// store channel DC offset
 		uint16_t* pdata;
-		bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
+		bk_create(pevent, util::TDcOffsetRawData::BANK_NAME, TID_WORD,
+				(void**) &pdata);
 		for (auto const& dcOffset : glob::dcOffsets) {
 			*pdata++ = dcOffset;
 		}
@@ -566,9 +560,9 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 						glob::event->evt()->DataChannel[i];
 				auto const dataSize = numOfSamples * sizeof(samples[0]);
 
-				std::string const name = "WF" + toString(i, 2);
 				uint8_t* pdata;
-				bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
+				bk_create(pevent, util::TWaveFormRawData::bankName(i), TID_WORD,
+						(void**) &pdata);
 				std::memcpy(pdata, samples, dataSize);
 				bk_close(pevent, pdata + dataSize);
 			}

@@ -1,3 +1,6 @@
+#include <util/TInfoRawData.hxx>
+#include <util/TDcOffsetRawData.hxx>
+#include <util/TWaveFormRawData.hxx>
 #include "TAnaManager.hxx"
 
 namespace bwf {
@@ -7,6 +10,28 @@ TAnaManager::TAnaManager() {
 }
 
 int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer) {
+
+	auto const info = dataContainer.GetEventData < util::TInfoRawData
+			> (util::TInfoRawData::BANK_NAME);
+	if (info) {
+		std::cout << "INFO bank detected, " << info->info().timeStamp
+				<< std::endl;
+	}
+
+	auto const dcOffsets = dataContainer.GetEventData < util::TDcOffsetRawData
+			> (util::TDcOffsetRawData::BANK_NAME);
+	if (dcOffsets) {
+		std::cout << "DC offset bank detected, ch[7, 8] = "
+				<< dcOffsets->dcOffset(7) << ", " << dcOffsets->dcOffset(-1)
+				<< ", size=" << dcOffsets->GetSize() << std::endl;
+	}
+
+	auto const wf00 = dataContainer.GetEventData < util::TWaveFormRawData
+			> (util::TWaveFormRawData::bankName(0));
+	if (wf00) {
+		std::cout << "WF00 offset bank detected, size = " << wf00->GetSize()
+				<< std::endl;
+	}
 
 	// Do little analysis of the V1720 data, as example...
 //	if (fV1720Waveform) {
