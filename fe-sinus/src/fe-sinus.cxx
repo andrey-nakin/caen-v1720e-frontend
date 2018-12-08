@@ -24,7 +24,7 @@ constexpr int EVID = 1;
 constexpr auto PI = 3.1415926536;
 constexpr std::size_t NUM_OF_CHANNELS = 8;
 
-namespace globals {
+namespace glob {
 
 static uint32_t recordLength = 0;
 static midas_thread_t readoutThread;
@@ -89,6 +89,9 @@ int readEvent(char *pevent, int off);
 
 /*-- Equipment list ------------------------------------------------*/
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+
 EQUIPMENT equipment[] = { { EQUIP_NAME, { EVID, (1 << EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
 EQ_USER, /* equipment type */
@@ -102,6 +105,8 @@ RO_RUNNING, /* Read when running */
 0, /* no history */
 "", "", "" }, readEvent, /* readout routine */
 }, { "" } };
+
+#pragma GCC diagnostic pop
 
 #ifndef NEED_NO_EXTERN_C
 }
@@ -128,7 +133,7 @@ int test_thread(void * /* param */) {
 	signal_readout_thread_active(test_rbh, 1);
 
 	while (!stop_all_threads) {
-		if (!globals::acquisitionIsOn.load(std::memory_order_relaxed)) {
+		if (!glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
 			// no run, wait
 			ss_sleep(1);
 			continue;
@@ -237,26 +242,26 @@ static void configure() {
 
 	auto const hSet = getSettingsKey();
 
-	globals::dFrequency = odb::getValueUInt32(hDB, hSet, "discrete_frequency",
+	glob::dFrequency = odb::getValueUInt32(hDB, hSet, "discrete_frequency",
 			defaults::dFrequency, true);
-	globals::recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
+	glob::recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
 			defaults::recordLength, true);
 
-	globals::enabledChannels = odb::getValueBoolV(hDB, hSet, "channel_enabled",
+	glob::enabledChannels = odb::getValueBoolV(hDB, hSet, "channel_enabled",
 			NUM_OF_CHANNELS, true, true);
-	globals::dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
+	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
 			NUM_OF_CHANNELS, defaults::channel::dcOffset, true);
-	globals::frequencies = odb::getValueUInt32V(hDB, hSet, "channel_frequency",
+	glob::frequencies = odb::getValueUInt32V(hDB, hSet, "channel_frequency",
 			NUM_OF_CHANNELS, defaults::channel::frequency, true);
-	globals::amplitudes = odb::getValueUInt16V(hDB, hSet, "channel_amplitude",
+	glob::amplitudes = odb::getValueUInt16V(hDB, hSet, "channel_amplitude",
 			NUM_OF_CHANNELS, defaults::channel::amplitude, true);
-	globals::phases = odb::getValueInt32V(hDB, hSet, "channel_phase",
+	glob::phases = odb::getValueInt32V(hDB, hSet, "channel_phase",
 			NUM_OF_CHANNELS, defaults::channel::phase, true);
 
-	globals::channelMask = 0x0000;
+	glob::channelMask = 0x0000;
 	for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
-		if (globals::enabledChannels[i]) {
-			globals::channelMask |= 0x0001 << i;
+		if (glob::enabledChannels[i]) {
+			glob::channelMask |= 0x0001 << i;
 		}
 	}
 
@@ -275,17 +280,17 @@ static uint64_t nanoTime() {
 
 static void startAcquisition() {
 
-	globals::runStartTime = nanoTime();
-	globals::eventCounter = 0;
-	globals::acquisitionIsOn.store(true);
+	glob::runStartTime = nanoTime();
+	glob::eventCounter = 0;
+	glob::acquisitionIsOn.store(true);
 
 }
 
 static void stopAcquisition() {
 
-	globals::acquisitionIsOn.store(false);
+	glob::acquisitionIsOn.store(false);
 
-	std::lock_guard < std::mutex > lock(globals::readingMutex);
+	std::lock_guard < std::mutex > lock(glob::readingMutex);
 
 }
 
@@ -299,7 +304,7 @@ INT frontend_init() {
 				defaults::recordLength, true);
 
 		create_event_rb(test_rbh);
-		globals::readoutThread = ss_thread_create(test_thread, 0);
+		glob::readoutThread = ss_thread_create(test_thread, 0);
 
 		configure();
 
@@ -316,7 +321,7 @@ INT frontend_exit() {
 
 	try {
 		stopAcquisition();
-		ss_thread_kill(globals::readoutThread);
+		ss_thread_kill(glob::readoutThread);
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
 	}
@@ -404,10 +409,10 @@ static int buildEvent(char * const pevent) {
 		info->dataType = fe::DataType::WaveForm16bitVer1;
 		info->deviceType = fe::DeviceType::CaenV1720E;
 		info->boardId = 0;
-		info->channelMask = globals::channelMask;
-		info->eventCounter = ++globals::eventCounter;
+		info->channelMask = glob::channelMask;
+		info->eventCounter = ++glob::eventCounter;
 		info->timeStamp = nanoTime();
-		info->recordLength = globals::recordLength;
+		info->recordLength = glob::recordLength;
 		info->preTriggerLength = 0;
 		bk_close(pevent, pdata + sizeof(*info));
 	}
@@ -417,27 +422,27 @@ static int buildEvent(char * const pevent) {
 		uint16_t* pdata;
 		bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
 		for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
-			*pdata++ = globals::dcOffsets[i];
+			*pdata++ = glob::dcOffsets[i];
 		}
 		bk_close(pevent, pdata);
 	}
 
 	// store wave forms
-	auto const t = nanoTime() - globals::runStartTime;
+	auto const t = nanoTime() - glob::runStartTime;
 	for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
-		if (globals::enabledChannels[i]) {
-			auto const dt = 1.0e9 / globals::frequencies[i];
+		if (glob::enabledChannels[i]) {
+			auto const dt = 1.0e9 / glob::frequencies[i];
 
-			if (globals::recordLength > 0) {
+			if (glob::recordLength > 0) {
 				std::string const name = "WF" + toString(i, 2);
 				uint16_t* pdata;
 				bk_create(pevent, name.c_str(), TID_WORD, (void**) &pdata);
 
-				for (uint32_t j = 0; j < globals::recordLength; j++) {
+				for (uint32_t j = 0; j < glob::recordLength; j++) {
 					auto const ns = static_cast<int64_t>(j) * 1000000000
-							/ globals::dFrequency + t - globals::phases[i];
+							/ glob::dFrequency + t - glob::phases[i];
 					auto const v = std::sin(2.0 * PI * ns / dt)
-							* globals::amplitudes[i] + globals::dcOffsets[i];
+							* glob::amplitudes[i] + glob::dcOffsets[i];
 					*pdata++ = v < 0.0 ? 0 :
 								v > 0xffff ? 0xffff : static_cast<uint16_t>(v);
 				}
@@ -453,10 +458,10 @@ static int buildEvent(char * const pevent) {
 
 int readEvent(char * const pevent, const int /* off */) {
 
-	std::lock_guard < std::mutex > lock(globals::readingMutex);
+	std::lock_guard < std::mutex > lock(glob::readingMutex);
 	int result;
 
-	if (globals::acquisitionIsOn.load(std::memory_order_relaxed)) {
+	if (glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
 		try {
 			result = buildEvent(pevent);
 		} catch (midas::Exception& ex) {

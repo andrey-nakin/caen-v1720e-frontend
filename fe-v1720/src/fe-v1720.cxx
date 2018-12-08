@@ -10,6 +10,7 @@
 #include <mutex>
 #include <atomic>
 #include <midas.h>
+#include <msystem.h>
 
 #include <midas/odb.hxx>
 #include <frontend/types.hxx>
@@ -27,7 +28,7 @@ constexpr uint32_t MAX_NUM_OF_EVENTS = 1;
 constexpr int32_t FIRST_EVENT = 0;
 constexpr int EVID = 1;
 
-namespace globals {
+namespace glob {
 
 static CAEN_DGTZ_BoardInfo_t boardInfo;
 static uint32_t recordLength = 0;
@@ -64,11 +65,11 @@ BOOL frontend_call_loop = FALSE;
 INT display_period = 1000;
 
 /* maximum event size produced by this frontend */
-INT max_event_size = 4 * 1024 * 1024;
-INT max_event_size_frag = 4 * 1024 * 1024;
+INT max_event_size = caen::v1720::TOTAL_MEMORY_SIZE + 1024;
+INT max_event_size_frag = caen::v1720::TOTAL_MEMORY_SIZE + 1024;
 
 /* buffer size to hold events */
-INT event_buffer_size = 10 * 1024 * 1024;
+INT event_buffer_size = caen::v1720::TOTAL_MEMORY_SIZE + 1024;
 
 /*-- Function declarations -----------------------------------------*/
 
@@ -91,6 +92,9 @@ int readEvent(char *pevent, int off);
 
 /*-- Equipment list ------------------------------------------------*/
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+
 EQUIPMENT equipment[] = { { EQUIP_NAME, { EVID, (1 << EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
 EQ_USER, /* equipment type */
@@ -105,22 +109,17 @@ RO_RUNNING, /* Read when running */
 "", "", "" }, readEvent, /* readout routine */
 }, { "" } };
 
+#pragma GCC diagnostic pop
+
 #ifndef NEED_NO_EXTERN_C
 }
 #endif
 
-extern "C" {
-void set_rate_period(int ms);
-}
-
 int test_rb_wait_sleep = 1;
-
-#include "msystem.h"
-
 int test_rb_wait_count = 0;
 int test_rbh = 0;
 
-int test_thread(void * /*param */) {
+static int workingThread(void * /*param */) {
 	int status;
 	EVENT_HEADER *pevent;
 	void *p;
@@ -130,7 +129,7 @@ int test_thread(void * /*param */) {
 	signal_readout_thread_active(test_rbh, 1);
 
 	while (!stop_all_threads) {
-		if (!globals::acquisitionIsOn.load(std::memory_order_relaxed)) {
+		if (!glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
 			// no run, wait
 			ss_sleep(1);
 			continue;
@@ -214,18 +213,10 @@ INT poll_event(INT /* source */, INT count, BOOL test) {
 
 }
 
-INT interrupt_configure(INT cmd, INT /* source */, PTYPE /* adr */) {
-	switch (cmd) {
-	case CMD_INTERRUPT_ENABLE:
-		break;
-	case CMD_INTERRUPT_DISABLE:
-		break;
-	case CMD_INTERRUPT_ATTACH:
-		break;
-	case CMD_INTERRUPT_DETACH:
-		break;
-	}
+INT interrupt_configure(INT /* cmd */, INT /* source */, PTYPE /* adr */) {
+
 	return SUCCESS;
+
 }
 
 template<typename T>
@@ -275,10 +266,10 @@ static void configure(caen::Handle& hDevice) {
 
 	auto const hSet = getSettingsKey();
 
-	decltype(globals::boardInfo) boardInfo;
+	decltype(glob::boardInfo) boardInfo;
 	hDevice.hCommand("getting digitizer info",
 			[&boardInfo](int handle) {return CAEN_DGTZ_GetInfo(handle, &boardInfo);});
-	globals::boardInfo = boardInfo;
+	glob::boardInfo = boardInfo;
 
 	if (boardInfo.Model != CAEN_DGTZ_V1720) {
 		throw caen::Exception(CAEN_DGTZ_GenericError,
@@ -292,8 +283,8 @@ static void configure(caen::Handle& hDevice) {
 				"This digitizer has a DPP firmware");
 	}
 
-	globals::enabledChannels.resize(globals::boardInfo.Channels);
-	globals::dcOffsets.resize(globals::boardInfo.Channels);
+	glob::enabledChannels.resize(glob::boardInfo.Channels);
+	glob::dcOffsets.resize(glob::boardInfo.Channels);
 
 	hDevice.hCommand("resetting digitizer", CAEN_DGTZ_Reset);
 
@@ -303,12 +294,12 @@ static void configure(caen::Handle& hDevice) {
 	hDevice.hCommand("setting external trigger input mode",
 			[](int handle) {return CAEN_DGTZ_SetExtTriggerInputMode(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY);});
 
-	globals::enabledChannels = odb::getValueBoolV(hDB, hSet, "channel_enabled",
+	glob::enabledChannels = odb::getValueBoolV(hDB, hSet, "channel_enabled",
 			boardInfo.Channels, defaults::channel::enabled, true);
 
 	uint32_t channelMask = 0x0000;
-	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
-		if (globals::enabledChannels[i]) {
+	for (unsigned i = 0; i < glob::boardInfo.Channels; i++) {
+		if (glob::enabledChannels[i]) {
 			channelMask |= 0x0001 << i;
 		}
 	}
@@ -318,18 +309,18 @@ static void configure(caen::Handle& hDevice) {
 	hDevice.hCommand("setting run sync mode",
 			[](int handle) {return CAEN_DGTZ_SetRunSynchronizationMode(handle, CAEN_DGTZ_RUN_SYNC_Disabled);});
 
-	decltype(globals::recordLength) const recordLength = odb::getValueUInt32(
-			hDB, hSet, "waveform_length", defaults::recordLength, true);
-	globals::recordLength = recordLength;
+	decltype(glob::recordLength) const recordLength = odb::getValueUInt32(hDB,
+			hSet, "waveform_length", defaults::recordLength, true);
+	glob::recordLength = recordLength;
 
-	globals::dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
+	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
 			boardInfo.Channels, defaults::channel::dcOffset, true);
 
 	for (unsigned i = 0; i < boardInfo.Channels; i++) {
 		hDevice.hCommand("setting record length",
 				[recordLength, i](int handle) {return CAEN_DGTZ_SetRecordLength(handle, recordLength, i);});
 
-		decltype(globals::dcOffsets[i]) dcOffset = globals::dcOffsets[i];
+		decltype(glob::dcOffsets[i]) dcOffset = glob::dcOffsets[i];
 		hDevice.hCommand("setting channel DC offset",
 				[dcOffset, i](int handle) {return CAEN_DGTZ_SetChannelDCOffset(handle, i, dcOffset);});
 	}
@@ -365,40 +356,43 @@ static void configure(caen::Handle& hDevice) {
 				regData & ~caen::v1720::REG_BIT_TRIGGER_OVERLAP);
 	}
 
-	globals::preTriggerLength = odb::getValueUInt32(hDB, hSet,
+	glob::preTriggerLength = odb::getValueUInt32(hDB, hSet,
 			"pre_trigger_length", defaults::preTriggerLength, true);
 
 	hDevice.writeRegister(caen::v1720::REG_POST_TRIGGER,
-			(globals::recordLength - globals::preTriggerLength) / 4);
+			(glob::recordLength - glob::preTriggerLength) / 4);
+
+	max_event_size_frag = max_event_size = glob::recordLength * sizeof(uint16_t)
+			* boardInfo.Channels + sizeof(fe::InfoBank) + 1024;
 
 }
 
 static void startAcquisition() {
 
-	globals::roBuffer = std::unique_ptr < caen::ReadoutBuffer
-			> (new caen::ReadoutBuffer(*globals::hDevice));
+	glob::roBuffer = std::unique_ptr < caen::ReadoutBuffer
+			> (new caen::ReadoutBuffer(*glob::hDevice));
 
-	globals::event = std::unique_ptr < caen::Event
-			> (new caen::Event(*globals::hDevice));
+	glob::event = std::unique_ptr < caen::Event
+			> (new caen::Event(*glob::hDevice));
 
-	globals::hDevice->hCommand("starting acquisition",
+	glob::hDevice->hCommand("starting acquisition",
 			CAEN_DGTZ_SWStartAcquisition);
 
-	globals::acquisitionIsOn.store(true);
+	glob::acquisitionIsOn.store(true);
 
 }
 
 static void stopAcquisition() {
 
-	globals::acquisitionIsOn.store(false);
+	glob::acquisitionIsOn.store(false);
 
-	std::lock_guard < std::mutex > lock(globals::readingMutex);
+	std::lock_guard < std::mutex > lock(glob::readingMutex);
 
-	globals::hDevice->hCommand("stopping acquisition",
+	glob::hDevice->hCommand("stopping acquisition",
 			CAEN_DGTZ_SWStopAcquisition);
 
-	globals::event = nullptr;
-	globals::roBuffer = nullptr;
+	glob::event = nullptr;
+	glob::roBuffer = nullptr;
 
 }
 
@@ -412,7 +406,7 @@ INT frontend_init() {
 				defaults::linkNum, true);
 
 		create_event_rb(test_rbh);
-		globals::readoutThread = ss_thread_create(test_thread, 0);
+		glob::readoutThread = ss_thread_create(workingThread, 0);
 
 		caen::Handle hDevice = connect();
 		configure(hDevice);
@@ -420,7 +414,7 @@ INT frontend_init() {
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
 	} catch (caen::Exception& ex) {
-		status = handleCaenException(ex);
+		handleCaenException(ex);
 	}
 
 	return status;
@@ -432,12 +426,12 @@ INT frontend_exit() {
 
 	try {
 
-		if (globals::hDevice) {
+		if (glob::hDevice) {
 			stopAcquisition();
-			globals::hDevice = nullptr;
+			glob::hDevice = nullptr;
 		}
 
-		ss_thread_kill(globals::readoutThread);
+		ss_thread_kill(glob::readoutThread);
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
@@ -454,9 +448,9 @@ INT begin_of_run(INT /* run_number */, char * /* error */) {
 	int status = SUCCESS;
 
 	try {
-		globals::hDevice = std::unique_ptr < caen::Handle
+		glob::hDevice = std::unique_ptr < caen::Handle
 				> (new caen::Handle(connect()));
-		configure(*globals::hDevice);
+		configure(*glob::hDevice);
 
 		startAcquisition();
 
@@ -478,9 +472,9 @@ INT end_of_run(INT /* run_number */, char * /* error */) {
 
 	try {
 
-		if (globals::hDevice) {
+		if (glob::hDevice) {
 			stopAcquisition();
-			globals::hDevice = nullptr;
+			glob::hDevice = nullptr;
 		}
 
 	} catch (midas::Exception& ex) {
@@ -538,17 +532,17 @@ INT frontend_loop() {
 static int parseEvent(char * const pevent, uint32_t const dataSize,
 		int32_t const numEvent) {
 
-	std::pair<CAEN_DGTZ_EventInfo_t, char*> evt =
-			globals::roBuffer->getEventInfo(dataSize, numEvent);
+	std::pair<CAEN_DGTZ_EventInfo_t, char*> evt = glob::roBuffer->getEventInfo(
+			dataSize, numEvent);
 	CAEN_DGTZ_EventInfo_t const& eventInfo = evt.first;
 
-	if (eventInfo.EventCounter > globals::eventCounter + 1) {
+	if (eventInfo.EventCounter > glob::eventCounter + 1) {
 		cm_msg(MERROR, frontend_name, "%u event(s) has been lost",
-				eventInfo.EventCounter - globals::eventCounter - 1);
+				eventInfo.EventCounter - glob::eventCounter - 1);
 	}
-	globals::eventCounter = eventInfo.EventCounter;
+	glob::eventCounter = eventInfo.EventCounter;
 
-	globals::event->decode(evt.second);
+	glob::event->decode(evt.second);
 
 	bk_init32(pevent);
 
@@ -564,8 +558,8 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 		info->eventCounter = eventInfo.EventCounter;
 		info->timeStamp = (uint64_t) eventInfo.Pattern << 32
 				| eventInfo.TriggerTimeTag;
-		info->recordLength = globals::recordLength;
-		info->preTriggerLength = globals::preTriggerLength;
+		info->recordLength = glob::recordLength;
+		info->preTriggerLength = glob::preTriggerLength;
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 
@@ -573,19 +567,19 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 		// store channel DC offset
 		uint16_t* pdata;
 		bk_create(pevent, "CHDC", TID_WORD, (void**) &pdata);
-		for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
-			*pdata++ = globals::dcOffsets[i];
+		for (unsigned i = 0; i < glob::boardInfo.Channels; i++) {
+			*pdata++ = glob::dcOffsets[i];
 		}
 		bk_close(pevent, pdata);
 	}
 
 	// store wave forms
-	for (unsigned i = 0; i < globals::boardInfo.Channels; i++) {
+	for (unsigned i = 0; i < glob::boardInfo.Channels; i++) {
 		if (eventInfo.ChannelMask & (0x0001 << i)) {
-			auto const numOfSamples = globals::event->evt()->ChSize[i];
+			auto const numOfSamples = glob::event->evt()->ChSize[i];
 			if (numOfSamples > 0) {
 				uint16_t const * const samples =
-						globals::event->evt()->DataChannel[i];
+						glob::event->evt()->DataChannel[i];
 				auto const dataSize = numOfSamples * sizeof(samples[0]);
 
 				std::string const name = "WF" + toString(i, 2);
@@ -603,14 +597,14 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 
 int readEvent(char * const pevent, const int /* off */) {
 
-	std::lock_guard < std::mutex > lock(globals::readingMutex);
+	std::lock_guard < std::mutex > lock(glob::readingMutex);
 	int result;
 
-	if (globals::acquisitionIsOn.load(std::memory_order_relaxed)) {
+	if (glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
 		try {
-			auto const dataSize = globals::roBuffer->readData();
+			auto const dataSize = glob::roBuffer->readData();
 
-			auto const numEvents = globals::roBuffer->getNumEvents(dataSize);
+			auto const numEvents = glob::roBuffer->getNumEvents(dataSize);
 
 			result =
 					numEvents > 0 ?
