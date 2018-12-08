@@ -1,5 +1,7 @@
 # gneis-daq
 
+[![Project Stats](https://www.openhub.net/p/gneis-daq/widgets/project_thin_badge?format=gif)](https://www.openhub.net/p/gneis-daq)
+
 Collection of data-acquisition applications used in [GNEIS](http://hepd.pnpi.spb.ru/~gneis/) experiment. Based on [MIDAS](https://midas.triumf.ca/MidasWiki/index.php/Main_Page) toolkit.
 
 ## Content
