@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-namespace fe {
+namespace util {
 
 enum class DataType : uint32_t {
 	WaveForm16bitVer1 = 1

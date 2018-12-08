@@ -23,7 +23,7 @@ target_link_libraries(${PROJECT_NAME} CAENComm)
 target_link_libraries(${PROJECT_NAME} CAENDigitizer)
 target_link_libraries(${PROJECT_NAME} util)
 target_link_libraries(${PROJECT_NAME} MidasUtilLib)
-target_link_libraries(${PROJECT_NAME} FrontendUtilLib)
 target_link_libraries(${PROJECT_NAME} CaenLib)
+target_link_libraries(${PROJECT_NAME} UtilLib)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

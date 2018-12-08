@@ -20,6 +20,6 @@ target_link_libraries(${PROJECT_NAME} rt)
 target_link_libraries(${PROJECT_NAME} midas)
 target_link_libraries(${PROJECT_NAME} util)
 target_link_libraries(${PROJECT_NAME} MidasUtilLib)
-target_link_libraries(${PROJECT_NAME} FrontendUtilLib)
+target_link_libraries(${PROJECT_NAME} UtilLib)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

@@ -2,7 +2,7 @@
 # Setup the project
 #
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(FrontendUtilLib VERSION 1.0.0 LANGUAGES CXX DESCRIPTION "Frontend Utility Library")
+project(UtilLib VERSION 1.0.0 LANGUAGES CXX DESCRIPTION "Common Utility Library")
 set (CMAKE_CXX_STANDARD 14)
 include_directories(${PROJECT_SOURCE_DIR}/include/)
 

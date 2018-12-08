@@ -30,6 +30,6 @@ target_link_libraries(${PROJECT_NAME} XMLParser)
 target_link_libraries(${PROJECT_NAME} RHTTP)
 target_link_libraries(${PROJECT_NAME} rootana)
 target_link_libraries(${PROJECT_NAME} midas)
-target_link_libraries(${PROJECT_NAME} FrontendUtilLib)
+target_link_libraries(${PROJECT_NAME} UtilLib)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

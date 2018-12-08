@@ -13,7 +13,7 @@
 #include <msystem.h>
 
 #include <midas/odb.hxx>
-#include <frontend/types.hxx>
+#include <util/types.hxx>
 #include <caen/handle.hxx>
 #include <caen/error-holder.hxx>
 #include <caen/readout-buffer.hxx>
@@ -534,9 +534,9 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 		// store general information
 		uint8_t* pdata;
 		bk_create(pevent, "INFO", TID_DWORD, (void**) &pdata);
-		fe::InfoBank* info = (fe::InfoBank*) pdata;
-		info->dataType = fe::DataType::WaveForm16bitVer1;
-		info->deviceType = fe::DeviceType::CaenV1720E;
+		util::InfoBank* info = (util::InfoBank*) pdata;
+		info->dataType = util::DataType::WaveForm16bitVer1;
+		info->deviceType = util::DeviceType::CaenV1720E;
 		info->boardId = eventInfo.BoardId;
 		info->channelMask = eventInfo.ChannelMask;
 		info->eventCounter = eventInfo.EventCounter;
