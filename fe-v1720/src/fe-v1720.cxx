@@ -95,7 +95,7 @@ int readEvent(char *pevent, int off);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
-EQUIPMENT equipment[] = { { EQUIP_NAME, { EVID, (1 << EVID), /* event ID, trigger mask */
+EQUIPMENT equipment[] = { { "v1720%02d", { EVID, (1 << EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
 EQ_USER, /* equipment type */
 0, /* event source */
@@ -367,10 +367,6 @@ INT frontend_init() {
 	int status = SUCCESS;
 
 	try {
-		strncpy(equipment[0].name,
-				util::FrontEndUtils::equipmentName(equipment[0].name).c_str(),
-				sizeof(equipment[0].name));
-
 		// create subtree
 		odb::getValueInt32(hDB, 0,
 				util::FrontEndUtils::settingsKeyName(equipment[0].name,

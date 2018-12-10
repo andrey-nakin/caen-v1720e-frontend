@@ -8,8 +8,6 @@ namespace util {
 class FrontEndUtils {
 public:
 
-	static std::string equipmentName(const char* feBaseName);
-
 	static std::string settingsKeyName(const char* equipName,
 			const char* propName = nullptr);
 

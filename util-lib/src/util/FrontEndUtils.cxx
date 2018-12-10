@@ -1,4 +1,3 @@
-#include <iomanip>
 #include <sstream>
 #include <midas/odb.hxx>
 #include "util/FrontEndUtils.hxx"
@@ -16,17 +15,6 @@ INT get_frontend_index();
 #endif
 
 namespace util {
-
-std::string FrontEndUtils::equipmentName(const char* const feBaseName) {
-
-	std::stringstream s;
-	s << feBaseName;
-	if (get_frontend_index() >= 0) {
-		s << std::setfill('0') << std::setw(2) << get_frontend_index();
-	}
-	return s.str();
-
-}
 
 std::string FrontEndUtils::settingsKeyName(const char* const equipName,
 		const char* const propName) {
