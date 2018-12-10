@@ -43,6 +43,9 @@ static uint32_t eventCounter;
 static midas_thread_t readoutThread;
 static std::atomic_bool acquisitionIsOn(false);
 static std::mutex readingMutex;
+static int rbWaitSleep = 1;
+static int rbWaitCount = 0;
+static int rbh = 0;
 
 }
 
@@ -115,18 +118,14 @@ RO_RUNNING, /* Read when running */
 }
 #endif
 
-int test_rb_wait_sleep = 1;
-int test_rb_wait_count = 0;
-int test_rbh = 0;
-
 static int workingThread(void * /*param */) {
 	int status;
 	EVENT_HEADER *pevent;
-	void *p;
 	EQUIPMENT* eq = &equipment[0];
+	void *p;
 
 	/* indicate activity to framework */
-	signal_readout_thread_active(test_rbh, 1);
+	signal_readout_thread_active(glob::rbh, 1);
 
 	while (!stop_all_threads) {
 		if (!glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
@@ -136,14 +135,16 @@ static int workingThread(void * /*param */) {
 		}
 
 		/* obtain buffer space */
-		status = rb_get_wp(get_event_rbh(test_rbh), &p, 0);
-		if (stop_all_threads)
+		status = rb_get_wp(get_event_rbh(glob::rbh), &p, 0);
+		if (stop_all_threads) {
 			break;
+		}
 		if (status == DB_TIMEOUT) {
-			test_rb_wait_count++;
+			glob::rbWaitCount++;
 			//printf("readout_thread: Ring buffer is full, waiting for space!\n");
-			if (test_rb_wait_sleep)
-				ss_sleep(test_rb_wait_sleep);
+			if (glob::rbWaitSleep) {
+				ss_sleep(glob::rbWaitSleep);
+			}
 			continue;
 		}
 		if (status != DB_SUCCESS) {
@@ -159,8 +160,9 @@ static int workingThread(void * /*param */) {
 		//source = poll_event(multithread_eq->info.source, multithread_eq->poll_count, FALSE);
 		if (1 /*source > 0*/) {
 
-			if (stop_all_threads)
+			if (stop_all_threads) {
 				break;
+			}
 
 			pevent = (EVENT_HEADER *) p;
 
@@ -186,14 +188,15 @@ static int workingThread(void * /*param */) {
 
 			if (pevent->data_size > 0) {
 				/* put event into ring buffer */
-				rb_increment_wp(get_event_rbh(test_rbh),
+				rb_increment_wp(get_event_rbh(glob::rbh),
 						sizeof(EVENT_HEADER) + pevent->data_size);
-			} else
+			} else {
 				eq->serial_number--;
+			}
 		}
 	}
 
-	signal_readout_thread_active(test_rbh, 0);
+	signal_readout_thread_active(glob::rbh, 0);
 
 	return 0;
 }
@@ -372,7 +375,7 @@ INT frontend_init() {
 				util::FrontEndUtils::settingsKeyName(equipment[0].name,
 						"link_num"), defaults::linkNum, true);
 
-		create_event_rb(test_rbh);
+		create_event_rb(glob::rbh);
 		glob::readoutThread = ss_thread_create(workingThread, 0);
 
 		caen::Handle hDevice = connect();
@@ -421,7 +424,7 @@ INT begin_of_run(INT /* run_number */, char * /* error */) {
 
 		startAcquisition();
 
-		test_rb_wait_count = 0;
+		glob::rbWaitCount = 0;
 
 	} catch (midas::Exception& ex) {
 		status = ex.getStatus();
