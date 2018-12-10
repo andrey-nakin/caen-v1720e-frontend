@@ -19,6 +19,7 @@
 #include <util/V1720InfoRawData.hxx>
 #include <util/TDcOffsetRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
+#include <util/FrontEndUtils.hxx>
 
 #include "defaults.hxx"
 
@@ -224,15 +225,9 @@ INT interrupt_configure(INT /* cmd */, INT /* source */, PTYPE /* adr */) {
 	return SUCCESS;
 }
 
-static HNDLE getSettingsKey() {
-
-	return odb::findKey(hDB, 0, "/equipment/" EQUIP_NAME "/Settings");
-
-}
-
 static void configure() {
 
-	auto const hSet = getSettingsKey();
+	auto const hSet = util::FrontEndUtils::settingsKey(EQUIP_NAME);
 
 	glob::dFrequency = odb::getValueUInt32(hDB, hSet, "discrete_frequency",
 			defaults::dFrequency, true);
@@ -292,8 +287,8 @@ INT frontend_init() {
 	try {
 		// create subtree
 		odb::getValueUInt32(hDB, 0,
-				"Equipment/" EQUIP_NAME "/Settings/waveform_length",
-				defaults::recordLength, true);
+				util::FrontEndUtils::settingsKeyName(EQUIP_NAME,
+						"waveform_length"), defaults::recordLength, true);
 
 		create_event_rb(test_rbh);
 		glob::readoutThread = ss_thread_create(test_thread, 0);
