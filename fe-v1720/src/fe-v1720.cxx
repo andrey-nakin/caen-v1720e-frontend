@@ -216,14 +216,6 @@ INT interrupt_configure(INT /* cmd */, INT /* source */, PTYPE /* adr */) {
 
 }
 
-static INT handleCaenException(caen::Exception const& ex) {
-
-	INT const status = CM_SET_ERROR;
-	cm_msg(MERROR, frontend_name, ex.what(), status);
-	return status;
-
-}
-
 static caen::Handle connect() {
 
 	// save reference to settings tree
@@ -367,34 +359,27 @@ static void stopAcquisition() {
 }
 
 INT frontend_init() {
-	int status = SUCCESS;
 
-	try {
+	return util::FrontEndUtils::command([]() {
+
 		// create subtree
-		odb::getValueInt32(hDB, 0,
-				util::FrontEndUtils::settingsKeyName(equipment[0].name,
-						"link_num"), defaults::linkNum, true);
+			odb::getValueInt32(hDB, 0,
+					util::FrontEndUtils::settingsKeyName(equipment[0].name,
+							"link_num"), defaults::linkNum, true);
 
-		create_event_rb(glob::rbh);
-		glob::readoutThread = ss_thread_create(workingThread, 0);
+			create_event_rb(glob::rbh);
+			glob::readoutThread = ss_thread_create(workingThread, 0);
 
-		caen::Handle hDevice = connect();
-		configure(hDevice);
+			caen::Handle hDevice = connect();
+			configure(hDevice);
 
-	} catch (midas::Exception& ex) {
-		status = ex.getStatus();
-	} catch (caen::Exception& ex) {
-		handleCaenException(ex);
-	}
+		});
 
-	return status;
 }
 
 INT frontend_exit() {
 
-	int status = SUCCESS;
-
-	try {
+	return util::FrontEndUtils::command([]() {
 
 		if (glob::hDevice) {
 			stopAcquisition();
@@ -403,93 +388,56 @@ INT frontend_exit() {
 
 		ss_thread_kill(glob::readoutThread);
 
-	} catch (midas::Exception& ex) {
-		status = ex.getStatus();
-	} catch (caen::Exception& ex) {
-		status = handleCaenException(ex);
-	}
-
-	return status;
+	});
 
 }
 
 INT begin_of_run(INT /* run_number */, char * /* error */) {
 
-	int status = SUCCESS;
+	return util::FrontEndUtils::command([]() {
 
-	try {
 		glob::hDevice = std::unique_ptr < caen::Handle
-				> (new caen::Handle(connect()));
+		> (new caen::Handle(connect()));
 		configure(*glob::hDevice);
 
 		startAcquisition();
 
 		glob::rbWaitCount = 0;
 
-	} catch (midas::Exception& ex) {
-		status = ex.getStatus();
-	} catch (caen::Exception& ex) {
-		status = handleCaenException(ex);
-	}
-
-	return status;
+	});
 
 }
 
 INT end_of_run(INT /* run_number */, char * /* error */) {
 
-	int status = SUCCESS;
-
-	try {
+	return util::FrontEndUtils::command([]() {
 
 		if (glob::hDevice) {
 			stopAcquisition();
 			glob::hDevice = nullptr;
 		}
 
-	} catch (midas::Exception& ex) {
-		status = ex.getStatus();
-	} catch (caen::Exception& ex) {
-		status = handleCaenException(ex);
-	}
-
-	return status;
+	});
 
 }
 
 INT pause_run(INT /* run_number */, char * /* error */) {
 
-	int status = SUCCESS;
-
-	try {
+	return util::FrontEndUtils::command([]() {
 
 		stopAcquisition();
 
-	} catch (midas::Exception& ex) {
-		status = ex.getStatus();
-	} catch (caen::Exception& ex) {
-		status = handleCaenException(ex);
-	}
-
-	return status;
+	});
 
 }
 
 INT resume_run(INT /* run_number */, char * /* error */) {
 
-	int status = SUCCESS;
-
-	try {
+	return util::FrontEndUtils::command([]() {
 
 		startAcquisition();
 
-	} catch (midas::Exception& ex) {
-		status = ex.getStatus();
-	} catch (caen::Exception& ex) {
-		status = handleCaenException(ex);
-	}
-
-	return status;
+	});
 
 }
 
@@ -569,21 +517,17 @@ int readEvent(char * const pevent, const int /* off */) {
 	int result;
 
 	if (glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
-		try {
-			auto const dataSize = glob::roBuffer->readData();
+		result =
+				util::FrontEndUtils::commandR(
+						[pevent]() {
 
-			auto const numEvents = glob::roBuffer->getNumEvents(dataSize);
+							auto const dataSize = glob::roBuffer->readData();
 
-			result =
-					numEvents > 0 ?
-							parseEvent(pevent, dataSize, FIRST_EVENT) : 0;
+							auto const numEvents = glob::roBuffer->getNumEvents(dataSize);
 
-		} catch (midas::Exception& ex) {
-			result = 0;
-		} catch (caen::Exception& ex) {
-			handleCaenException(ex);
-			result = 0;
-		}
+							return numEvents > 0 ? parseEvent(pevent, dataSize, FIRST_EVENT) : 0;
+
+						});
 	} else {
 		result = 0;
 	}

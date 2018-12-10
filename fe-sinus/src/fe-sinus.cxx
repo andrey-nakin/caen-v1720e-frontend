@@ -222,7 +222,9 @@ INT poll_event(INT /* source */, INT count, BOOL test) {
 }
 
 INT interrupt_configure(INT /* cmd */, INT /* source */, PTYPE /* adr */) {
+
 	return SUCCESS;
+
 }
 
 static void configure() {
@@ -282,99 +284,75 @@ static void stopAcquisition() {
 }
 
 INT frontend_init() {
-	int status = SUCCESS;
 
-	try {
+	return util::FrontEndUtils::command([]() {
+
 		// create subtree
-		odb::getValueUInt32(hDB, 0,
-				util::FrontEndUtils::settingsKeyName(EQUIP_NAME,
-						"waveform_length"), defaults::recordLength, true);
+			odb::getValueUInt32(hDB, 0,
+					util::FrontEndUtils::settingsKeyName(EQUIP_NAME,
+							"waveform_length"), defaults::recordLength, true);
 
-		create_event_rb(test_rbh);
-		glob::readoutThread = ss_thread_create(test_thread, 0);
+			create_event_rb(test_rbh);
+			glob::readoutThread = ss_thread_create(test_thread, 0);
 
-		configure();
+			configure();
 
-	} catch (midas::Exception& ex) {
-		status = ex.getStatus();
-	}
+		});
 
-	return status;
 }
 
 INT frontend_exit() {
 
-	int status = SUCCESS;
+	return util::FrontEndUtils::command([]() {
 
-	try {
 		stopAcquisition();
 		ss_thread_kill(glob::readoutThread);
-	} catch (midas::Exception& ex) {
-		status = ex.getStatus();
-	}
 
-	return status;
+	});
 
 }
 
 INT begin_of_run(INT /* run_number */, char * /* error */) {
 
-	int status = SUCCESS;
+	return util::FrontEndUtils::command([]() {
 
-	try {
 		configure();
 
 		startAcquisition();
 
 		test_rb_wait_count = 0;
 
-	} catch (midas::Exception& ex) {
-		status = ex.getStatus();
-	}
-
-	return status;
+	});
 
 }
 
 INT end_of_run(INT /* run_number */, char * /* error */) {
 
-	int status = SUCCESS;
+	return util::FrontEndUtils::command([]() {
 
-	try {
 		stopAcquisition();
-	} catch (midas::Exception& ex) {
-		status = ex.getStatus();
-	}
 
-	return status;
+	});
 
 }
 
 INT pause_run(INT /* run_number */, char * /*error */) {
 
-	int status = SUCCESS;
+	return util::FrontEndUtils::command([]() {
 
-	try {
 		stopAcquisition();
-	} catch (midas::Exception& ex) {
-		status = ex.getStatus();
-	}
 
-	return status;
+	});
 
 }
 
 INT resume_run(INT /* run_number */, char * /*error */) {
 
-	int status = SUCCESS;
+	return util::FrontEndUtils::command([]() {
 
-	try {
 		startAcquisition();
-	} catch (midas::Exception& ex) {
-		status = ex.getStatus();
-	}
 
-	return status;
+	});
 
 }
 
@@ -447,11 +425,11 @@ int readEvent(char * const pevent, const int /* off */) {
 	int result;
 
 	if (glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
-		try {
-			result = buildEvent(pevent);
-		} catch (midas::Exception& ex) {
-			result = 0;
-		}
+		result = util::FrontEndUtils::commandR([pevent]() {
+
+			return buildEvent(pevent);
+
+		});
 	} else {
 		result = 0;
 	}

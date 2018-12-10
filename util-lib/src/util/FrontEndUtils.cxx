@@ -7,6 +7,7 @@ extern "C" {
 #endif
 
 extern HNDLE hDB;
+extern const char *frontend_name;
 
 INT get_frontend_index();
 
@@ -31,6 +32,14 @@ std::string FrontEndUtils::settingsKeyName(const char* const equipName,
 HNDLE FrontEndUtils::settingsKey(const char* equipName) {
 
 	return odb::findKey(hDB, 0, settingsKeyName(equipName));
+
+}
+
+INT FrontEndUtils::handleCaenException(caen::Exception const& ex) {
+
+	INT const status = CM_SET_ERROR;
+	cm_msg(MERROR, frontend_name, ex.what(), status);
+	return status;
 
 }
 
