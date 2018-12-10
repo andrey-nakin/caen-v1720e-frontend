@@ -4,6 +4,7 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(UtilLib VERSION 1.0.0 LANGUAGES CXX DESCRIPTION "Common Utility Library")
 set (CMAKE_CXX_STANDARD 14)
+include_directories($ENV{MIDASSYS}/include)
 include_directories($ENV{ROOTANASYS}/include)
 include_directories(${PROJECT_SOURCE_DIR}/include/)
 
@@ -25,6 +26,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     PRIVATE src)
+target_link_libraries(${PROJECT_NAME} MidasUtilLib)
 
 #----------------------------------------------------------------------------
 # Install the library

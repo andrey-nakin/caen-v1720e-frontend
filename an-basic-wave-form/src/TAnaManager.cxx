@@ -1,4 +1,4 @@
-#include <util/TInfoRawData.hxx>
+#include <util/V1720InfoRawData.hxx>
 #include <util/TDcOffsetRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
 #include "TAnaManager.hxx"
@@ -11,10 +11,10 @@ TAnaManager::TAnaManager() {
 
 int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer) {
 
-	auto const info = dataContainer.GetEventData < util::TInfoRawData
-			> (util::TInfoRawData::BANK_NAME);
+	auto const info = dataContainer.GetEventData < util::V1720InfoRawData
+			> (util::V1720InfoRawData::bankName());
 	if (info) {
-		std::cout << "INFO bank detected, " << info->info().timeStamp
+		std::cout << "V1720 INFO bank detected, " << info->info().timeStamp
 				<< std::endl;
 	}
 

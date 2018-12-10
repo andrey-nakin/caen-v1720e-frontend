@@ -16,7 +16,7 @@
 
 #include <midas/odb.hxx>
 #include <util/types.hxx>
-#include <util/TInfoRawData.hxx>
+#include <util/V1720InfoRawData.hxx>
 #include <util/TDcOffsetRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
 
@@ -396,17 +396,13 @@ static int buildEvent(char * const pevent) {
 	{
 		// store general information
 		uint8_t* pdata;
-		bk_create(pevent, util::TInfoRawData::BANK_NAME, TID_DWORD,
+		bk_create(pevent, util::V1720InfoRawData::bankName(), TID_DWORD,
 				(void**) &pdata);
 		util::InfoBank* info = (util::InfoBank*) pdata;
-		info->dataType = util::DataType::WaveForm16bitVer1;
-		info->deviceType = util::DeviceType::CaenV1720E;
 		info->boardId = 0;
 		info->channelMask = glob::channelMask;
 		info->eventCounter = ++glob::eventCounter;
 		info->timeStamp = nanoTime();
-		info->recordLength = glob::recordLength;
-		info->preTriggerLength = 0;
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 
@@ -429,7 +425,8 @@ static int buildEvent(char * const pevent) {
 
 			if (glob::recordLength > 0) {
 				uint16_t* pdata;
-				bk_create(pevent, util::TWaveFormRawData::bankName(i), TID_WORD, (void**) &pdata);
+				bk_create(pevent, util::TWaveFormRawData::bankName(i), TID_WORD,
+						(void**) &pdata);
 
 				for (uint32_t j = 0; j < glob::recordLength; j++) {
 					auto const ns = static_cast<int64_t>(j) * 1000000000

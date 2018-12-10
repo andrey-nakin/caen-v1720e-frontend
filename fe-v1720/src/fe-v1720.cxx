@@ -14,9 +14,10 @@
 
 #include <midas/odb.hxx>
 #include <util/types.hxx>
-#include <util/TInfoRawData.hxx>
+#include <util/V1720InfoRawData.hxx>
 #include <util/TDcOffsetRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
+#include <util/FrontEndUtils.hxx>
 #include <caen/handle.hxx>
 #include <caen/error-holder.hxx>
 #include <caen/readout-buffer.hxx>
@@ -34,11 +35,7 @@ constexpr int EVID = 1;
 namespace glob {
 
 static CAEN_DGTZ_BoardInfo_t boardInfo;
-static uint32_t recordLength = 0;
-static uint32_t preTriggerLength = 0;
-static std::vector<bool> enabledChannels;
 static std::vector<uint16_t> dcOffsets;
-static std::vector<uint16_t> sample;
 static std::unique_ptr<caen::Handle> hDevice;
 static std::unique_ptr<caen::ReadoutBuffer> roBuffer;
 static std::unique_ptr<caen::Event> event;
@@ -216,12 +213,6 @@ INT interrupt_configure(INT /* cmd */, INT /* source */, PTYPE /* adr */) {
 
 }
 
-static HNDLE getSettingsKey() {
-
-	return odb::findKey(hDB, 0, "/equipment/" EQUIP_NAME "/Settings");
-
-}
-
 static INT handleCaenException(caen::Exception const& ex) {
 
 	INT const status = CM_SET_ERROR;
@@ -233,7 +224,7 @@ static INT handleCaenException(caen::Exception const& ex) {
 static caen::Handle connect() {
 
 	// save reference to settings tree
-	auto const hSet = getSettingsKey();
+	auto const hSet = util::FrontEndUtils::settingsKey(EQUIP_NAME);
 
 	auto const linkNum = odb::getValueInt32(hDB, hSet, "link_num",
 			defaults::linkNum, true);
@@ -248,7 +239,7 @@ static caen::Handle connect() {
 
 static void configure(caen::Handle& hDevice) {
 
-	auto const hSet = getSettingsKey();
+	auto const hSet = util::FrontEndUtils::settingsKey(EQUIP_NAME);
 
 	auto& boardInfo = glob::boardInfo;
 	hDevice.hCommand("getting digitizer info",
@@ -279,17 +270,17 @@ static void configure(caen::Handle& hDevice) {
 
 	auto const recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
 			defaults::recordLength, true);
-	glob::recordLength = recordLength;
 
-	glob::enabledChannels = odb::getValueBoolV(hDB, hSet, "channel_enabled",
-			boardInfo.Channels, defaults::channel::enabled, true);
+	auto const enabledChannels = odb::getValueBoolV(hDB, hSet,
+			"channel_enabled", boardInfo.Channels, defaults::channel::enabled,
+			true);
 
 	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
 			boardInfo.Channels, defaults::channel::dcOffset, true);
 
 	uint32_t channelMask = 0x0000;
-	for (std::size_t i = 0; i != glob::enabledChannels.size(); i++) {
-		if (glob::enabledChannels[i]) {
+	for (std::size_t i = 0; i != enabledChannels.size(); i++) {
+		if (enabledChannels[i]) {
 			channelMask |= 0x0001 << i;
 		}
 
@@ -335,11 +326,11 @@ static void configure(caen::Handle& hDevice) {
 				regData & ~caen::v1720::REG_BIT_TRIGGER_OVERLAP);
 	}
 
-	glob::preTriggerLength = odb::getValueUInt32(hDB, hSet,
+	auto const preTriggerLength = odb::getValueUInt32(hDB, hSet,
 			"pre_trigger_length", defaults::preTriggerLength, true);
 
 	hDevice.writeRegister(caen::v1720::REG_POST_TRIGGER,
-			(glob::recordLength - glob::preTriggerLength) / 4);
+			(recordLength - preTriggerLength) / 4);
 
 }
 
@@ -378,7 +369,7 @@ INT frontend_init() {
 	try {
 		// create subtree
 		odb::getValueInt32(hDB, 0,
-				"/equipment/" EQUIP_NAME "/Settings/link_num",
+				util::FrontEndUtils::settingsKeyName(EQUIP_NAME, "link_num"),
 				defaults::linkNum, true);
 
 		create_event_rb(test_rbh);
@@ -525,18 +516,14 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 	{
 		// store general information
 		uint8_t* pdata;
-		bk_create(pevent, util::TInfoRawData::BANK_NAME, TID_DWORD,
+		bk_create(pevent, util::V1720InfoRawData::bankName(), TID_DWORD,
 				(void**) &pdata);
 		util::InfoBank* info = (util::InfoBank*) pdata;
-		info->dataType = util::DataType::WaveForm16bitVer1;
-		info->deviceType = util::DeviceType::CaenV1720E;
 		info->boardId = eventInfo.BoardId;
 		info->channelMask = eventInfo.ChannelMask;
 		info->eventCounter = eventInfo.EventCounter;
 		info->timeStamp = (uint64_t) eventInfo.Pattern << 32
 				| eventInfo.TriggerTimeTag;
-		info->recordLength = glob::recordLength;
-		info->preTriggerLength = glob::preTriggerLength;
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 
