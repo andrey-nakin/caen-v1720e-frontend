@@ -224,7 +224,7 @@ static INT handleCaenException(caen::Exception const& ex) {
 static caen::Handle connect() {
 
 	// save reference to settings tree
-	auto const hSet = util::FrontEndUtils::settingsKey(EQUIP_NAME);
+	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
 
 	auto const linkNum = odb::getValueInt32(hDB, hSet, "link_num",
 			defaults::linkNum, true);
@@ -239,7 +239,7 @@ static caen::Handle connect() {
 
 static void configure(caen::Handle& hDevice) {
 
-	auto const hSet = util::FrontEndUtils::settingsKey(EQUIP_NAME);
+	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
 
 	auto& boardInfo = glob::boardInfo;
 	hDevice.hCommand("getting digitizer info",
@@ -367,10 +367,14 @@ INT frontend_init() {
 	int status = SUCCESS;
 
 	try {
+		strncpy(equipment[0].name,
+				util::FrontEndUtils::equipmentName(equipment[0].name).c_str(),
+				sizeof(equipment[0].name));
+
 		// create subtree
 		odb::getValueInt32(hDB, 0,
-				util::FrontEndUtils::settingsKeyName(EQUIP_NAME, "link_num"),
-				defaults::linkNum, true);
+				util::FrontEndUtils::settingsKeyName(equipment[0].name,
+						"link_num"), defaults::linkNum, true);
 
 		create_event_rb(test_rbh);
 		glob::readoutThread = ss_thread_create(workingThread, 0);

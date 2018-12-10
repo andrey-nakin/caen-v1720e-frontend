@@ -17,15 +17,22 @@ INT get_frontend_index();
 
 namespace util {
 
-std::string FrontEndUtils::settingsKeyName(const char* const feBaseName,
-		const char* const propName) {
+std::string FrontEndUtils::equipmentName(const char* const feBaseName) {
 
 	std::stringstream s;
-	s << "/Equipment/" << feBaseName;
+	s << feBaseName;
 	if (get_frontend_index() >= 0) {
 		s << std::setfill('0') << std::setw(2) << get_frontend_index();
 	}
-	s << "/Settings";
+	return s.str();
+
+}
+
+std::string FrontEndUtils::settingsKeyName(const char* const equipName,
+		const char* const propName) {
+
+	std::stringstream s;
+	s << "/Equipment/" << equipName << "/Settings";
 	if (propName) {
 		s << "/" << propName;
 	}
@@ -33,9 +40,9 @@ std::string FrontEndUtils::settingsKeyName(const char* const feBaseName,
 
 }
 
-HNDLE FrontEndUtils::settingsKey(const char* feBbaseName) {
+HNDLE FrontEndUtils::settingsKey(const char* equipName) {
 
-	return odb::findKey(hDB, 0, settingsKeyName(feBbaseName));
+	return odb::findKey(hDB, 0, settingsKeyName(equipName));
 
 }
 
