@@ -95,7 +95,7 @@ int readEvent(char *pevent, int off);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
-EQUIPMENT equipment[] = { { "v1720%02d", { EVID, (1 << EVID), /* event ID, trigger mask */
+EQUIPMENT equipment[] = { { EQUIP_NAME "%02d", { EVID, (1 << EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
 EQ_USER, /* equipment type */
 0, /* event source */
