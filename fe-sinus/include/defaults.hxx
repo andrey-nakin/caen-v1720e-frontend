@@ -14,7 +14,7 @@ namespace channel {
 
 constexpr bool enabled = true;
 constexpr uint16_t dcOffset = 0x8000;
-constexpr uint16_t amplitude = 0x6000;
+constexpr uint16_t amplitude = 2000;
 constexpr uint32_t frequency = 250000;
 constexpr int32_t phase = 0;
 

@@ -405,9 +405,9 @@ static int buildEvent(char * const pevent) {
 					auto const ns = static_cast<int64_t>(j) * 1000000000
 							/ glob::dFrequency + t - glob::phases[i];
 					auto const v = std::sin(2.0 * PI * ns / dt)
-							* glob::amplitudes[i] + glob::dcOffsets[i];
+							* glob::amplitudes[i] + 2048;
 					*pdata++ = v < 0.0 ? 0 :
-								v > 0xffff ? 0xffff : static_cast<uint16_t>(v);
+								v > 4095 ? 4095 : static_cast<uint16_t>(v);
 				}
 
 				bk_close(pevent, pdata);
