@@ -15,6 +15,8 @@ public:
 
 	InfoBank const& info() const;
 
+	bool channelIncluded(uint8_t channelNo) const;
+
 };
 
 }

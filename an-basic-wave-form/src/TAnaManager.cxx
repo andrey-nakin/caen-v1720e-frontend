@@ -1,6 +1,12 @@
+#include <sstream>
+#include <fstream>
+#include <memory>
+#include <TGraph.h>
+#include <TCanvas.h>
 #include <util/V1720InfoRawData.hxx>
 #include <util/TDcOffsetRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
+#include <util/V1720WaveForm.hxx>
 #include "TAnaManager.hxx"
 
 namespace bwf {
@@ -11,26 +17,49 @@ TAnaManager::TAnaManager() {
 
 int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer) {
 
-	auto const info = dataContainer.GetEventData < util::V1720InfoRawData
+	auto const v1720Info = dataContainer.GetEventData < util::V1720InfoRawData
 			> (util::V1720InfoRawData::bankName());
-	if (info) {
-		std::cout << "V1720 INFO bank detected, " << info->info().timeStamp
-				<< std::endl;
-	}
-
 	auto const dcOffsets = dataContainer.GetEventData < util::TDcOffsetRawData
 			> (util::TDcOffsetRawData::BANK_NAME);
-	if (dcOffsets) {
-		std::cout << "DC offset bank detected, ch[7, 8] = "
-				<< dcOffsets->dcOffset(7) << ", " << dcOffsets->dcOffset(-1)
-				<< ", size=" << dcOffsets->GetSize() << std::endl;
-	}
 
-	auto const wf00 = dataContainer.GetEventData < util::TWaveFormRawData
-			> (util::TWaveFormRawData::bankName(0));
-	if (wf00) {
-		std::cout << "WF00 offset bank detected, size = " << wf00->GetSize()
-				<< std::endl;
+	if (v1720Info && dcOffsets) {
+		auto const c = std::unique_ptr < TCanvas > (new TCanvas());
+		for (uint8_t channelNo = 0; channelNo < 8; channelNo++) {
+			if (v1720Info->channelIncluded(channelNo)) {
+				auto const wfRaw = dataContainer.GetEventData
+						< util::TWaveFormRawData
+						> (util::TWaveFormRawData::bankName(channelNo));
+				if (wfRaw) {
+					util::V1720WaveForm wf(*wfRaw,
+							dcOffsets->dcOffset(channelNo));
+					auto const gr = std::unique_ptr < TGraph
+							> (new TGraph(wf.size(), wf.getTimePtr(),
+									wf.getVoltagePtr()));
+					gr->Draw();
+
+					std::stringstream s;
+					s << "wf-data-" << std::setfill('0') << std::setw(4)
+							<< v1720Info->info().eventCounter << '-'
+							<< std::setw(1) << static_cast<int>(channelNo)
+							<< ".txt";
+					std::ofstream f(s.str());
+
+					auto times = wf.getTimes();
+					auto voltages = wf.getVoltages();
+					for (std::size_t i = 0; i < wf.size(); i++) {
+						f << times[i] << '\t' << voltages[i] << '\n';
+					}
+				}
+			}
+
+		}
+
+		std::stringstream s;
+		s << "wf" << std::setfill('0') << std::setw(6)
+				<< v1720Info->info().eventCounter << ".png";
+		auto const name = s.str();
+		c->SaveAs(name.c_str());
+		std::cout << "wrote canvas to file " << name << "\n";
 	}
 
 	// Do little analysis of the V1720 data, as example...

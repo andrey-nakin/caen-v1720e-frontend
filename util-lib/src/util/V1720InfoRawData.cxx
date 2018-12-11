@@ -20,4 +20,10 @@ InfoBank const& V1720InfoRawData::info() const {
 
 }
 
+bool V1720InfoRawData::channelIncluded(uint8_t const channelNo) const {
+
+	return (info().channelMask & (0x0001 << channelNo)) != 0;
+
+}
+
 }

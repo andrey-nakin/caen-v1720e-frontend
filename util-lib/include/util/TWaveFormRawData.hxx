@@ -14,6 +14,12 @@ public:
 
 	static const char* bankName(uint8_t channelNo);
 
+	std::size_t numOfSamples() const {
+
+		return GetSize();
+
+	}
+
 	uint16_t const* waveForm() const {
 
 		return GetData16();
