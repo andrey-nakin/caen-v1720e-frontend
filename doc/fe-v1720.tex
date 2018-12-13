@@ -1,0 +1,105 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{gensymb}
+\usepackage{graphicx}
+\usepackage{indentfirst}
+\usepackage{url}
+
+\newcommand{\BANK}[1]{{\tt #1}}
+\newcommand{\APP}{{\tt fe-v1720}}
+\newcommand{\DEVICE}{CAEN~V1720}
+\newcommand{\TERM}[1]{{\it #1}}
+\newcommand{\ODBNODE}[1]{<<{\tt #1}>>}
+
+\title{\APP{} --- MIDAS фронтенд-приложение для дигитайзера \DEVICE{}}
+\author{Накин~А.~В.}
+
+\begin{document}
+
+\maketitle
+
+\section{Введение}
+
+Приложение \APP{} является \TERM{фронтендом} (\TERM{Frontend Application}) \cite{MidasWikiFrontend} в системе сбора данных MIDAS \cite{MidasWiki}. Назначение программы~--- управление дигитайзером \DEVICE{} и чтение данных с него.
+
+\section{Запуск и параметры командной строки}
+
+Приложение \APP{} запускается из командной строки или веб-интерфейса MIDAS \cite{MidasWikiMhttpd} и не имеет собственного графического пользовательского интерфейса. Управление режимами работы осуществляется при помощи параметров командной строки.
+
+Если в эксперименте задействовано одно единственное устройство \DEVICE{}, то приложение \APP{} запускается без параметров. При этом в базе данных ODB в ветке \ODBNODE{Equipment} \cite{MidasWikiEquipment} создаётся запись с названием \ODBNODE{v1720}.
+
+Если в эксперименте задействовано несколько устройств \DEVICE{}, то приложение \APP{} должно быть запущено несколько раз, по числу устройств, с параметром командной строки <<{\tt -i {\it x}}>>, где $x$~--- порядковый номер устройства начиная с нуля. При этом в базе данных ODB создаются записи с названиями \ODBNODE{v172000}, \ODBNODE{v172001} и т.~д.
+
+Полный список поддерживаемых параметров командной строки приведён в \cite{MidasWikiFrontend}. 
+
+\section{Формат события}
+
+В системе MIDAS единицей хранения информации является \TERM{событие} (\TERM{Event}), которое в свою очередь состоит из одного или нескольких \TERM{банков} (\TERM{Bank}) \cite{MidasWikiEvent}. Каждый банк имеет 4-х буквенное название, по которому определяется его тип. Событие может включать в себя банки разного типа.
+
+Событие, сформированное приложением \APP{}, включает в себя следующие банки данных:
+
+\begin{itemize}
+
+\item \BANK{V200} ~--- общая информация о событии;
+\item \BANK{CHDC} ~--- значения DC offset для каналов дигитайзера на момент формирования события;
+\item \BANK{WF00}~..~\BANK{WF07} ~--- wave-формы для каналов с нулевого по седьмой.
+
+\end{itemize}
+
+\subsection{Банк \BANK{V200}}
+
+Данный банк содержит общую информацию о событии. Формат банка: 32-битные беззнаковые слова. Размер банка: 5 слов. Назначение слов приведено в таблице~\ref{tab-info-bank}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{rl}
+\hline\hline
+№ слова & Значение \\
+\hline
+
+0 & Board ID \\
+1 & Битовая маска каналов \\
+2 & Счётчик событий \\
+3 & Timestamp, младшие 32 бита \\
+4 & Timestamp, старшие 32 бита \\
+
+\hline\hline
+\end{tabular}
+\caption{Назначение слов в банке \BANK{V200}.}
+\label{tab-info-bank}
+\end{table}
+
+Битовая маска содержит информацию о каналах, участвующих в сборе данных. Если $i$-ый канал включён в сбор данных, то $i$-ый бит в маске установлен в единицу.
+
+Наличие банка \BANK{V200} в событии служит индикатором того, что событие пришло от устройства \DEVICE{}.
+
+\subsection{Банк \BANK{CHDC}}
+
+Банк содержит значения настройки DC offset по всех 8 каналам дигитайзера, включая каналы, незадействованные в сборе данных.
+
+Формат банка: 16-битные беззнаковые слова. Размер банка: 8 слов. Слово №~0 содержит значение DC offset для канала №~0, слово №~1 содержит значение DC offset для канала №~1 и так далее.
+
+\subsection{Банки \BANK{WF0{\it i}}}
+
+Банки имеют название типа \BANK{WF0{\it i}}, где $i$~--- номер канала начиная с нуля, например \BANK{WF00}, \BANK{WF01} и так далее.
+
+Наличие банка в составе события зависит от того, участвует ли данный канал в сборе данных. Если канал $i$ включён, то $i$-ый бит в битовой маске банка \BANK{V200} установлен в единицу, и банк \BANK{WF0{\it i}} входит в состав события.
+
+Формат банка: 16-битные беззнаковые слова. Размер банка: произвольный, соответствует выбранному размеру wave-формы. Каждое слово соответствует одному сэмплу wave-формы.
+
+\begin{thebibliography}{99} 
+
+\bibitem{MidasWikiFrontend}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Frontend_Application}} 
+
+\bibitem{MidasWiki}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Main_Page}} 
+
+\bibitem{MidasWikiMhttpd}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Mhttpd}} 
+
+\bibitem{MidasWikiEquipment}  {\url{https://midas.triumf.ca/MidasWiki/index.php//Equipment_ODB_tree}} 
+
+\bibitem{MidasWikiEvent}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Event_Structure}} 
+
+\end{thebibliography}
+
+\end{document}

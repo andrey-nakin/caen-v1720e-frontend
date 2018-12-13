@@ -11,3 +11,8 @@ m.sh
 .cproject
 .project
 build
+*.aux
+*.log
+*.pdf
+*.synctex.gz
+
