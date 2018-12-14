@@ -16,8 +16,9 @@ Collection of data-acquisition applications for [GNEIS](http://hepd.pnpi.spb.ru/
 
 ## Requirements
 
-* GCC 4.8+
 * CMake 3.1+
+* GCC 4.8+
+* Latex
 
 ## Dependencies
 
