@@ -375,7 +375,9 @@ static int buildEvent(char * const pevent) {
 		info->boardId = 0;
 		info->channelMask = glob::channelMask;
 		info->eventCounter = ++glob::eventCounter;
-		info->timeStamp = nanoTime();
+		auto const t = nanoTime();
+		info->timeStampLo = t & 0xffffffff;
+		info->timeStampHi = t >> 32;
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 

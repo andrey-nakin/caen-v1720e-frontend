@@ -31,6 +31,7 @@
 constexpr uint32_t MAX_NUM_OF_EVENTS = 1;
 constexpr int32_t FIRST_EVENT = 0;
 constexpr int EVID = 1;
+constexpr uint32_t MAX_RECORD_LENGTH = 1024 * 1024;
 
 namespace glob {
 
@@ -265,6 +266,11 @@ static void configure(caen::Handle& hDevice) {
 
 	auto const recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
 			defaults::recordLength, true);
+	if (recordLength > MAX_RECORD_LENGTH) {
+		throw midas::Exception(FE_ERR_ODB,
+				std::string("Value of waveform_length parameter exceeds ")
+						+ std::to_string(MAX_RECORD_LENGTH));
+	}
 
 	auto const enabledChannels = odb::getValueBoolV(hDB, hSet,
 			"channel_enabled", boardInfo.Channels, defaults::channel::enabled,
@@ -273,7 +279,17 @@ static void configure(caen::Handle& hDevice) {
 	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
 			boardInfo.Channels, defaults::channel::dcOffset, true);
 
-	uint32_t channelMask = 0x0000;
+	auto const triggerChannel = odb::getValueUInt8(hDB, hSet, "trigger_channel",
+			defaults::triggerChannel, true);
+	hDevice.hCommand("setting channel self trigger",
+			[triggerChannel](int handle) {return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel));});
+	if (triggerChannel >= boardInfo.Channels) {
+		throw midas::Exception(FE_ERR_ODB,
+				std::string("Invalid trigger channel: ")
+						+ std::to_string(triggerChannel));
+	}
+
+	uint32_t channelMask = 0x0001 << triggerChannel;
 	for (std::size_t i = 0; i != enabledChannels.size(); i++) {
 		if (enabledChannels[i]) {
 			channelMask |= 0x0001 << i;
@@ -289,14 +305,6 @@ static void configure(caen::Handle& hDevice) {
 
 	hDevice.hCommand("setting channel enable mask",
 			[channelMask](int handle) {return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask);});
-
-	auto const triggerMode = odb::getValueString(hDB, hSet, "trigger_mode",
-			defaults::triggerMode, true);
-
-	auto const triggerChannel = odb::getValueUInt8(hDB, hSet, "trigger_channel",
-			defaults::triggerChannel, true);
-	hDevice.hCommand("setting channel self trigger",
-			[triggerChannel](int handle) {return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel));});
 
 	auto const triggerThreshold = odb::getValueUInt16(hDB, hSet,
 			"trigger_threshold", defaults::triggerThreshold, true);
@@ -323,6 +331,13 @@ static void configure(caen::Handle& hDevice) {
 
 	auto const preTriggerLength = odb::getValueUInt32(hDB, hSet,
 			"pre_trigger_length", defaults::preTriggerLength, true);
+	if (preTriggerLength > recordLength) {
+		throw midas::Exception(FE_ERR_ODB,
+				std::string("Invalid value of pre_trigger_length parameter: ")
+						+ std::to_string(preTriggerLength)
+						+ " is greater than wave form length ("
+						+ std::to_string(recordLength) + " samples)");
+	}
 
 	hDevice.writeRegister(caen::v1720::REG_POST_TRIGGER,
 			(recordLength - preTriggerLength) / 4);
@@ -473,8 +488,8 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 		info->boardId = eventInfo.BoardId;
 		info->channelMask = eventInfo.ChannelMask;
 		info->eventCounter = eventInfo.EventCounter;
-		info->timeStamp = (uint64_t) eventInfo.Pattern << 32
-				| eventInfo.TriggerTimeTag;
+		info->timeStampLo = eventInfo.TriggerTimeTag;
+		info->timeStampHi = eventInfo.Pattern;
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 

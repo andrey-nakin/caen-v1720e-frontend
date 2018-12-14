@@ -11,7 +11,8 @@ typedef struct
 		uint32_t boardId;
 		uint32_t channelMask;
 		uint32_t eventCounter;
-		uint64_t timeStamp;
+		uint32_t timeStampLo;
+		uint32_t timeStampHi;
 
 	} InfoBank;
 
