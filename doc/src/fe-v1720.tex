@@ -73,7 +73,7 @@
 
 \item \ODBNODE{channel\_enabled} --- каналы, имеющие значение \ODBNODE{y}, участвуют в сборе данных. Для экономии вычислительных и дисковых ресурсов рекомендуется отключать каналы, не имеющие полезного сигнала на входе.
 
-\item \ODBNODE{channel\_dc\_offset} --- сдвиг уровня аналогового сигнала (\TERM{DC Offset}) \cite{CaenUM3051AIS} по каждому из каналов. Диапазон значений: от 0 до 65535.
+\item \ODBNODE{channel\_dc\_offset} --- сдвиг уровня аналогового сигнала (\TERM{DC Offset}) \cite{CaenUM3051AIS} по каждому из каналов. Диапазон значений: от 0 до 65535. Значение 0 соответствует диапазону $-2 \div 0$~В. Значение 32768 соответствует диапазону $-1 \div 1$~В. Значение 65535 соответствует диапазону $0 \div 2$~В. 
 
 \item \ODBNODE{trigger\_channel} --- номер канала, являющего триггерным (стр.~\pageref{sec_basic}). Допустимые значения: от~0 до~7.
 
@@ -147,7 +147,7 @@
 
 \bibitem{MidasWiki}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Main_Page}} 
 
-\bibitem{CaenUM3051ST}  {CAEN User Manual UM3051, раздел <<Self-Trigger>>} 
+\bibitem{CaenUM3051ST}  {CAEN User Manual UM3051, раздел <<Self-Trigger>>, стр.~41} 
 
 \bibitem{MidasWikiODB}  {\url{https://midas.triumf.ca/MidasWiki/index.php/ODB_Access_and_Use}} 
 
@@ -155,13 +155,13 @@
 
 \bibitem{MidasWikiEquipment}  {\url{https://midas.triumf.ca/MidasWiki/index.php//Equipment_ODB_tree}} 
 
-\bibitem{CaenUM3051AIS}  {CAEN User Manual UM3051, раздел <<Analog Input Stage>>} 
+\bibitem{CaenUM3051AIS}  {CAEN User Manual UM3051, раздел <<Analog Input Stage>>, стр.~22} 
 
-\bibitem{CaenUM5961PostTrigger}  {CAEN User Manual UM5961, раздел <<Post Trigger>>} 
+\bibitem{CaenUM5961PostTrigger}  {CAEN User Manual UM5961, раздел <<Post Trigger>>, стр.~26} 
 
 \bibitem{MidasWikiEvent}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Event_Structure}} 
 
-\bibitem{CaenUM3051TS}  {CAEN User Manual UM3051, раздел <<Technical Specifications>>} 
+\bibitem{CaenUM3051TS}  {CAEN User Manual UM3051, раздел <<Technical Specifications>>, стр.~12} 
 
 \end{thebibliography}
 
