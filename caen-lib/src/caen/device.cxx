@@ -92,9 +92,7 @@ CAEN_DGTZ_UINT16_EVENT_t const* Device::nextEvent(
 		reset();
 	}
 
-	auto& e = getEvent();
-	e.decode(dataPtr);
-	return e.evt();
+	return getEvent().evt(dataPtr);
 
 }
 

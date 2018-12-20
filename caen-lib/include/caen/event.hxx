@@ -20,11 +20,14 @@ public:
 	Event(Event&&);
 	~Event();
 
-	CAEN_DGTZ_UINT16_EVENT_t const* evt() const {
+	CAEN_DGTZ_UINT16_EVENT_t const* evt(char* eventPtr) {
 
+		decode(eventPtr);
 		return static_cast<CAEN_DGTZ_UINT16_EVENT_t const*>(event);
 
 	}
+
+private:
 
 	void decode(char* eventPtr);
 
