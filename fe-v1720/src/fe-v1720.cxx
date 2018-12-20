@@ -196,13 +196,8 @@ INT poll_event(INT /* source */, INT const count, BOOL const test) {
 
 	std::lock_guard < std::mutex > lock(glob::readingMutex);
 
-	if (glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
-		if (glob::device->hasNextEvent()) {
-			return TRUE;
-		}
-	}
-
-	return FALSE;
+	return glob::acquisitionIsOn.load(std::memory_order_relaxed)
+			&& glob::device->hasNextEvent() ? TRUE : FALSE;
 
 }
 
