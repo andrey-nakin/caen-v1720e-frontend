@@ -20,10 +20,9 @@
 #include <util/FrontEndUtils.hxx>
 #include <caen/handle.hxx>
 #include <caen/error-holder.hxx>
-#include <caen/readout-buffer.hxx>
-#include <caen/event.hxx>
 #include <caen/exception.hxx>
 #include <caen/v1720.hxx>
+#include <caen/device.hxx>
 
 #include "defaults.hxx"
 
@@ -37,9 +36,7 @@ namespace glob {
 
 static CAEN_DGTZ_BoardInfo_t boardInfo;
 static std::vector<uint16_t> dcOffsets;
-static std::unique_ptr<caen::Handle> hDevice;
-static std::unique_ptr<caen::ReadoutBuffer> roBuffer;
-static std::unique_ptr<caen::Event> event;
+static std::unique_ptr<caen::Device> device;
 static uint32_t eventCounter;
 static midas_thread_t readoutThread;
 static std::atomic_bool acquisitionIsOn(false);
@@ -344,32 +341,20 @@ static void configure(caen::Handle& hDevice) {
 
 }
 
-static void startAcquisition() {
+static void startAcquisition(caen::Device& device) {
 
-	glob::roBuffer = std::unique_ptr < caen::ReadoutBuffer
-			> (new caen::ReadoutBuffer(*glob::hDevice));
-
-	glob::event = std::unique_ptr < caen::Event
-			> (new caen::Event(*glob::hDevice));
-
-	glob::hDevice->hCommand("starting acquisition",
-			CAEN_DGTZ_SWStartAcquisition);
-
+	device.startAcquisition();
 	glob::acquisitionIsOn.store(true);
 
 }
 
-static void stopAcquisition() {
+static void stopAcquisition(caen::Device& device) {
 
 	glob::acquisitionIsOn.store(false);
 
 	std::lock_guard < std::mutex > lock(glob::readingMutex);
 
-	glob::hDevice->hCommand("stopping acquisition",
-			CAEN_DGTZ_SWStopAcquisition);
-
-	glob::event = nullptr;
-	glob::roBuffer = nullptr;
+	device.stopAcquisition();
 
 }
 
@@ -396,9 +381,9 @@ INT frontend_exit() {
 
 	return util::FrontEndUtils::command([]() {
 
-		if (glob::hDevice) {
-			stopAcquisition();
-			glob::hDevice = nullptr;
+		if (glob::device) {
+			stopAcquisition(*glob::device);
+			glob::device = nullptr;
 		}
 
 		ss_thread_kill(glob::readoutThread);
@@ -411,11 +396,11 @@ INT begin_of_run(INT /* run_number */, char * /* error */) {
 
 	return util::FrontEndUtils::command([]() {
 
-		glob::hDevice = std::unique_ptr < caen::Handle
-		> (new caen::Handle(connect()));
-		configure(*glob::hDevice);
+		glob::device = std::unique_ptr < caen::Device
+		> (new caen::Device(connect()));
+		configure(glob::device->getHandle());
 
-		startAcquisition();
+		startAcquisition(*glob::device);
 
 		glob::rbWaitCount = 0;
 
@@ -427,9 +412,9 @@ INT end_of_run(INT /* run_number */, char * /* error */) {
 
 	return util::FrontEndUtils::command([]() {
 
-		if (glob::hDevice) {
-			stopAcquisition();
-			glob::hDevice = nullptr;
+		if (glob::device) {
+			stopAcquisition(*glob::device);
+			glob::device = nullptr;
 		}
 
 	});
@@ -440,7 +425,7 @@ INT pause_run(INT /* run_number */, char * /* error */) {
 
 	return util::FrontEndUtils::command([]() {
 
-		stopAcquisition();
+		stopAcquisition(*glob::device);
 
 	});
 
@@ -450,7 +435,7 @@ INT resume_run(INT /* run_number */, char * /* error */) {
 
 	return util::FrontEndUtils::command([]() {
 
-		startAcquisition();
+		startAcquisition(*glob::device);
 
 	});
 
@@ -465,8 +450,8 @@ INT frontend_loop() {
 static int parseEvent(char * const pevent, uint32_t const dataSize,
 		int32_t const numEvent) {
 
-	std::pair<CAEN_DGTZ_EventInfo_t, char*> evt = glob::roBuffer->getEventInfo(
-			dataSize, numEvent);
+	std::pair<CAEN_DGTZ_EventInfo_t, char*> evt =
+			glob::device->getBuffer().getEventInfo(dataSize, numEvent);
 	CAEN_DGTZ_EventInfo_t const& eventInfo = evt.first;
 
 	if (eventInfo.EventCounter > glob::eventCounter + 1) {
@@ -475,7 +460,7 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 	}
 	glob::eventCounter = eventInfo.EventCounter;
 
-	glob::event->decode(evt.second);
+	glob::device->getEvent().decode(evt.second);
 
 	bk_init32(pevent);
 
@@ -507,10 +492,10 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 	// store wave forms
 	for (std::size_t i = 0; i < glob::boardInfo.Channels; i++) {
 		if (eventInfo.ChannelMask & (0x0001 << i)) {
-			auto const numOfSamples = glob::event->evt()->ChSize[i];
+			auto const numOfSamples = glob::device->getEvent().evt()->ChSize[i];
 			if (numOfSamples > 0) {
 				uint16_t const * const samples =
-						glob::event->evt()->DataChannel[i];
+						glob::device->getEvent().evt()->DataChannel[i];
 				auto const dataSize = numOfSamples * sizeof(samples[0]);
 
 				uint8_t* pdata;
@@ -536,9 +521,9 @@ int readEvent(char * const pevent, const int /* off */) {
 				util::FrontEndUtils::commandR(
 						[pevent]() {
 
-							auto const dataSize = glob::roBuffer->readData();
+							auto const dataSize = glob::device->getBuffer().readData();
 
-							auto const numEvents = glob::roBuffer->getNumEvents(dataSize);
+							auto const numEvents = glob::device->getBuffer().getNumEvents(dataSize);
 
 							return numEvents > 0 ? parseEvent(pevent, dataSize, FIRST_EVENT) : 0;
 
