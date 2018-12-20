@@ -55,6 +55,7 @@ void Device::stopAcquisition() {
 	handle.hCommand("stopping acquisition", CAEN_DGTZ_SWStopAcquisition);
 
 	// release buffers
+	std::lock_guard < std::mutex > lock(mutex);
 	event = nullptr;
 	buffer = nullptr;
 
