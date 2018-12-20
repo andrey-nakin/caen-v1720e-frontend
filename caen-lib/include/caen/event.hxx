@@ -20,9 +20,9 @@ public:
 	Event(Event&&);
 	~Event();
 
-	CAEN_DGTZ_UINT16_EVENT_t const& evt() const {
+	CAEN_DGTZ_UINT16_EVENT_t const* evt() const {
 
-		return *static_cast<CAEN_DGTZ_UINT16_EVENT_t const*>(event);
+		return static_cast<CAEN_DGTZ_UINT16_EVENT_t const*>(event);
 
 	}
 

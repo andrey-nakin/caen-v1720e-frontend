@@ -6,6 +6,8 @@ namespace caen {
 Device::Device(Handle&& aHandle) :
 		handle(std::move(aHandle)) {
 
+	reset();
+
 }
 
 Device::~Device() {
@@ -48,6 +50,8 @@ void Device::startAcquisition() {
 
 	handle.hCommand("starting acquisition", CAEN_DGTZ_SWStartAcquisition);
 
+	reset();
+
 }
 
 void Device::stopAcquisition() {
@@ -58,6 +62,49 @@ void Device::stopAcquisition() {
 	std::lock_guard < std::mutex > lock(mutex);
 	event = nullptr;
 	buffer = nullptr;
+
+	reset();
+
+}
+
+bool Device::hasNextEvent() {
+
+	if (eventNo >= numEvents) {
+		dataSize = getBuffer().readData();
+		if (dataSize) {
+			numEvents = getBuffer().getNumEvents(dataSize);
+			eventNo = 0;
+		}
+	}
+	return eventNo < numEvents;
+
+}
+
+CAEN_DGTZ_UINT16_EVENT_t const* Device::nextEvent(
+		CAEN_DGTZ_EventInfo_t& eventInfo) {
+
+	if (!hasNextEvent()) {
+		return nullptr;
+	}
+
+	std::pair<CAEN_DGTZ_EventInfo_t, char*> evt = getBuffer().getEventInfo(
+			dataSize, eventNo);
+	if (++eventNo >= numEvents) {
+		reset();
+	}
+
+	eventInfo = evt.first;
+	getEvent().decode(evt.second);
+
+	return getEvent().evt();
+
+}
+
+void Device::reset() {
+
+	dataSize = 0;
+	numEvents = 0;
+	eventNo = 0;
 
 }
 

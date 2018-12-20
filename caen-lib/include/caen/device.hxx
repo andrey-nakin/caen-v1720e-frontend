@@ -26,12 +26,19 @@ public:
 
 	void stopAcquisition();
 
+	bool hasNextEvent();
+
+	CAEN_DGTZ_UINT16_EVENT_t const* nextEvent(CAEN_DGTZ_EventInfo_t& eventInfo);
+
 private:
 
 	std::mutex mutex;
 	Handle handle;
 	std::unique_ptr<ReadoutBuffer> buffer;
 	std::unique_ptr<Event> event;
+	uint32_t dataSize, numEvents, eventNo;
+
+	void reset();
 
 };
 

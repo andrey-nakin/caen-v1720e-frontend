@@ -28,7 +28,6 @@
 
 #define EQUIP_NAME "v1720"
 constexpr uint32_t MAX_NUM_OF_EVENTS = 1;
-constexpr int32_t FIRST_EVENT = 0;
 constexpr int EVID = 1;
 constexpr uint32_t MAX_RECORD_LENGTH = 1024 * 1024;
 constexpr int WAIT_SLEEP = 1;
@@ -184,12 +183,12 @@ static int workingThread(void * /*param */) {
 	return 0;
 }
 
-INT poll_event(INT /* source */, INT count, BOOL test) {
+INT poll_event(INT /* source */, INT const count, BOOL const test) {
 
 	if (test) {
 		ss_sleep(count);
 	}
-	return (0);
+	return glob::device && glob::device->hasNextEvent() ? TRUE : FALSE;
 
 }
 
@@ -456,18 +455,12 @@ static std::size_t calculateEventSize(CAEN_DGTZ_EventInfo_t const& eventInfo,
 
 }
 
-static int parseEvent(char * const pevent, uint32_t const dataSize,
-		int32_t const numEvent) {
-
-	std::pair<CAEN_DGTZ_EventInfo_t, char*> evt =
-			glob::device->getBuffer().getEventInfo(dataSize, numEvent);
-	CAEN_DGTZ_EventInfo_t const& eventInfo = evt.first;
-
-	glob::device->getEvent().decode(evt.second);
+static int parseEvent(char * const pevent,
+		CAEN_DGTZ_EventInfo_t const& eventInfo,
+		CAEN_DGTZ_UINT16_EVENT_t const& event) {
 
 	// check event size
-	auto const eventSize = calculateEventSize(eventInfo,
-			glob::device->getEvent().evt());
+	auto const eventSize = calculateEventSize(eventInfo, event);
 	if (eventSize > static_cast<DWORD>(max_event_size)) {
 		// event size exceeds the limit
 		stopAcquisition(*glob::device);
@@ -507,10 +500,9 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 	// store wave forms
 	for (std::size_t i = 0; i < glob::boardInfo.Channels; i++) {
 		if (eventInfo.ChannelMask & (0x0001 << i)) {
-			auto const numOfSamples = glob::device->getEvent().evt().ChSize[i];
+			auto const numOfSamples = event.ChSize[i];
 			if (numOfSamples > 0) {
-				uint16_t const * const samples =
-						glob::device->getEvent().evt().DataChannel[i];
+				uint16_t const * const samples = event.DataChannel[i];
 				auto const dataSize = numOfSamples * sizeof(samples[0]);
 
 				uint8_t* pdata;
@@ -536,11 +528,12 @@ int readEvent(char * const pevent, const int /* off */) {
 				util::FrontEndUtils::commandR(
 						[pevent]() {
 
-							auto const dataSize = glob::device->getBuffer().readData();
-
-							auto const numEvents = glob::device->getBuffer().getNumEvents(dataSize);
-
-							return numEvents > 0 ? parseEvent(pevent, dataSize, FIRST_EVENT) : 0;
+							if (glob::device && glob::device->hasNextEvent()) {
+								CAEN_DGTZ_EventInfo_t eventInfo;
+								return parseEvent(pevent, eventInfo, *glob::device->nextEvent(eventInfo));
+							} else {
+								return 0;
+							}
 
 						});
 	} else {
