@@ -41,7 +41,7 @@ static uint32_t eventCounter;
 static midas_thread_t readoutThread;
 static std::atomic_bool acquisitionIsOn(false);
 static std::mutex readingMutex;
-static int rbWaitSleep = 1;
+static int const rbWaitSleep = 1;
 static int rbWaitCount = 0;
 static int rbh = 0;
 
@@ -117,10 +117,7 @@ RO_RUNNING, /* Read when running */
 #endif
 
 static int workingThread(void * /*param */) {
-	int status;
-	EVENT_HEADER *pevent;
 	EQUIPMENT* eq = &equipment[0];
-	void *p;
 
 	/* indicate activity to framework */
 	signal_readout_thread_active(glob::rbh, 1);
@@ -128,68 +125,64 @@ static int workingThread(void * /*param */) {
 	while (!stop_all_threads) {
 		if (!glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
 			// no run, wait
-			ss_sleep(1);
+			ss_sleep(10);
 			continue;
 		}
 
 		/* obtain buffer space */
-		status = rb_get_wp(get_event_rbh(glob::rbh), &p, 0);
+		void *p;
+		auto const status = rb_get_wp(get_event_rbh(glob::rbh), &p, 0);
 		if (stop_all_threads) {
 			break;
 		}
 		if (status == DB_TIMEOUT) {
 			glob::rbWaitCount++;
-			//printf("readout_thread: Ring buffer is full, waiting for space!\n");
+			cm_msg(MINFO, frontend_name, "No free ring buffers, waiting");
 			if (glob::rbWaitSleep) {
 				ss_sleep(glob::rbWaitSleep);
 			}
 			continue;
 		}
 		if (status != DB_SUCCESS) {
-			// catastrophic failure of ring buffer?
+			cm_msg(MERROR, frontend_name, "Cannot get ring buffer, status %d",
+					status);
 			break;
 		}
 
-		if (eq->info.period) {
-			ss_sleep(eq->info.period);
+		/* check for new event */
+
+		if (stop_all_threads) {
+			break;
 		}
 
-		/* check for new event */
-		//source = poll_event(multithread_eq->info.source, multithread_eq->poll_count, FALSE);
-		if (1 /*source > 0*/) {
+		/* call user readout routine */
+		auto pHeader = reinterpret_cast<EVENT_HEADER*>(p);
+		auto const dataSize = eq->readout(
+				reinterpret_cast<char*>(p) + sizeof(*pHeader), 0);
 
-			if (stop_all_threads) {
+		if (dataSize > 0) {
+			/* an event arrived, check its size */
+			auto const eventSize = dataSize + sizeof(*pHeader);
+			if (eventSize > static_cast<DWORD>(max_event_size)) {
+				cm_msg(MERROR, frontend_name,
+						"Event size %" PRIu32 " larger than maximum size %" PRIi32,
+						static_cast<DWORD>(eventSize), max_event_size);
 				break;
 			}
 
-			pevent = (EVENT_HEADER *) p;
-
 			/* compose MIDAS event header */
-			pevent->event_id = eq->info.event_id;
-			pevent->trigger_mask = eq->info.trigger_mask;
-			pevent->data_size = 0;
-			pevent->time_stamp = ss_time();
-			pevent->serial_number = eq->serial_number++;
+			pHeader->data_size = dataSize;
+			pHeader->event_id = eq->info.event_id;
+			pHeader->trigger_mask = eq->info.trigger_mask;
+			pHeader->time_stamp = ss_time();
+			pHeader->serial_number = eq->serial_number++;
 
-			/* call user readout routine */
-			pevent->data_size = eq->readout((char *) (pevent + 1), 0);
-
-			/* check event size */
-			if (pevent->data_size + sizeof(EVENT_HEADER)
-					> (DWORD) max_event_size) {
-				cm_msg(MERROR, "readout_thread",
-						"Event size %ld larger than maximum size %d",
-						(long) (pevent->data_size + sizeof(EVENT_HEADER)),
-						max_event_size);
-				assert (FALSE);
-			}
-
-			if (pevent->data_size > 0) {
-				/* put event into ring buffer */
-				rb_increment_wp(get_event_rbh(glob::rbh),
-						sizeof(EVENT_HEADER) + pevent->data_size);
-			} else {
-				eq->serial_number--;
+			/* put event into ring buffer */
+			rb_increment_wp(get_event_rbh(glob::rbh), eventSize);
+		} else {
+			/* no events, wait a bit */
+			if (eq->info.period) {
+				ss_sleep(eq->info.period);
 			}
 		}
 	}
