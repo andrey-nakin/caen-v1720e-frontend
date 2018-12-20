@@ -160,15 +160,7 @@ static int workingThread(void * /*param */) {
 				reinterpret_cast<char*>(p) + sizeof(*pHeader), 0);
 
 		if (dataSize > 0) {
-			/* an event arrived, check its size */
-			auto const eventSize = dataSize + sizeof(*pHeader);
-			if (eventSize > static_cast<DWORD>(max_event_size)) {
-				cm_msg(MERROR, frontend_name,
-						"Event size %" PRIu32 " larger than maximum size %" PRIi32,
-						static_cast<DWORD>(eventSize), max_event_size);
-				break;
-			}
-
+			/* an event arrived */
 			/* compose MIDAS event header */
 			pHeader->data_size = dataSize;
 			pHeader->event_id = eq.info.event_id;
@@ -177,7 +169,8 @@ static int workingThread(void * /*param */) {
 			pHeader->serial_number = eq.serial_number++;
 
 			/* put event into ring buffer */
-			rb_increment_wp(get_event_rbh(glob::rbh), eventSize);
+			rb_increment_wp(get_event_rbh(glob::rbh),
+					dataSize + sizeof(*pHeader));
 		} else {
 			/* no events, wait a bit */
 			if (eq.info.period) {
@@ -446,6 +439,23 @@ INT frontend_loop() {
 
 }
 
+static std::size_t calculateEventSize(CAEN_DGTZ_EventInfo_t const& eventInfo,
+		CAEN_DGTZ_UINT16_EVENT_t const& event) {
+
+	std::size_t result = sizeof(util::InfoBank) + sizeof(BANK32)
+			+ sizeof(uint16_t) * glob::boardInfo.Channels + sizeof(BANK32);
+
+	// count number of active channels
+	for (unsigned i = 0; i < glob::boardInfo.Channels; i++) {
+		if (eventInfo.ChannelMask & (0x0001 << i)) {
+			result += event.ChSize[i] * sizeof(uint16_t) + sizeof(BANK32);
+		}
+	}
+
+	return result + sizeof(EVENT_HEADER);
+
+}
+
 static int parseEvent(char * const pevent, uint32_t const dataSize,
 		int32_t const numEvent) {
 
@@ -454,6 +464,18 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 	CAEN_DGTZ_EventInfo_t const& eventInfo = evt.first;
 
 	glob::device->getEvent().decode(evt.second);
+
+	// check event size
+	auto const eventSize = calculateEventSize(eventInfo,
+			glob::device->getEvent().evt());
+	if (eventSize > static_cast<DWORD>(max_event_size)) {
+		// event size exceeds the limit
+		stopAcquisition(*glob::device);
+		cm_msg(MERROR, frontend_name,
+				"Event size %" PRIu32 " larger than maximum size %" PRIi32,
+				static_cast<DWORD>(eventSize), max_event_size);
+		return 0;
+	}
 
 	bk_init32(pevent);
 
@@ -485,10 +507,10 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 	// store wave forms
 	for (std::size_t i = 0; i < glob::boardInfo.Channels; i++) {
 		if (eventInfo.ChannelMask & (0x0001 << i)) {
-			auto const numOfSamples = glob::device->getEvent().evt()->ChSize[i];
+			auto const numOfSamples = glob::device->getEvent().evt().ChSize[i];
 			if (numOfSamples > 0) {
 				uint16_t const * const samples =
-						glob::device->getEvent().evt()->DataChannel[i];
+						glob::device->getEvent().evt().DataChannel[i];
 				auto const dataSize = numOfSamples * sizeof(samples[0]);
 
 				uint8_t* pdata;
