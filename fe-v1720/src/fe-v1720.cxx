@@ -362,24 +362,25 @@ INT frontend_init() {
 
 	return util::FrontEndUtils::command([]() {
 
-		// create subtree
-			odb::getValueInt32(hDB, 0,
-					util::FrontEndUtils::settingsKeyName(equipment[0].name,
-							"link_num"), defaults::linkNum, true);
+		odb::getValueInt32(hDB, 0,
+				util::FrontEndUtils::settingsKeyName(equipment[0].name,
+						"link_num"), defaults::linkNum, true);
 
-			create_event_rb(glob::rbh);
-			glob::readoutThread = ss_thread_create(workingThread, 0);
+		create_event_rb(glob::rbh);
+		glob::readoutThread = ss_thread_create(workingThread, 0);
 
-			caen::Handle hDevice = connect();
-			configure(hDevice);
+		caen::Handle hDevice = connect();
+		configure(hDevice);
 
-		});
+	});
 
 }
 
 INT frontend_exit() {
 
 	return util::FrontEndUtils::command([]() {
+
+		std::lock_guard < std::mutex > lock(glob::readingMutex);
 
 		if (glob::device) {
 			stopAcquisition(*glob::device);
@@ -412,6 +413,8 @@ INT end_of_run(INT /* run_number */, char * /* error */) {
 
 	return util::FrontEndUtils::command([]() {
 
+		std::lock_guard < std::mutex > lock(glob::readingMutex);
+
 		if (glob::device) {
 			stopAcquisition(*glob::device);
 			glob::device = nullptr;
@@ -425,6 +428,8 @@ INT pause_run(INT /* run_number */, char * /* error */) {
 
 	return util::FrontEndUtils::command([]() {
 
+		std::lock_guard < std::mutex > lock(glob::readingMutex);
+
 		stopAcquisition(*glob::device);
 
 	});
@@ -434,6 +439,8 @@ INT pause_run(INT /* run_number */, char * /* error */) {
 INT resume_run(INT /* run_number */, char * /* error */) {
 
 	return util::FrontEndUtils::command([]() {
+
+		std::lock_guard < std::mutex > lock(glob::readingMutex);
 
 		startAcquisition(*glob::device);
 
