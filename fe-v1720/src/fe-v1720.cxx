@@ -31,17 +31,16 @@ constexpr uint32_t MAX_NUM_OF_EVENTS = 1;
 constexpr int32_t FIRST_EVENT = 0;
 constexpr int EVID = 1;
 constexpr uint32_t MAX_RECORD_LENGTH = 1024 * 1024;
+constexpr int WAIT_SLEEP = 1;
 
 namespace glob {
 
 static CAEN_DGTZ_BoardInfo_t boardInfo;
 static std::vector<uint16_t> dcOffsets;
 static std::unique_ptr<caen::Device> device;
-static uint32_t eventCounter;
 static midas_thread_t readoutThread;
 static std::atomic_bool acquisitionIsOn(false);
 static std::mutex readingMutex;
-static int const rbWaitSleep = 1;
 static int rbWaitCount = 0;
 static int rbh = 0;
 
@@ -117,7 +116,7 @@ RO_RUNNING, /* Read when running */
 #endif
 
 static int workingThread(void * /*param */) {
-	EQUIPMENT* eq = &equipment[0];
+	EQUIPMENT& eq = equipment[0];
 
 	/* indicate activity to framework */
 	signal_readout_thread_active(glob::rbh, 1);
@@ -138,8 +137,8 @@ static int workingThread(void * /*param */) {
 		if (status == DB_TIMEOUT) {
 			glob::rbWaitCount++;
 			cm_msg(MINFO, frontend_name, "No free ring buffers, waiting");
-			if (glob::rbWaitSleep) {
-				ss_sleep(glob::rbWaitSleep);
+			if (WAIT_SLEEP) {
+				ss_sleep(WAIT_SLEEP);
 			}
 			continue;
 		}
@@ -157,7 +156,7 @@ static int workingThread(void * /*param */) {
 
 		/* call user readout routine */
 		auto pHeader = reinterpret_cast<EVENT_HEADER*>(p);
-		auto const dataSize = eq->readout(
+		auto const dataSize = eq.readout(
 				reinterpret_cast<char*>(p) + sizeof(*pHeader), 0);
 
 		if (dataSize > 0) {
@@ -172,17 +171,17 @@ static int workingThread(void * /*param */) {
 
 			/* compose MIDAS event header */
 			pHeader->data_size = dataSize;
-			pHeader->event_id = eq->info.event_id;
-			pHeader->trigger_mask = eq->info.trigger_mask;
+			pHeader->event_id = eq.info.event_id;
+			pHeader->trigger_mask = eq.info.trigger_mask;
 			pHeader->time_stamp = ss_time();
-			pHeader->serial_number = eq->serial_number++;
+			pHeader->serial_number = eq.serial_number++;
 
 			/* put event into ring buffer */
 			rb_increment_wp(get_event_rbh(glob::rbh), eventSize);
 		} else {
 			/* no events, wait a bit */
-			if (eq->info.period) {
-				ss_sleep(eq->info.period);
+			if (eq.info.period) {
+				ss_sleep(eq.info.period);
 			}
 		}
 	}
@@ -453,12 +452,6 @@ static int parseEvent(char * const pevent, uint32_t const dataSize,
 	std::pair<CAEN_DGTZ_EventInfo_t, char*> evt =
 			glob::device->getBuffer().getEventInfo(dataSize, numEvent);
 	CAEN_DGTZ_EventInfo_t const& eventInfo = evt.first;
-
-	if (eventInfo.EventCounter > glob::eventCounter + 1) {
-		cm_msg(MERROR, frontend_name, "%u event(s) has been lost",
-				eventInfo.EventCounter - glob::eventCounter - 1);
-	}
-	glob::eventCounter = eventInfo.EventCounter;
 
 	glob::device->getEvent().decode(evt.second);
 
