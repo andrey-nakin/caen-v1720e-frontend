@@ -188,7 +188,14 @@ INT poll_event(INT /* source */, INT const count, BOOL const test) {
 	if (test) {
 		ss_sleep(count);
 	}
-	return glob::device && glob::device->hasNextEvent() ? TRUE : FALSE;
+
+	if (glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
+		if (glob::device->hasNextEvent()) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 
 }
 
@@ -528,7 +535,7 @@ int readEvent(char * const pevent, const int /* off */) {
 				util::FrontEndUtils::commandR(
 						[pevent]() {
 
-							if (glob::device && glob::device->hasNextEvent()) {
+							if (glob::device->hasNextEvent()) {
 								CAEN_DGTZ_EventInfo_t eventInfo;
 								return parseEvent(pevent, eventInfo, *glob::device->nextEvent(eventInfo));
 							} else {

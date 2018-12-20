@@ -87,16 +87,14 @@ CAEN_DGTZ_UINT16_EVENT_t const* Device::nextEvent(
 		return nullptr;
 	}
 
-	std::pair<CAEN_DGTZ_EventInfo_t, char*> evt = getBuffer().getEventInfo(
-			dataSize, eventNo);
+	auto const dataPtr = getBuffer().getEventInfo(dataSize, eventNo, eventInfo);
 	if (++eventNo >= numEvents) {
 		reset();
 	}
 
-	eventInfo = evt.first;
-	getEvent().decode(evt.second);
-
-	return getEvent().evt();
+	auto& e = getEvent();
+	e.decode(dataPtr);
+	return e.evt();
 
 }
 

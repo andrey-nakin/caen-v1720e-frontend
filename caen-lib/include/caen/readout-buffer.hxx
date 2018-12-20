@@ -26,7 +26,7 @@ public:
 
 	uint32_t getNumEvents(uint32_t dataSize);
 
-	std::pair<CAEN_DGTZ_EventInfo_t, char*> getEventInfo(uint32_t dataSize, int32_t numEvent);
+	char* getEventInfo(uint32_t dataSize, int32_t numEvent, CAEN_DGTZ_EventInfo_t& eventInfo);
 
 };
 
