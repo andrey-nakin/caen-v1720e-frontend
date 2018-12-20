@@ -24,13 +24,15 @@
 #include <caen/v1720.hxx>
 #include <caen/device.hxx>
 
+#include "fe-v1720.hxx"
 #include "defaults.hxx"
 
 #define EQUIP_NAME "v1720"
-constexpr uint32_t MAX_NUM_OF_EVENTS = 1;
+constexpr uint32_t MAX_NUM_OF_EVENTS = 10;
 constexpr int EVID = 1;
-constexpr uint32_t MAX_RECORD_LENGTH = 1024 * 1024;
 constexpr int WAIT_SLEEP = 1;
+constexpr uint32_t MAX_EVENT_SIZE = calculateEventSize(
+		caen::v1720::NUM_OF_CHANNELS, caen::v1720::MAX_RECORD_LENGTH);
 
 namespace glob {
 
@@ -64,11 +66,14 @@ BOOL frontend_call_loop = FALSE;
 INT display_period = 1000;
 
 /* maximum event size produced by this frontend */
-INT max_event_size = 4194304 / 8;
-INT max_event_size_frag = 4194304 / 8;
+//INT max_event_size = 4194304 / 8;
+//INT max_event_size_frag = 4194304 / 8;
+INT max_event_size = MAX_EVENT_SIZE;
+INT max_event_size_frag = MAX_EVENT_SIZE;
 
 /* buffer size to hold events */
-INT event_buffer_size = 4194304;
+//INT event_buffer_size = 4194304;
+INT event_buffer_size = 2 * MAX_EVENT_SIZE;
 
 /*-- Function declarations -----------------------------------------*/
 
@@ -189,6 +194,8 @@ INT poll_event(INT /* source */, INT const count, BOOL const test) {
 		ss_sleep(count);
 	}
 
+	std::lock_guard < std::mutex > lock(glob::readingMutex);
+
 	if (glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
 		if (glob::device->hasNextEvent()) {
 			return TRUE;
@@ -254,10 +261,10 @@ static void configure(caen::Handle& hDevice) {
 
 	auto const recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
 			defaults::recordLength, true);
-	if (recordLength > MAX_RECORD_LENGTH) {
+	if (recordLength > caen::v1720::MAX_RECORD_LENGTH) {
 		throw midas::Exception(FE_ERR_ODB,
 				std::string("Value of waveform_length parameter exceeds ")
-						+ std::to_string(MAX_RECORD_LENGTH));
+						+ std::to_string(caen::v1720::MAX_RECORD_LENGTH));
 	}
 
 	auto const enabledChannels = odb::getValueBoolV(hDB, hSet,
@@ -333,6 +340,8 @@ static void configure(caen::Handle& hDevice) {
 }
 
 static void startAcquisition(caen::Device& device) {
+
+	std::lock_guard < std::mutex > lock(glob::readingMutex);
 
 	device.startAcquisition();
 	glob::acquisitionIsOn.store(true);
@@ -448,17 +457,16 @@ INT frontend_loop() {
 static std::size_t calculateEventSize(CAEN_DGTZ_EventInfo_t const& eventInfo,
 		CAEN_DGTZ_UINT16_EVENT_t const& event) {
 
-	std::size_t result = sizeof(util::InfoBank) + sizeof(BANK32)
-			+ sizeof(uint16_t) * glob::boardInfo.Channels + sizeof(BANK32);
-
 	// count number of active channels
+	unsigned numOfActiveChannels = 0, recordLength = 0;
 	for (unsigned i = 0; i < glob::boardInfo.Channels; i++) {
 		if (eventInfo.ChannelMask & (0x0001 << i)) {
-			result += event.ChSize[i] * sizeof(uint16_t) + sizeof(BANK32);
+			numOfActiveChannels++;
+			recordLength = std::max(recordLength, event.ChSize[i]);
 		}
 	}
 
-	return result + sizeof(EVENT_HEADER);
+	return calculateEventSize(numOfActiveChannels, recordLength);
 
 }
 

@@ -2,7 +2,6 @@
 #define	__CAEN_DEVICE_HXX__
 
 #include <memory>
-#include <mutex>
 #include "noncopyable.hxx"
 #include "handle.hxx"
 #include "readout-buffer.hxx"
@@ -32,7 +31,6 @@ public:
 
 private:
 
-	std::mutex mutex;
 	Handle handle;
 	std::unique_ptr<ReadoutBuffer> buffer;
 	std::unique_ptr<Event> event;

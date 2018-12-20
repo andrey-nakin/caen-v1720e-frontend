@@ -23,7 +23,6 @@ Handle& Device::getHandle() {
 ReadoutBuffer& Device::getBuffer() {
 
 	if (!buffer) {
-		std::lock_guard < std::mutex > lock(mutex);
 		buffer = std::unique_ptr < ReadoutBuffer > (new ReadoutBuffer(handle));
 	}
 	return *buffer;
@@ -33,7 +32,6 @@ ReadoutBuffer& Device::getBuffer() {
 Event& Device::getEvent() {
 
 	if (!event) {
-		std::lock_guard < std::mutex > lock(mutex);
 		event = std::unique_ptr < Event > (new Event(handle));
 	}
 	return *event;
@@ -59,7 +57,6 @@ void Device::stopAcquisition() {
 	handle.hCommand("stopping acquisition", CAEN_DGTZ_SWStopAcquisition);
 
 	// release buffers
-	std::lock_guard < std::mutex > lock(mutex);
 	event = nullptr;
 	buffer = nullptr;
 
@@ -87,20 +84,18 @@ CAEN_DGTZ_UINT16_EVENT_t const* Device::nextEvent(
 		return nullptr;
 	}
 
-	auto const dataPtr = getBuffer().getEventInfo(dataSize, eventNo, eventInfo);
-	if (++eventNo >= numEvents) {
-		reset();
-	}
+	// read event to buffer
+	auto const dataPtr = getBuffer().getEventInfo(dataSize, eventNo++,
+			eventInfo);
 
+	// decode and return event data
 	return getEvent().evt(dataPtr);
 
 }
 
 void Device::reset() {
 
-	dataSize = 0;
-	numEvents = 0;
-	eventNo = 0;
+	numEvents = eventNo = 0;
 
 }
 
