@@ -1,7 +1,6 @@
 #ifndef	__CAEN_EVENT_HXX__
 #define	__CAEN_EVENT_HXX__
 
-#include <cstdint>
 #include <CAENDigitizer.h>
 #include "noncopyable.hxx"
 #include "error-holder.hxx"

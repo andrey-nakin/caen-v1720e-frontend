@@ -26,7 +26,7 @@ Event::~Event() {
 
 }
 
-CAEN_DGTZ_UINT16_EVENT_t const* Event::evt(char* eventPtr) {
+CAEN_DGTZ_UINT16_EVENT_t const* Event::evt(char* const eventPtr) {
 
 	decode(eventPtr);
 	return static_cast<CAEN_DGTZ_UINT16_EVENT_t*>(event);
