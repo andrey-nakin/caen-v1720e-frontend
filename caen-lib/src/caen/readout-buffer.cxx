@@ -36,6 +36,12 @@ uint32_t ReadoutBuffer::readData() {
 			[this](int handle) {
 				auto const status = CAEN_DGTZ_ReadData(handle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &dataSize);
 				if (CAEN_DGTZ_Success != status) {
+//					CAEN_DGTZ_ClearData(handle);
+					// dry read
+					do {
+						CAEN_DGTZ_ReadData(handle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &dataSize);
+					}while (dataSize > 0);
+
 					dataSize = 0;
 				}
 				return status;

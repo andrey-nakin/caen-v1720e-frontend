@@ -28,7 +28,7 @@
 #include "defaults.hxx"
 
 #define EQUIP_NAME "v1720"
-constexpr uint32_t MAX_NUM_OF_EVENTS = 10;
+constexpr uint32_t MAX_NUM_OF_EVENTS = 100;
 constexpr int EVID = 1;
 constexpr uint32_t MAX_EVENT_SIZE = calculateEventSize(
 		caen::v1720::NUM_OF_CHANNELS, caen::v1720::MAX_RECORD_LENGTH);

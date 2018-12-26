@@ -4,8 +4,6 @@
 
 namespace caen {
 
-static uint32_t maxNumOfEvents;
-
 Device::Device(Handle&& aHandle) :
 		handle(std::move(aHandle)) {
 
@@ -53,8 +51,6 @@ void Device::startAcquisition() {
 
 	reset();
 
-	maxNumOfEvents = 0;
-
 }
 
 void Device::stopAcquisition() {
@@ -75,12 +71,6 @@ bool Device::hasNextEvent() {
 		if (getBuffer().readData()) {
 			numEvents = getBuffer().getNumEvents();
 			eventNo = 0;
-
-			if (maxNumOfEvents < numEvents) {
-				cm_msg(MINFO, "v1720-test", "maxNumOfEvents = %u",
-						maxNumOfEvents);
-				maxNumOfEvents = numEvents;
-			}
 		}
 	}
 	return eventNo < numEvents;
