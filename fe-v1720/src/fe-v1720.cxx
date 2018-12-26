@@ -30,7 +30,6 @@
 #define EQUIP_NAME "v1720"
 constexpr uint32_t MAX_NUM_OF_EVENTS = 10;
 constexpr int EVID = 1;
-constexpr int WAIT_SLEEP = 1;
 constexpr uint32_t MAX_EVENT_SIZE = calculateEventSize(
 		caen::v1720::NUM_OF_CHANNELS, caen::v1720::MAX_RECORD_LENGTH);
 
@@ -39,11 +38,8 @@ namespace glob {
 static CAEN_DGTZ_BoardInfo_t boardInfo;
 static std::vector<uint16_t> dcOffsets;
 static std::unique_ptr<caen::Device> device;
-static midas_thread_t readoutThread;
 static std::atomic_bool acquisitionIsOn(false);
-static std::mutex readingMutex;
-static int rbWaitCount = 0;
-static int rbh = 0;
+static std::recursive_mutex readingMutex;
 
 }
 
@@ -66,13 +62,10 @@ BOOL frontend_call_loop = FALSE;
 INT display_period = 1000;
 
 /* maximum event size produced by this frontend */
-//INT max_event_size = 4194304 / 8;
-//INT max_event_size_frag = 4194304 / 8;
 INT max_event_size = MAX_EVENT_SIZE;
 INT max_event_size_frag = MAX_EVENT_SIZE;
 
 /* buffer size to hold events */
-//INT event_buffer_size = 4194304;
 INT event_buffer_size = 2 * MAX_EVENT_SIZE;
 
 /*-- Function declarations -----------------------------------------*/
@@ -101,16 +94,17 @@ int readEvent(char *pevent, int off);
 
 EQUIPMENT equipment[] = { { EQUIP_NAME "%02d", { EVID, (1 << EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
-EQ_USER, /* equipment type */
-0, /* event source */
-"MIDAS", /* format */
-TRUE, /* enabled */
-RO_RUNNING, /* Read when running */
-10, /* poll every so milliseconds */
-0, /* stop run after this event limit */
-0, /* number of sub events */
-0, /* no history */
-"", "", "" }, readEvent, /* readout routine */
+//EQ_USER, /* equipment type */
+		EQ_POLLED, /* equipment type */
+		0, /* event source */
+		"MIDAS", /* format */
+		TRUE, /* enabled */
+		RO_RUNNING, /* Read when running */
+		10, /* poll every so milliseconds */
+		0, /* stop run after this event limit */
+		0, /* number of sub events */
+		0, /* no history */
+		"", "", "" }, readEvent, /* readout routine */
 }, { "" } };
 
 #pragma GCC diagnostic pop
@@ -118,94 +112,6 @@ RO_RUNNING, /* Read when running */
 #ifndef NEED_NO_EXTERN_C
 }
 #endif
-
-static int workingThread(void * /*param */) {
-	EQUIPMENT& eq = equipment[0];
-
-	/* indicate activity to framework */
-	signal_readout_thread_active(glob::rbh, 1);
-
-	while (!stop_all_threads) {
-		if (!glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
-			// no run, wait
-			ss_sleep(10);
-			continue;
-		}
-
-		/* obtain buffer space */
-		void *p;
-		auto const status = rb_get_wp(get_event_rbh(glob::rbh), &p, 0);
-		if (stop_all_threads) {
-			break;
-		}
-		if (status == DB_TIMEOUT) {
-			glob::rbWaitCount++;
-			cm_msg(MINFO, frontend_name, "No free ring buffers, waiting");
-			if (WAIT_SLEEP) {
-				ss_sleep(WAIT_SLEEP);
-			}
-			continue;
-		}
-		if (status != DB_SUCCESS) {
-			cm_msg(MERROR, frontend_name, "Cannot get ring buffer, status %d",
-					status);
-			break;
-		}
-
-		/* check for new event */
-
-		if (stop_all_threads) {
-			break;
-		}
-
-		/* call user readout routine */
-		auto pHeader = reinterpret_cast<EVENT_HEADER*>(p);
-		auto const dataSize = eq.readout(
-				reinterpret_cast<char*>(p) + sizeof(*pHeader), 0);
-
-		if (dataSize > 0) {
-			/* an event arrived */
-			/* compose MIDAS event header */
-			pHeader->data_size = dataSize;
-			pHeader->event_id = eq.info.event_id;
-			pHeader->trigger_mask = eq.info.trigger_mask;
-			pHeader->time_stamp = ss_time();
-			pHeader->serial_number = eq.serial_number++;
-
-			/* put event into ring buffer */
-			rb_increment_wp(get_event_rbh(glob::rbh),
-					dataSize + sizeof(*pHeader));
-		} else {
-			/* no events, wait a bit */
-			if (eq.info.period) {
-				ss_sleep(eq.info.period);
-			}
-		}
-	}
-
-	signal_readout_thread_active(glob::rbh, 0);
-
-	return 0;
-}
-
-INT poll_event(INT /* source */, INT const count, BOOL const test) {
-
-	if (test) {
-		ss_sleep(count);
-	}
-
-	std::lock_guard < std::mutex > lock(glob::readingMutex);
-
-	return glob::acquisitionIsOn.load(std::memory_order_relaxed)
-			&& glob::device->hasNextEvent() ? TRUE : FALSE;
-
-}
-
-INT interrupt_configure(INT /* cmd */, INT /* source */, PTYPE /* adr */) {
-
-	return SUCCESS;
-
-}
 
 static caen::Handle connect() {
 
@@ -336,8 +242,6 @@ static void configure(caen::Handle& hDevice) {
 
 static void startAcquisition(caen::Device& device) {
 
-	std::lock_guard < std::mutex > lock(glob::readingMutex);
-
 	device.startAcquisition();
 	glob::acquisitionIsOn.store(true);
 
@@ -346,23 +250,19 @@ static void startAcquisition(caen::Device& device) {
 static void stopAcquisition(caen::Device& device) {
 
 	glob::acquisitionIsOn.store(false);
-
-	std::lock_guard < std::mutex > lock(glob::readingMutex);
-
 	device.stopAcquisition();
 
 }
 
 INT frontend_init() {
 
+	cm_msg(MDEBUG, frontend_name, "frontend_init");
+
 	return util::FrontEndUtils::command([]() {
 
 		odb::getValueInt32(hDB, 0,
 				util::FrontEndUtils::settingsKeyName(equipment[0].name,
 						"link_num"), defaults::linkNum, true);
-
-		create_event_rb(glob::rbh);
-		glob::readoutThread = ss_thread_create(workingThread, 0);
 
 		caen::Handle hDevice = connect();
 		configure(hDevice);
@@ -373,24 +273,28 @@ INT frontend_init() {
 
 INT frontend_exit() {
 
+	cm_msg(MDEBUG, frontend_name, "frontend_exit");
+
 	return util::FrontEndUtils::command([]() {
 
-		std::lock_guard < std::mutex > lock(glob::readingMutex);
+		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
 
 		if (glob::device) {
 			stopAcquisition(*glob::device);
 			glob::device = nullptr;
 		}
 
-		ss_thread_kill(glob::readoutThread);
-
 	});
 
 }
 
-INT begin_of_run(INT /* run_number */, char * /* error */) {
+INT begin_of_run(INT run_number, char * /* error */) {
+
+	cm_msg(MDEBUG, frontend_name, "begin_of_run run_number=%d", run_number);
 
 	return util::FrontEndUtils::command([]() {
+
+		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
 
 		glob::device = std::unique_ptr < caen::Device
 		> (new caen::Device(connect()));
@@ -398,17 +302,17 @@ INT begin_of_run(INT /* run_number */, char * /* error */) {
 
 		startAcquisition(*glob::device);
 
-		glob::rbWaitCount = 0;
-
 	});
 
 }
 
-INT end_of_run(INT /* run_number */, char * /* error */) {
+INT end_of_run(INT run_number, char * /* error */) {
 
-	return util::FrontEndUtils::command([]() {
+	cm_msg(MDEBUG, frontend_name, "end_of_run run_number=%d", run_number);
 
-		std::lock_guard < std::mutex > lock(glob::readingMutex);
+	return util::FrontEndUtils::command([run_number] {
+
+		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
 
 		if (glob::device) {
 			stopAcquisition(*glob::device);
@@ -419,11 +323,13 @@ INT end_of_run(INT /* run_number */, char * /* error */) {
 
 }
 
-INT pause_run(INT /* run_number */, char * /* error */) {
+INT pause_run(INT run_number, char * /* error */) {
+
+	cm_msg(MDEBUG, frontend_name, "pause_run run_number=%d", run_number);
 
 	return util::FrontEndUtils::command([]() {
 
-		std::lock_guard < std::mutex > lock(glob::readingMutex);
+		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
 
 		stopAcquisition(*glob::device);
 
@@ -431,11 +337,13 @@ INT pause_run(INT /* run_number */, char * /* error */) {
 
 }
 
-INT resume_run(INT /* run_number */, char * /* error */) {
+INT resume_run(INT run_number, char * /* error */) {
+
+	cm_msg(MDEBUG, frontend_name, "resume_run run_number=%d", run_number);
 
 	return util::FrontEndUtils::command([]() {
 
-		std::lock_guard < std::mutex > lock(glob::readingMutex);
+		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
 
 		startAcquisition(*glob::device);
 
@@ -530,26 +438,52 @@ static int parseEvent(char * const pevent,
 
 int readEvent(char * const pevent, const int /* off */) {
 
-	std::lock_guard < std::mutex > lock(glob::readingMutex);
+	std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
 	int result;
 
 	if (glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
-		result =
-				util::FrontEndUtils::commandR(
-						[pevent]() {
+		result = util::FrontEndUtils::commandR([pevent] {
 
-							if (glob::device->hasNextEvent()) {
-								CAEN_DGTZ_EventInfo_t eventInfo;
-								return parseEvent(pevent, eventInfo, *glob::device->nextEvent(eventInfo));
-							} else {
-								return 0;
-							}
+			CAEN_DGTZ_EventInfo_t eventInfo;
+			auto const event = glob::device->nextEvent(eventInfo);
+			if (event) {
+				return parseEvent(pevent, eventInfo, *event);
+			} else {
+				return 0;
+			}
 
-						});
+		});
 	} else {
 		result = 0;
 	}
 
 	return result;
+
+}
+
+INT poll_event(INT /* source */, INT /* count */, BOOL const test) {
+
+	INT result;
+
+	{
+		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
+
+		result = util::FrontEndUtils::commandR([] {
+			return glob::acquisitionIsOn.load(std::memory_order_relaxed)
+			&& glob::device->hasNextEvent() ? TRUE : FALSE;
+		});
+	}
+
+	if (!result) {
+		ss_sleep(equipment[0].info.period);
+	}
+
+	return result && !test;
+
+}
+
+INT interrupt_configure(INT /* cmd */, INT /* source */, PTYPE /* adr */) {
+
+	return SUCCESS;
 
 }

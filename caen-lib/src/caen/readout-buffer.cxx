@@ -1,3 +1,5 @@
+#include <iostream>
+#include <midas.h>
 #include <caen/readout-buffer.hxx>
 
 namespace caen {
@@ -32,7 +34,9 @@ uint32_t ReadoutBuffer::readData() {
 
 	uint32_t dataSize;
 	handle.hCommand("reading data",
-			[this, &dataSize](int handle) {return CAEN_DGTZ_ReadData(handle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &dataSize);});
+			[this, &dataSize](int handle) {
+				return CAEN_DGTZ_ReadData(handle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &dataSize);
+			});
 	return dataSize;
 
 }

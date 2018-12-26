@@ -1,4 +1,5 @@
 #include <utility>
+#include <midas.h>
 #include "caen/device.hxx"
 
 namespace caen {

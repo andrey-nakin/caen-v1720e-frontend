@@ -10,13 +10,16 @@ constexpr std::size_t calculateEventSize(unsigned const numOfActiveChannels,
 		unsigned const recordLength) {
 
 	return sizeof(EVENT_HEADER)	// MIDAS event header
-	// information bank
-			+ sizeof(util::InfoBank) + sizeof(BANK32)
+			// global bank header
+			+ sizeof(BANK_HEADER)
+			// information bank
+			+ ALIGN8(sizeof(util::InfoBank)) + sizeof(BANK32)
 			// DC offset bank
-			+ sizeof(uint16_t) * caen::v1720::NUM_OF_CHANNELS + sizeof(BANK32)
+			+ ALIGN8(sizeof(uint16_t) * caen::v1720::NUM_OF_CHANNELS)
+			+ sizeof(BANK32)
 			// waveform banks
 			+ numOfActiveChannels
-					* (recordLength * sizeof(uint16_t) + sizeof(BANK32));
+					* (ALIGN8(recordLength * sizeof(uint16_t)) + sizeof(BANK32));
 
 }
 
