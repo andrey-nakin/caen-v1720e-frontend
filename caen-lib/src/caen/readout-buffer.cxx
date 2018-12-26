@@ -32,30 +32,47 @@ ReadoutBuffer::~ReadoutBuffer() {
 
 uint32_t ReadoutBuffer::readData() {
 
-	uint32_t dataSize;
 	handle.hCommand("reading data",
-			[this, &dataSize](int handle) {
-				return CAEN_DGTZ_ReadData(handle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &dataSize);
+			[this](int handle) {
+				auto const status = CAEN_DGTZ_ReadData(handle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &dataSize);
+				if (CAEN_DGTZ_Success != status) {
+					dataSize = 0;
+				}
+				return status;
 			});
 	return dataSize;
 
 }
 
-uint32_t ReadoutBuffer::getNumEvents(uint32_t const dataSize) {
+uint32_t ReadoutBuffer::getNumEvents() {
+
+	if (!dataSize) {
+		return 0;
+	}
 
 	uint32_t numEvents;
 	handle.hCommand("getting num events",
-			[this, dataSize, &numEvents](int handle) {return CAEN_DGTZ_GetNumEvents(handle, buffer, dataSize, &numEvents);});
+			[this, &numEvents](int handle) {return CAEN_DGTZ_GetNumEvents(handle, buffer, dataSize, &numEvents);});
 	return numEvents;
 
 }
 
-char* ReadoutBuffer::getEventInfo(uint32_t const dataSize,
-		int32_t const numEvent, CAEN_DGTZ_EventInfo_t& eventInfo) {
+char* ReadoutBuffer::getEventInfo(int32_t const numEvent,
+		CAEN_DGTZ_EventInfo_t& eventInfo) {
+
+	if (!dataSize) {
+		return nullptr;
+	}
 
 	char* result;
 	handle.hCommand("getting event info",
-			[this, dataSize, numEvent, &eventInfo, &result](int handle) {return CAEN_DGTZ_GetEventInfo(handle, buffer, dataSize, numEvent, &eventInfo, &result);});
+			[this, numEvent, &eventInfo, &result](int handle) {
+				auto const status=CAEN_DGTZ_GetEventInfo(handle, buffer, dataSize, numEvent, &eventInfo, &result);
+				if (CAEN_DGTZ_Success != status) {
+					dataSize = 0;
+				}
+				return status;
+			});
 	return result;
 
 }

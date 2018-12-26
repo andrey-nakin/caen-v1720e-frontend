@@ -4,6 +4,8 @@
 
 namespace caen {
 
+static uint32_t maxNumOfEvents;
+
 Device::Device(Handle&& aHandle) :
 		handle(std::move(aHandle)) {
 
@@ -51,6 +53,8 @@ void Device::startAcquisition() {
 
 	reset();
 
+	maxNumOfEvents = 0;
+
 }
 
 void Device::stopAcquisition() {
@@ -68,10 +72,15 @@ void Device::stopAcquisition() {
 bool Device::hasNextEvent() {
 
 	if (eventNo >= numEvents) {
-		dataSize = getBuffer().readData();
-		if (dataSize) {
-			numEvents = getBuffer().getNumEvents(dataSize);
+		if (getBuffer().readData()) {
+			numEvents = getBuffer().getNumEvents();
 			eventNo = 0;
+
+			if (maxNumOfEvents < numEvents) {
+				cm_msg(MINFO, "v1720-test", "maxNumOfEvents = %u",
+						maxNumOfEvents);
+				maxNumOfEvents = numEvents;
+			}
 		}
 	}
 	return eventNo < numEvents;
@@ -86,8 +95,13 @@ CAEN_DGTZ_UINT16_EVENT_t const* Device::nextEvent(
 	}
 
 	// read event to buffer
-	auto const dataPtr = getBuffer().getEventInfo(dataSize, eventNo++,
-			eventInfo);
+	char* dataPtr;
+	try {
+		dataPtr = getBuffer().getEventInfo(eventNo++, eventInfo);
+	} catch (Exception& e) {
+		reset();
+		throw e;
+	}
 
 	// decode and return event data
 	return getEvent().evt(dataPtr);

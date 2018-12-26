@@ -315,7 +315,12 @@ INT end_of_run(INT run_number, char * /* error */) {
 		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
 
 		if (glob::device) {
-			stopAcquisition(*glob::device);
+			try {
+				stopAcquisition(*glob::device);
+			} catch (caen::Exception& e) {
+				util::FrontEndUtils::handleCaenException(e);
+			}
+
 			glob::device = nullptr;
 		}
 

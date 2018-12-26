@@ -14,7 +14,7 @@ class ReadoutBuffer final : public Noncopyable, public ErrorHolder {
 
 	Handle& handle;
 	char* buffer;
-	uint32_t bufferSize;
+	uint32_t bufferSize, dataSize;
 
 public:
 
@@ -24,9 +24,9 @@ public:
 
 	uint32_t readData();
 
-	uint32_t getNumEvents(uint32_t dataSize);
+	uint32_t getNumEvents();
 
-	char* getEventInfo(uint32_t dataSize, int32_t numEvent, CAEN_DGTZ_EventInfo_t& eventInfo);
+	char* getEventInfo(int32_t numEvent, CAEN_DGTZ_EventInfo_t& eventInfo);
 
 };
 

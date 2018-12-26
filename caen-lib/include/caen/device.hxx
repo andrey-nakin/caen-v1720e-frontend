@@ -34,7 +34,7 @@ private:
 	Handle handle;
 	std::unique_ptr<ReadoutBuffer> buffer;
 	std::unique_ptr<Event> event;
-	uint32_t dataSize, numEvents, eventNo;
+	uint32_t numEvents, eventNo;
 
 	void reset();
 
