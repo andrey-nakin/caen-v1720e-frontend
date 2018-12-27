@@ -38,8 +38,8 @@ namespace glob {
 static CAEN_DGTZ_BoardInfo_t boardInfo;
 static std::vector<uint16_t> dcOffsets;
 static std::unique_ptr<caen::Device> device;
+static std::recursive_mutex mDevice;
 static std::atomic_bool acquisitionIsOn(false);
-static std::recursive_mutex readingMutex;
 
 }
 
@@ -277,7 +277,7 @@ INT frontend_exit() {
 
 	return util::FrontEndUtils::command([]() {
 
-		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
+		std::lock_guard<decltype(glob::mDevice)> lock(glob::mDevice);
 
 		if (glob::device) {
 			stopAcquisition(*glob::device);
@@ -294,7 +294,7 @@ INT begin_of_run(INT run_number, char * /* error */) {
 
 	return util::FrontEndUtils::command([]() {
 
-		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
+		std::lock_guard<decltype(glob::mDevice)> lock(glob::mDevice);
 
 		glob::device.reset(new caen::Device(connect()));
 		configure(glob::device->getHandle());
@@ -311,7 +311,7 @@ INT end_of_run(INT run_number, char * /* error */) {
 
 	return util::FrontEndUtils::command([run_number] {
 
-		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
+		std::lock_guard<decltype(glob::mDevice)> lock(glob::mDevice);
 
 		if (glob::device) {
 			try {
@@ -333,7 +333,7 @@ INT pause_run(INT run_number, char * /* error */) {
 
 	return util::FrontEndUtils::command([]() {
 
-		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
+		std::lock_guard<decltype(glob::mDevice)> lock(glob::mDevice);
 
 		stopAcquisition(*glob::device);
 
@@ -347,7 +347,7 @@ INT resume_run(INT run_number, char * /* error */) {
 
 	return util::FrontEndUtils::command([]() {
 
-		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
+		std::lock_guard<decltype(glob::mDevice)> lock(glob::mDevice);
 
 		startAcquisition(*glob::device);
 
@@ -442,7 +442,7 @@ static int parseEvent(char * const pevent,
 
 int readEvent(char * const pevent, const int /* off */) {
 
-	std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
+	std::lock_guard<decltype(glob::mDevice)> lock(glob::mDevice);
 	int result;
 
 	if (glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
@@ -470,7 +470,7 @@ INT poll_event(INT /* source */, INT /* count */, BOOL const test) {
 	INT result;
 
 	{
-		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
+		std::lock_guard<decltype(glob::mDevice)> lock(glob::mDevice);
 
 		result = util::FrontEndUtils::commandR([] {
 			return glob::acquisitionIsOn.load(std::memory_order_relaxed)
