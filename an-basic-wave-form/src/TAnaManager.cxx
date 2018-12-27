@@ -20,6 +20,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer) {
 	using util::V1720InfoRawData;
 	using util::TDcOffsetRawData;
 	using util::TWaveFormRawData;
+	using util::V1720WaveForm;
 
 	auto const v1720Info = dataContainer.GetEventData < V1720InfoRawData
 			> (V1720InfoRawData::bankName());
@@ -34,7 +35,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer) {
 				auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
 						> (TWaveFormRawData::bankName(channelNo));
 				if (wfRaw) {
-					util::V1720WaveForm wf(*wfRaw,
+					V1720WaveForm const wf(*wfRaw,
 							dcOffsets->dcOffset(channelNo));
 					TGraph gr(wf.size(), wf.getTimePtr(), wf.getVoltagePtr());
 					gr.Draw();
