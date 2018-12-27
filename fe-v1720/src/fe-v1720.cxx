@@ -27,7 +27,6 @@
 #include "fe-v1720.hxx"
 #include "defaults.hxx"
 
-#define EQUIP_NAME "v1720"
 constexpr uint32_t MAX_NUM_OF_EVENTS = 100;
 constexpr int EVID = 1;
 constexpr uint32_t MAX_EVENT_SIZE = calculateEventSize(

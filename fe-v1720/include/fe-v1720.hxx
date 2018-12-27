@@ -5,6 +5,8 @@
 #include <caen/v1720.hxx>
 #include <util/types.hxx>
 
+#define EQUIP_NAME "v1720"
+
 constexpr std::size_t calculateEventSize(unsigned const numOfActiveChannels,
 		unsigned const recordLength) {
 
