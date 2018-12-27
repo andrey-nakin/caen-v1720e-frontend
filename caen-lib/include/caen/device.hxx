@@ -12,7 +12,7 @@ namespace caen {
 class Device final : public Noncopyable {
 public:
 
-	Device(Handle&&);
+	explicit Device(Handle&&);
 	~Device();
 
 	Handle& getHandle();

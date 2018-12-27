@@ -18,7 +18,7 @@ class ReadoutBuffer final : public Noncopyable, public ErrorHolder {
 
 public:
 
-	ReadoutBuffer(Handle&);
+	explicit ReadoutBuffer(Handle&);
 	ReadoutBuffer(ReadoutBuffer&&);
 	~ReadoutBuffer();
 

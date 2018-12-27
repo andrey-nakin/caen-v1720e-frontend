@@ -15,7 +15,7 @@ class Event final : public Noncopyable, public ErrorHolder {
 
 public:
 
-	Event(Handle&);
+	explicit Event(Handle&);
 	Event(Event&&);
 	~Event();
 
