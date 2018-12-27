@@ -296,8 +296,7 @@ INT begin_of_run(INT run_number, char * /* error */) {
 
 		std::lock_guard < std::recursive_mutex > lock(glob::readingMutex);
 
-		glob::device = std::unique_ptr < caen::Device
-		> (new caen::Device(connect()));
+		glob::device.reset(new caen::Device(connect()));
 		configure(glob::device->getHandle());
 
 		startAcquisition(*glob::device);

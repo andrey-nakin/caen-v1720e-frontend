@@ -17,19 +17,22 @@ TAnaManager::TAnaManager() {
 
 int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer) {
 
-	auto const v1720Info = dataContainer.GetEventData < util::V1720InfoRawData
-			> (util::V1720InfoRawData::bankName());
-	auto const dcOffsets = dataContainer.GetEventData < util::TDcOffsetRawData
-			> (util::TDcOffsetRawData::BANK_NAME);
+	using util::V1720InfoRawData;
+	using util::TDcOffsetRawData;
+	using util::TWaveFormRawData;
+
+	auto const v1720Info = dataContainer.GetEventData < V1720InfoRawData
+			> (V1720InfoRawData::bankName());
+	auto const dcOffsets = dataContainer.GetEventData < TDcOffsetRawData
+			> (TDcOffsetRawData::BANK_NAME);
 
 	if (v1720Info && dcOffsets) {
 		auto const c = std::unique_ptr < TCanvas > (new TCanvas());
 
 		for (uint8_t channelNo = 0; channelNo < 8; channelNo++) {
 			if (v1720Info->channelIncluded(channelNo)) {
-				auto const wfRaw = dataContainer.GetEventData
-						< util::TWaveFormRawData
-						> (util::TWaveFormRawData::bankName(channelNo));
+				auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
+						> (TWaveFormRawData::bankName(channelNo));
 				if (wfRaw) {
 					util::V1720WaveForm wf(*wfRaw,
 							dcOffsets->dcOffset(channelNo));

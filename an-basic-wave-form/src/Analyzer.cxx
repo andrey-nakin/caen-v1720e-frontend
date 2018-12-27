@@ -1,6 +1,5 @@
 #include <iostream>
 #include <memory>
-
 #include <TDataContainer.hxx>
 
 #pragma GCC diagnostic push
@@ -15,20 +14,20 @@
 namespace bwf {
 
 class Analyzer: public TRootanaEventLoop {
-public:
 
+public:
 	std::unique_ptr<TAnaManager> anaManager;
 
 	Analyzer() {
-		//DisableAutoMainWindow();
+		// DisableAutoMainWindow();
 		UseBatchMode();
-
 	}
 
 	void Initialize() {
 
 #ifdef HAVE_THTTP_SERVER
 		std::cout << "Using THttpServer in read/write mode" << std::endl;
+
 		SetTHttpServerReadWrite();
 #endif
 
@@ -36,10 +35,7 @@ public:
 
 	void InitManager() {
 
-		if (anaManager) {
-			anaManager = nullptr;
-		}
-		anaManager = std::unique_ptr < TAnaManager > (new TAnaManager());
+		anaManager.reset(new TAnaManager());
 
 	}
 
@@ -51,7 +47,7 @@ public:
 
 	}
 
-	bool ProcessMidasEvent(TDataContainer& dataContainer) {
+	bool ProcessMidasEvent(TDataContainer & dataContainer) {
 
 		if (!anaManager) {
 			InitManager();
@@ -72,8 +68,7 @@ public:
 };
 
 }
-
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
 
 	bwf::Analyzer::CreateSingleton<bwf::Analyzer>();
 	return bwf::Analyzer::Get().ExecuteLoop(argc, argv);

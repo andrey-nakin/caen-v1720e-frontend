@@ -1,3 +1,4 @@
+
 #ifndef AN_BASIC_WAVE_FORM_TAnaManager_hxx
 #define AN_BASIC_WAVE_FORM_TAnaManager_hxx
 
@@ -6,19 +7,26 @@
 namespace bwf {
 
 class TAnaManager {
-public:
-	TAnaManager();
 
-	int ProcessMidasEvent(TDataContainer& dataContainer);
+    public:
+        TAnaManager();
 
-	void BeginRun(int transition, int run, int time);
-	void EndRun(int transition, int run, int time);
+        int ProcessMidasEvent(TDataContainer & dataContainer);
 
-private:
+        void BeginRun(int transition,
+                      int run,
+                      int time);
+
+        void EndRun(int transition,
+                    int run,
+                    int time);
+
+    private:
 
 };
 
 }
+#endif   //      AN_BASIC_WAVE_FORM_TAnaManager_hxx
 
-#endif	//	AN_BASIC_WAVE_FORM_TAnaManager_hxx
 
+//~ Formatted by Jindent --- http://www.jindent.com
