@@ -13,6 +13,8 @@ namespace bwf {
 
 TAnaManager::TAnaManager() {
 
+	v1720Waveform.reset(new hist::V1720Waveform());
+
 }
 
 int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer) {
