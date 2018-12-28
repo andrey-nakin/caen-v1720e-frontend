@@ -33,7 +33,9 @@ std::string Exception::makeMsg(INT const status, std::string const& msg) {
 
 void Exception::setProgramName(const char * const name) {
 
-	programName = name;
+	if (name && *name) {
+		programName = name;
+	}
 
 }
 
