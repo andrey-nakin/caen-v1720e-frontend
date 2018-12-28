@@ -9,8 +9,6 @@ extern "C" {
 extern HNDLE hDB;
 extern const char *frontend_name;
 
-INT get_frontend_index();
-
 #ifndef NEED_NO_EXTERN_C
 }
 #endif
@@ -42,12 +40,4 @@ INT FrontEndUtils::handleCaenException(caen::Exception const& ex) {
 	return status;
 
 }
-
-uint32_t FrontEndUtils::frontendIndexAsUInt32() {
-
-	auto const index = get_frontend_index();
-	return index >= 0 ? index : 0xffffffff;
-
-}
-
 }

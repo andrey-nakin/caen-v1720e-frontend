@@ -379,7 +379,8 @@ static int buildEvent(char * const pevent) {
 		info->timeStampLo = t & 0xffffffff;
 		info->timeStampHi = t >> 32;
 		info->timeStampHi = t >> 32;
-		info->frontendIndex = util::FrontEndUtils::frontendIndexAsUInt32();
+		info->frontendIndex = util::FrontEndUtils::frontendIndex<
+				decltype(info->frontendIndex)>();
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 

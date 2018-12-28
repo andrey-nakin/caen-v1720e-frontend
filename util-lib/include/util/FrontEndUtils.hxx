@@ -5,6 +5,16 @@
 #include <midas.h>
 #include <caen/exception.hxx>
 
+#ifndef NEED_NO_EXTERN_C
+extern "C" {
+#endif
+
+INT get_frontend_index();
+
+#ifndef NEED_NO_EXTERN_C
+}
+#endif
+
 namespace util {
 
 class FrontEndUtils {
@@ -56,7 +66,13 @@ public:
 
 	}
 
-	static uint32_t frontendIndexAsUInt32();
+	template<typename IntT>
+	static IntT frontendIndex() {
+
+		auto const index = get_frontend_index();
+		return index >= 0 ? index : static_cast<IntT>(-1);
+
+	}
 
 private:
 

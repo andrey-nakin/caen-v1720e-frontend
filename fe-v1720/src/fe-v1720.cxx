@@ -404,7 +404,8 @@ static int parseEvent(char * const pevent,
 		info->eventCounter = eventInfo.EventCounter;
 		info->timeStampLo = eventInfo.TriggerTimeTag;
 		info->timeStampHi = eventInfo.Pattern;
-		info->frontendIndex = util::FrontEndUtils::frontendIndexAsUInt32();
+		info->frontendIndex = util::FrontEndUtils::frontendIndex<
+				decltype(info->frontendIndex)>();
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 
