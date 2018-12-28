@@ -22,7 +22,7 @@ constexpr uint32_t REG_BIT_TRIGGER_OVERLAP = 0x0001 << 1;
 template<typename T>
 constexpr T nsPerSample() {
 
-	return static_cast<T>(4);
+	return 4;
 
 }
 
