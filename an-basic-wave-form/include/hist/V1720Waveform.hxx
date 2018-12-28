@@ -16,7 +16,8 @@ public:
 
 private:
 
-	virtual int loadWaveformLength(INT feIndex) override;
+	unsigned loadWaveformLength(INT feIndex) override;
+	std::vector<bool> loadEnabledChannels(INT feIndex) override;
 
 };
 

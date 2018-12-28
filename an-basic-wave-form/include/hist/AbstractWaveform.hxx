@@ -2,7 +2,7 @@
 #define AN_BASIC_WAVE_FORM_HIST_AbstractWaveform_hxx
 
 #include <string>
-#include <sstream>
+#include <vector>
 #include <midas.h>
 #include <VirtualOdb.h>
 #include <util/types.hxx>
@@ -58,7 +58,11 @@ private:
 
 	void createHistograms(INT feIndex);
 
-	virtual int loadWaveformLength(INT feIndex) = 0;
+	virtual unsigned loadWaveformLength(INT feIndex) = 0;
+	virtual std::vector<bool> loadEnabledChannels(INT feIndex) = 0;
+
+	virtual std::string ConstructName(INT feIndex, unsigned channelNo);
+	virtual std::string ConstructTitle(INT feIndex, unsigned channelNo);
 
 };
 

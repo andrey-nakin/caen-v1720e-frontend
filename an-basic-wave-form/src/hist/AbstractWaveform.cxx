@@ -1,3 +1,5 @@
+#include <iomanip>
+#include <sstream>
 #include "hist/AbstractWaveform.hxx"
 
 namespace bwf {
@@ -19,41 +21,70 @@ void AbstractWaveform::UpdateHistograms(TDataContainer &/*dataContainer*/) {
 void AbstractWaveform::CreateHistograms() {
 
 	createHistograms(-1);
-	for (INT idx = 0; idx < 2; idx++) {	//	@TODO
+	for (INT idx = 0; idx < 100; idx++) {
 		createHistograms(idx);
 	}
-
-	unsigned channelNo = 0;
-	unsigned const recordLen = 1024;
-
-	std::stringstream sName;
-	sName << displayName << '_' << channelNo;
-	auto const name = sName.str();
-
-	std::stringstream sTitle;
-	sTitle << displayName << " Waveform, Channel #" << channelNo;
-	auto const title = sTitle.str();
-
-	auto const h = new TH1D(name.c_str(), title.c_str(), recordLen, 0,
-			recordLen * nsPerSample);
-	h->SetXTitle("Time, ns");
-	h->SetYTitle("ADC Value");
-	push_back(h);
 
 }
 
 void AbstractWaveform::createHistograms(INT const feIndex) {
-	std::cout << "FE " << feIndex << " checking " << typeid(*getOdb()).name()
-			<< " " << typeid(*this).name() << std::endl;
-
-	int waveformLength = loadWaveformLength(feIndex);
-	if (waveformLength < 0) {
+	auto const waveformLength = loadWaveformLength(feIndex);
+	if (waveformLength == 0) {
 		// no such equipment or wave form length is not specified
 		return;
 	}
 
-	std::cout << "FE " << feIndex << ", waveformLength = " << waveformLength
-			<< std::endl;
+	auto const enabledChannels = loadEnabledChannels(feIndex);
+	if (enabledChannels.empty()) {
+		return;
+	}
+
+	for (unsigned channelNo = 0; channelNo < enabledChannels.size();
+			channelNo++) {
+
+		if (!enabledChannels[channelNo]) {
+			continue;
+		}
+
+		auto const name = ConstructName(feIndex, channelNo);
+		auto const title = ConstructTitle(feIndex, channelNo);
+
+		auto const h = new TH1D(name.c_str(), title.c_str(), waveformLength, 0,
+				waveformLength * nsPerSample);
+		h->SetXTitle("Time, ns");
+		h->SetYTitle("ADC Value");
+		push_back(h);
+
+		for (int i = 0; i < waveformLength; i++) {
+			h->SetBinContent(i + 1, rand() % 4096);
+		}
+	}
+}
+
+std::string AbstractWaveform::ConstructName(INT const feIndex,
+		unsigned const channelNo) {
+
+	std::stringstream s;
+	s << displayName;
+	if (feIndex >= 0) {
+		s << '_' << std::setfill('0') << std::setw(2) << feIndex;
+	}
+	s << '_' << channelNo;
+	return s.str();
+
+}
+
+std::string AbstractWaveform::ConstructTitle(INT const feIndex,
+		unsigned const channelNo) {
+
+	std::stringstream s;
+	s << displayName;
+	if (feIndex >= 0) {
+		s << " #" << feIndex;
+	}
+	s << ", Channel #" << channelNo << ", Waveform";
+	return s.str();
+
 }
 
 }
