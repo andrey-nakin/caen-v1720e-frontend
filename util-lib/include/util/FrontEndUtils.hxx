@@ -70,7 +70,7 @@ public:
 	static IntT frontendIndex() {
 
 		auto const index = get_frontend_index();
-		return index >= 0 ? index : static_cast<IntT>(-1);
+		return index >= 0 ? static_cast<IntT>(index) : static_cast<IntT>(-1);
 
 	}
 
