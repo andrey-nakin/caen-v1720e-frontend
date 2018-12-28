@@ -27,10 +27,7 @@
 #include "fe-v1720.hxx"
 #include "defaults.hxx"
 
-constexpr uint32_t MAX_NUM_OF_EVENTS = 100;
-constexpr int EVID = 1;
-constexpr uint32_t MAX_EVENT_SIZE = calculateEventSize(
-		caen::v1720::NUM_OF_CHANNELS, caen::v1720::MAX_RECORD_LENGTH);
+using namespace fe::v1720;
 
 namespace glob {
 
@@ -117,12 +114,12 @@ static caen::Handle connect() {
 	// save reference to settings tree
 	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
 
-	auto const linkNum = odb::getValueInt32(hDB, hSet, "link_num",
+	auto const linkNum = odb::getValueInt32(hDB, hSet, settings::linkNum,
 			defaults::linkNum, true);
-	auto const conetNode = odb::getValueInt32(hDB, hSet, "conet_node",
+	auto const conetNode = odb::getValueInt32(hDB, hSet, settings::conetNode,
 			defaults::conetNode, true);
-	auto const vmeBaseAddr = odb::getValueUInt32(hDB, hSet, "vme_base_addr",
-			defaults::vmeBaseAddr, true);
+	auto const vmeBaseAddr = odb::getValueUInt32(hDB, hSet,
+			settings::vmeBaseAddr, defaults::vmeBaseAddr, true);
 
 	return caen::Handle(linkNum, conetNode, vmeBaseAddr);
 
@@ -159,8 +156,8 @@ static void configure(caen::Handle& hDevice) {
 	hDevice.hCommand("setting run sync mode",
 			[](int handle) {return CAEN_DGTZ_SetRunSynchronizationMode(handle, CAEN_DGTZ_RUN_SYNC_Disabled);});
 
-	auto const recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
-			defaults::recordLength, true);
+	auto const recordLength = odb::getValueUInt32(hDB, hSet,
+			settings::waveformLength, defaults::recordLength, true);
 	if (recordLength > caen::v1720::MAX_RECORD_LENGTH) {
 		throw midas::Exception(FE_ERR_ODB,
 				std::string("Value of waveform_length parameter exceeds ")
@@ -168,14 +165,14 @@ static void configure(caen::Handle& hDevice) {
 	}
 
 	auto const enabledChannels = odb::getValueBoolV(hDB, hSet,
-			"channel_enabled", boardInfo.Channels, defaults::channel::enabled,
-			true);
+			settings::enabledChannels, boardInfo.Channels,
+			defaults::channel::enabled, true);
 
-	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
+	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet, settings::channelDcOffset,
 			boardInfo.Channels, defaults::channel::dcOffset, true);
 
-	auto const triggerChannel = odb::getValueUInt8(hDB, hSet, "trigger_channel",
-			defaults::triggerChannel, true);
+	auto const triggerChannel = odb::getValueUInt8(hDB, hSet,
+			settings::triggerChannel, defaults::triggerChannel, true);
 	hDevice.hCommand("setting channel self trigger",
 			[triggerChannel](int handle) {return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel));});
 	if (triggerChannel >= boardInfo.Channels) {
@@ -202,12 +199,13 @@ static void configure(caen::Handle& hDevice) {
 			[channelMask](int handle) {return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask);});
 
 	auto const triggerThreshold = odb::getValueUInt16(hDB, hSet,
-			"trigger_threshold", defaults::triggerThreshold, true);
+			settings::triggerThreshold, defaults::triggerThreshold, true);
 	hDevice.hCommand("setting channel trigger threshold",
 			[triggerChannel, triggerThreshold](int handle) {return CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold);});
 
 	auto const triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
-			"trigger_raising_polarity", defaults::triggerRaisingPolarity, true);
+			settings::triggerRaisingPolarity, defaults::triggerRaisingPolarity,
+			true);
 	hDevice.hCommand("setting trigger polarity",
 			[triggerChannel, triggerRaisingPolarity](int handle) {return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge);});
 
@@ -225,7 +223,7 @@ static void configure(caen::Handle& hDevice) {
 	}
 
 	auto const preTriggerLength = odb::getValueUInt32(hDB, hSet,
-			"pre_trigger_length", defaults::preTriggerLength, true);
+			settings::preTriggerLength, defaults::preTriggerLength, true);
 	if (preTriggerLength > recordLength) {
 		throw midas::Exception(FE_ERR_ODB,
 				std::string("Invalid value of pre_trigger_length parameter: ")

@@ -7,7 +7,8 @@ namespace bwf {
 namespace hist {
 
 V1720Waveform::V1720Waveform() :
-		AbstractWaveform(EQUIP_NAME, "V1720", caen::v1720::NS_IN_SAMPLE_INT) {
+		AbstractWaveform(fe::v1720::equipName, fe::v1720::displayName,
+				caen::v1720::NS_IN_SAMPLE_INT) {
 
 }
 
