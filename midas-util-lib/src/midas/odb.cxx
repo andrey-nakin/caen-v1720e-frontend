@@ -1,3 +1,5 @@
+#include <iomanip>
+#include <sstream>
 #include <midas/odb.hxx>
 
 namespace odb {
@@ -72,6 +74,34 @@ std::vector<bool> getValueBoolV(HNDLE const hDB, HNDLE const hKeyRoot,
 		result[i] = v[i] ? true : false;
 	}
 	return result;
+
+}
+
+std::string equipSettingsKeyName(const char* const equipName,
+		const char* const propName) {
+
+	std::stringstream s;
+	s << "/Equipment/" << equipName << "/Settings";
+	if (propName) {
+		s << "/" << propName;
+	}
+	return s.str();
+
+}
+
+std::string equipSettingsKeyName(std::string const& equipName,
+		INT const feIndex, const char* const propName) {
+
+	std::stringstream s;
+	s << "/Equipment/" << equipName;
+	if (feIndex >= 0) {
+		s << std::setfill('0') << std::setw(2) << feIndex;
+	}
+	s << "/Settings";
+	if (propName) {
+		s << "/" << propName;
+	}
+	return s.str();
 
 }
 

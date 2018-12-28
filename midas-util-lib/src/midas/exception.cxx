@@ -1,22 +1,14 @@
 #include <sstream>
 #include "midas/exception.hxx"
 
-#ifndef NEED_NO_EXTERN_C
-extern "C" {
-#endif
-
-extern const char *frontend_name;
-
-#ifndef NEED_NO_EXTERN_C
-}
-#endif
-
 namespace midas {
 
-Exception::Exception(INT const aStatus, std::string const& aMsg)
-	: status(aStatus), msg(makeMsg(aStatus, aMsg)) {
+static std::string programName = __FILE__;
 
-	cm_msg(MERROR, frontend_name, msg.c_str(), status);
+Exception::Exception(INT const aStatus, std::string const& aMsg) :
+		status(aStatus), msg(makeMsg(aStatus, aMsg)) {
+
+	cm_msg(MERROR, programName.c_str(), msg.c_str(), status);
 
 }
 
@@ -24,7 +16,7 @@ Exception::~Exception() {
 
 }
 
-const char* Exception::what() const throw() {
+const char* Exception::what() const throw () {
 
 	return msg.c_str();
 
@@ -36,6 +28,12 @@ std::string Exception::makeMsg(INT const status, std::string const& msg) {
 	s << msg;
 	s << ", status " << status;
 	return s.str();
+
+}
+
+void Exception::setProgramName(const char * const name) {
+
+	programName = name;
 
 }
 

@@ -10,7 +10,7 @@ namespace bwf {
 class TAnaManager {
 
 public:
-	TAnaManager();
+	TAnaManager(VirtualOdb* anOdb);
 
 	int ProcessMidasEvent(TDataContainer & dataContainer);
 
@@ -20,6 +20,7 @@ public:
 
 private:
 
+	VirtualOdb* const odb;
 	std::unique_ptr<hist::V1720Waveform> v1720Waveform;
 
 };

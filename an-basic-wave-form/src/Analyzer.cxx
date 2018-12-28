@@ -35,7 +35,7 @@ public:
 
 	void InitManager() {
 
-		anaManager.reset(new TAnaManager());
+		anaManager.reset(new TAnaManager(GetODB()));
 
 	}
 

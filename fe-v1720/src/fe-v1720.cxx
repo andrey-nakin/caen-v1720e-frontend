@@ -254,6 +254,8 @@ INT frontend_init() {
 
 	cm_msg(MDEBUG, frontend_name, "frontend_init");
 
+	midas::Exception::setProgramName(frontend_name);
+
 	return util::FrontEndUtils::command([]() {
 
 		odb::getValueInt32(hDB, 0,

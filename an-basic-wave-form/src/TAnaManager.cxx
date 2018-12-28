@@ -11,9 +11,10 @@
 
 namespace bwf {
 
-TAnaManager::TAnaManager() {
+TAnaManager::TAnaManager(VirtualOdb* const anOdb) :
+		odb(anOdb) {
 
-	v1720Waveform.reset(new hist::V1720Waveform());
+	v1720Waveform.reset(new hist::V1720Waveform(odb));
 
 }
 

@@ -1,4 +1,3 @@
-#include <sstream>
 #include <midas/odb.hxx>
 #include "util/FrontEndUtils.hxx"
 
@@ -18,18 +17,27 @@ namespace util {
 std::string FrontEndUtils::settingsKeyName(const char* const equipName,
 		const char* const propName) {
 
-	std::stringstream s;
-	s << "/Equipment/" << equipName << "/Settings";
-	if (propName) {
-		s << "/" << propName;
-	}
-	return s.str();
+	return odb::equipSettingsKeyName(equipName, propName);
+
+}
+
+std::string FrontEndUtils::settingsKeyName(std::string const& equipName,
+		INT const feIndex, const char* const propName) {
+
+	return odb::equipSettingsKeyName(equipName, feIndex, propName);
 
 }
 
 HNDLE FrontEndUtils::settingsKey(const char* equipName) {
 
 	return odb::findKey(hDB, 0, settingsKeyName(equipName));
+
+}
+
+HNDLE FrontEndUtils::settingsKey(std::string const& equipName,
+		INT const feIndex) {
+
+	return odb::findKey(hDB, 0, settingsKeyName(equipName, feIndex));
 
 }
 

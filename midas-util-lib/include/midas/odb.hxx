@@ -96,6 +96,12 @@ auto const getValueFloatV = getValueV<float, TID_FLOAT>;
 
 auto const getValueDoubleV = getValueV<double, TID_DOUBLE>;
 
+std::string equipSettingsKeyName(const char* equipName, const char* propName =
+		nullptr);
+
+std::string equipSettingsKeyName(std::string const& equipName, INT feIndex,
+		const char* propName = nullptr);
+
 }
 
 #endif	//	__midas_util_lib_odb_hxx__

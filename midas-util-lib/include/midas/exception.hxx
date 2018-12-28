@@ -7,7 +7,7 @@
 
 namespace midas {
 
-class Exception : public std::exception {
+class Exception: public std::exception {
 
 	INT const status;
 	std::string const msg;
@@ -25,7 +25,9 @@ public:
 
 	}
 
-    const char* what() const throw() override;
+	const char* what() const throw () override;
+
+	static void setProgramName(const char *name);
 
 };
 

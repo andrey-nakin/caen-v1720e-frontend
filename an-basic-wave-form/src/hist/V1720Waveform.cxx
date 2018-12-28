@@ -6,8 +6,8 @@ namespace bwf {
 
 namespace hist {
 
-V1720Waveform::V1720Waveform() :
-		AbstractWaveform(fe::v1720::equipName, fe::v1720::displayName,
+V1720Waveform::V1720Waveform(VirtualOdb* const anOdb) :
+		AbstractWaveform(anOdb, fe::v1720::equipName, fe::v1720::displayName,
 				caen::v1720::nsPerSample<ns_per_sample_type>()) {
 
 }

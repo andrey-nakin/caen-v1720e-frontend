@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <midas.h>
 #include <caen/exception.hxx>
+#include <midas/exception.hxx>
 
 #ifndef NEED_NO_EXTERN_C
 extern "C" {
@@ -23,7 +24,12 @@ public:
 	static std::string settingsKeyName(const char* equipName,
 			const char* propName = nullptr);
 
+	static std::string settingsKeyName(std::string const& equipName,
+			INT feIndex, const char* propName = nullptr);
+
 	static HNDLE settingsKey(const char* equipName);
+
+	static HNDLE settingsKey(std::string const& equipName, INT feIndex);
 
 	static INT handleCaenException(caen::Exception const& ex);
 
