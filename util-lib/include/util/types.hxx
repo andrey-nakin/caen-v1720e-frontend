@@ -30,6 +30,7 @@ typedef struct
 		uint32_t eventCounter;
 		uint32_t timeStampLo;
 		uint32_t timeStampHi;
+		uint32_t frontendIndex;
 
 	} InfoBank;
 

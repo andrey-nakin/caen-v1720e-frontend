@@ -90,6 +90,7 @@ INT interrupt_configure(INT cmd, INT source, PTYPE adr);
 extern HNDLE hDB;
 
 int readEvent(char *pevent, int off);
+INT get_frontend_index();
 
 /*-- Equipment list ------------------------------------------------*/
 
@@ -378,6 +379,8 @@ static int buildEvent(char * const pevent) {
 		auto const t = nanoTime();
 		info->timeStampLo = t & 0xffffffff;
 		info->timeStampHi = t >> 32;
+		info->timeStampHi = t >> 32;
+		info->frontendIndex = get_frontend_index();
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 
