@@ -90,17 +90,16 @@ int readEvent(char *pevent, int off);
 
 EQUIPMENT equipment[] = { { EQUIP_NAME "%02d", { EVID, (1 << EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
-//EQ_USER, /* equipment type */
-		EQ_POLLED, /* equipment type */
-		0, /* event source */
-		"MIDAS", /* format */
-		TRUE, /* enabled */
-		RO_RUNNING, /* Read when running */
-		10, /* poll every so milliseconds */
-		0, /* stop run after this event limit */
-		0, /* number of sub events */
-		0, /* no history */
-		"", "", "" }, readEvent, /* readout routine */
+EQ_POLLED, /* equipment type */
+0, /* event source */
+"MIDAS", /* format */
+TRUE, /* enabled */
+RO_RUNNING, /* Read when running */
+10, /* poll every so milliseconds */
+0, /* stop run after this event limit */
+0, /* number of sub events */
+0, /* no history */
+"", "", "" }, readEvent, /* readout routine */
 }, { "" } };
 
 #pragma GCC diagnostic pop

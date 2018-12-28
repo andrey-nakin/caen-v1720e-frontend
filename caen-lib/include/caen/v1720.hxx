@@ -16,7 +16,15 @@ constexpr uint32_t REG_POST_TRIGGER = 0x8114;
 
 constexpr uint32_t REG_BIT_TRIGGER_OVERLAP = 0x0001 << 1;
 
-constexpr unsigned NS_IN_SAMPLE_INT = 4;
+/**
+ * Number of nanoseconds per one sample
+ */
+template<typename T>
+constexpr T nsPerSample() {
+
+	return static_cast<T>(4);
+
+}
 
 }
 
