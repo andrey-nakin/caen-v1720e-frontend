@@ -85,7 +85,6 @@ INT interrupt_configure(INT cmd, INT source, PTYPE adr);
 extern HNDLE hDB;
 
 int readEvent(char *pevent, int off);
-INT get_frontend_index();
 
 /*-- Equipment list ------------------------------------------------*/
 
@@ -405,7 +404,7 @@ static int parseEvent(char * const pevent,
 		info->eventCounter = eventInfo.EventCounter;
 		info->timeStampLo = eventInfo.TriggerTimeTag;
 		info->timeStampHi = eventInfo.Pattern;
-		info->frontendIndex = get_frontend_index();
+		info->frontendIndex = util::FrontEndUtils::frontendIndexAsUInt32();
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 

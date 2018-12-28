@@ -1,6 +1,7 @@
 #ifndef	UTIL_LIB_FrontEndUtils_hxx
 #define	UTIL_LIB_FrontEndUtils_hxx
 
+#include <cstdint>
 #include <midas.h>
 #include <caen/exception.hxx>
 
@@ -54,6 +55,8 @@ public:
 		return result;
 
 	}
+
+	static uint32_t frontendIndexAsUInt32();
 
 private:
 

@@ -43,4 +43,11 @@ INT FrontEndUtils::handleCaenException(caen::Exception const& ex) {
 
 }
 
+uint32_t FrontEndUtils::frontendIndexAsUInt32() {
+
+	auto const index = get_frontend_index();
+	return index >= 0 ? index : 0xffffffff;
+
+}
+
 }
