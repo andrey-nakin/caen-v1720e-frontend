@@ -4,13 +4,11 @@ namespace bwf {
 
 namespace hist {
 
-AbstractWaveform::AbstractWaveform(VirtualOdb* anOdb, std::string const& aBaseEquipName,
-		std::string const & aDisplayName,
+AbstractWaveform::AbstractWaveform(VirtualOdb* anOdb,
+		std::string const& aBaseEquipName, std::string const & aDisplayName,
 		ns_per_sample_type const aNsPerSample) :
-		odb(anOdb), baseEquipName(aBaseEquipName), displayName(
-				aDisplayName), nsPerSample(aNsPerSample) {
-
-	createHistograms();
+		odb(anOdb), baseEquipName(aBaseEquipName), displayName(aDisplayName), nsPerSample(
+				aNsPerSample) {
 
 }
 
@@ -18,7 +16,7 @@ void AbstractWaveform::UpdateHistograms(TDataContainer &/*dataContainer*/) {
 
 }
 
-void AbstractWaveform::createHistograms() {
+void AbstractWaveform::CreateHistograms() {
 
 	createHistograms(-1);
 	for (INT idx = 0; idx < 2; idx++) {	//	@TODO
@@ -45,7 +43,8 @@ void AbstractWaveform::createHistograms() {
 }
 
 void AbstractWaveform::createHistograms(INT const feIndex) {
-	std::cout << "FE " << feIndex << " checking " << std::endl;
+	std::cout << "FE " << feIndex << " checking " << typeid(*getOdb()).name()
+			<< " " << typeid(*this).name() << std::endl;
 
 	int waveformLength = loadWaveformLength(feIndex);
 	if (waveformLength < 0) {

@@ -16,6 +16,9 @@ V1720Waveform::V1720Waveform(VirtualOdb* const anOdb) :
 int V1720Waveform::loadWaveformLength(INT const feIndex) {
 	auto const hKeyName = odb::equipSettingsKeyName(getBaseEquipName(), feIndex,
 			fe::v1720::settings::waveformLength);
+	std::cout << "getting key " << hKeyName << " from "
+			<< typeid(*getOdb()).name() << std::endl;
+
 	auto const res = getOdb()->odbReadUint32(hKeyName.c_str(), 0, 0);
 	return res > 0 ? res : -1;
 }

@@ -16,7 +16,7 @@ public:
 
 private:
 
-	int loadWaveformLength(INT feIndex) override;
+	virtual int loadWaveformLength(INT feIndex) override;
 
 };
 

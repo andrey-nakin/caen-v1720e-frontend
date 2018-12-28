@@ -26,9 +26,12 @@ protected:
 
 public:
 
+	AbstractWaveform(AbstractWaveform const&) = delete;
 	AbstractWaveform(VirtualOdb* anOdb, std::string const& aBaseEquipName,
 			std::string const & aDisplayName,
 			ns_per_sample_type const aNsPerSample);
+
+	AbstractWaveform& operator=(AbstractWaveform const&) = delete;
 
 	void UpdateHistograms(TDataContainer &dataContainer) override;
 
@@ -44,14 +47,14 @@ public:
 
 	}
 
+	void CreateHistograms();
+
 private:
 
 	VirtualOdb* const odb;
 	std::string const baseEquipName;
 	std::string const displayName;
 	ns_per_sample_type const nsPerSample;
-
-	void createHistograms();
 
 	void createHistograms(INT feIndex);
 
