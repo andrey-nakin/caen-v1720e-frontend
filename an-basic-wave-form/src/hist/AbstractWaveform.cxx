@@ -14,6 +14,10 @@ AbstractWaveform::AbstractWaveform(VirtualOdb* anOdb,
 
 }
 
+AbstractWaveform::~AbstractWaveform() {
+
+}
+
 void AbstractWaveform::UpdateHistograms(TDataContainer &/*dataContainer*/) {
 
 }

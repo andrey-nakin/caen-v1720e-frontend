@@ -30,6 +30,7 @@ public:
 	AbstractWaveform(VirtualOdb* anOdb, std::string const& aBaseEquipName,
 			std::string const & aDisplayName,
 			ns_per_sample_type const aNsPerSample);
+	~AbstractWaveform() override;
 
 	AbstractWaveform& operator=(AbstractWaveform const&) = delete;
 

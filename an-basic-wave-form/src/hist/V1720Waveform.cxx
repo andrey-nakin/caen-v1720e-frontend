@@ -13,6 +13,9 @@ V1720Waveform::V1720Waveform(VirtualOdb* const anOdb) :
 
 }
 
+V1720Waveform::~V1720Waveform() {
+}
+
 unsigned V1720Waveform::loadWaveformLength(INT const feIndex) {
 
 	auto const hKeyName = odb::equipSettingsKeyName(getBaseEquipName(), feIndex,

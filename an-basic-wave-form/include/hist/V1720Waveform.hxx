@@ -13,6 +13,7 @@ class V1720Waveform: public AbstractWaveform {
 public:
 
 	V1720Waveform(VirtualOdb* anOdb);
+	~V1720Waveform() override;
 
 private:
 
