@@ -9,10 +9,14 @@ namespace bwf {
 
 namespace hist {
 
-class V1720Waveform: public AbstractWaveform<uint16_t> {
+class V1720Waveform: public AbstractWaveform {
 public:
 
 	V1720Waveform(VirtualOdb* anOdb);
+
+private:
+
+	int loadWaveformLength(INT feIndex) override;
 
 };
 
