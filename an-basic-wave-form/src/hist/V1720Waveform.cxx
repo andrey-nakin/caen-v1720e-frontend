@@ -38,6 +38,7 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 						auto const numOfSamples = wfRaw->numOfSamples();
 						auto s = wfRaw->waveForm();
 
+						h->Reset();
 						for (unsigned i = 0; i < numOfSamples; i++) {
 							h->SetBinContent(i + 1, *s++);
 						}
