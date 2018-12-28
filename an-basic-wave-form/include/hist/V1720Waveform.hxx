@@ -15,10 +15,19 @@ public:
 	V1720Waveform(VirtualOdb* anOdb);
 	~V1720Waveform() override;
 
+	void UpdateHistograms(TDataContainer &dataContainer) override;
+
 private:
 
 	unsigned loadWaveformLength(INT feIndex) override;
 	std::vector<bool> loadEnabledChannels(INT feIndex) override;
+
+	template<typename IntT>
+	static INT frontendIndex(IntT const v) {
+
+		return v == static_cast<decltype(v)>(-1) ? -1 : static_cast<INT>(v);
+
+	}
 
 };
 

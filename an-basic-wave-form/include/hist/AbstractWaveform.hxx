@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <midas.h>
 #include <VirtualOdb.h>
 #include <util/types.hxx>
@@ -23,6 +24,7 @@ class AbstractWaveform: public THistogramArrayBase {
 protected:
 
 	typedef unsigned ns_per_sample_type;
+	typedef TH1D HistType;
 
 public:
 
@@ -33,8 +35,6 @@ public:
 	~AbstractWaveform() override;
 
 	AbstractWaveform& operator=(AbstractWaveform const&) = delete;
-
-	void UpdateHistograms(TDataContainer &dataContainer) override;
 
 	VirtualOdb* getOdb() const {
 
@@ -50,12 +50,17 @@ public:
 
 	void CreateHistograms();
 
+protected:
+
+	HistType* GetHist(INT feIndex, unsigned channelNo) const;
+
 private:
 
 	VirtualOdb* const odb;
 	std::string const baseEquipName;
 	std::string const displayName;
 	ns_per_sample_type const nsPerSample;
+	std::map<INT, std::map<unsigned, HistType*>> histograms;
 
 	void createHistograms(INT feIndex);
 

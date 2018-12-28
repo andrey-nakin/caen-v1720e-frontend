@@ -18,16 +18,28 @@ AbstractWaveform::~AbstractWaveform() {
 
 }
 
-void AbstractWaveform::UpdateHistograms(TDataContainer &/*dataContainer*/) {
-
-}
-
 void AbstractWaveform::CreateHistograms() {
 
 	createHistograms(-1);
 	for (INT idx = 0; idx < 100; idx++) {
 		createHistograms(idx);
 	}
+
+}
+
+AbstractWaveform::HistType* AbstractWaveform::GetHist(INT const feIndex,
+		unsigned const channelNo) const {
+
+	auto const i = histograms.find(feIndex);
+	if (histograms.end() != i) {
+		auto const& m = i->second;
+		auto const& j = m.find(channelNo);
+		if (m.end() != j) {
+			return j->second;
+		}
+	}
+
+	return nullptr;
 
 }
 
@@ -42,6 +54,8 @@ void AbstractWaveform::createHistograms(INT const feIndex) {
 	if (enabledChannels.empty()) {
 		return;
 	}
+
+	histograms.clear();
 
 	for (unsigned channelNo = 0; channelNo < enabledChannels.size();
 			channelNo++) {
@@ -58,10 +72,7 @@ void AbstractWaveform::createHistograms(INT const feIndex) {
 		h->SetXTitle("Time, ns");
 		h->SetYTitle("ADC Value");
 		push_back(h);
-
-		for (int i = 0; i < waveformLength; i++) {
-			h->SetBinContent(i + 1, rand() % 4096);
-		}
+		histograms[feIndex][channelNo] = h;
 	}
 }
 

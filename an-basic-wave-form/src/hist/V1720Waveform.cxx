@@ -1,6 +1,8 @@
 #include <caen/v1720.hxx>
 #include <midas/odb.hxx>
 #include <fe-v1720.hxx>
+#include <util/V1720InfoRawData.hxx>
+#include <util/TWaveFormRawData.hxx>
 #include "hist/V1720Waveform.hxx"
 
 namespace bwf {
@@ -14,6 +16,37 @@ V1720Waveform::V1720Waveform(VirtualOdb* const anOdb) :
 }
 
 V1720Waveform::~V1720Waveform() {
+}
+
+void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
+
+	using util::V1720InfoRawData;
+	using util::TWaveFormRawData;
+
+	auto const v1720Info = dataContainer.GetEventData < V1720InfoRawData
+			> (V1720InfoRawData::bankName());
+	if (v1720Info) {
+		for (unsigned channelNo = 0; channelNo < 8; channelNo++) {
+			if (v1720Info->channelIncluded(channelNo)) {
+				auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
+						> (TWaveFormRawData::bankName(channelNo));
+				if (wfRaw) {
+					auto const h = GetHist(
+							frontendIndex(v1720Info->info().frontendIndex),
+							channelNo);
+					if (h) {
+						auto const numOfSamples = wfRaw->numOfSamples();
+						auto s = wfRaw->waveForm();
+
+						for (unsigned i = 0; i < numOfSamples; i++) {
+							h->SetBinContent(i + 1, *s++);
+						}
+					}
+				}
+			}
+		}
+
+	}
 }
 
 unsigned V1720Waveform::loadWaveformLength(INT const feIndex) {
