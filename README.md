@@ -13,7 +13,7 @@ Collection of data-acquisition applications for [GNEIS](http://accelconf.web.cer
 * `midas-util-lib`: library with light-weight wrappers around MIDAS API.
 * `util-lib`: library with commonly used definitions.
 * `analyzer-lib`: library for analyzer applications.
-* `math-lib`: generic purpose math library.
+* `math-lib`: general purpose math library.
 * `doc`: documentation.
 
 ## Requirements
