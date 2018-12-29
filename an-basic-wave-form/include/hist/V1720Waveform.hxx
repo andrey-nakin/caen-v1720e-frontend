@@ -19,8 +19,8 @@ public:
 
 private:
 
-	unsigned loadWaveformLength(INT feIndex) override;
-	std::vector<bool> loadEnabledChannels(INT feIndex) override;
+//	unsigned loadWaveformLength(INT feIndex) override;
+//	std::vector<bool> loadEnabledChannels(INT feIndex) override;
 
 	template<typename IntT>
 	static INT frontendIndex(IntT const v) {

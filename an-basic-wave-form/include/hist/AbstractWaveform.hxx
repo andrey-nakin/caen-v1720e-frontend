@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
 #include <midas.h>
 #include <VirtualOdb.h>
 #include <util/types.hxx>
@@ -48,11 +49,25 @@ public:
 
 	}
 
-	void CreateHistograms();
+//	void CreateHistograms();
+
+	virtual void BeginRun(int transition, int run, int time);
 
 protected:
 
-	HistType* GetHist(INT feIndex, unsigned channelNo) const;
+	HistType& GetHist(INT feIndex, unsigned channelNo, unsigned waveformLength);
+
+	template<class InputIt>
+	void SetData(HistType& h, InputIt const begin, InputIt const end) {
+
+		h.Reset();
+
+		Int_t bin = 1;
+		std::for_each(begin, end, [&h, &bin](decltype(*begin) s) {
+			h.SetBinContent(bin++, s);
+		});
+
+	}
 
 private:
 
@@ -61,11 +76,17 @@ private:
 	std::string const displayName;
 	ns_per_sample_type const nsPerSample;
 	std::map<INT, std::map<unsigned, HistType*>> histograms;
+	std::map<INT, std::map<unsigned, bool>> histInitialized;
 
-	void createHistograms(INT feIndex);
+//	void createHistograms(INT feIndex);
+	HistType* CreateHistogram(INT feIndex, unsigned channelNo,
+			unsigned waveformLength);
+	HistType& FindCreateHist(INT feIndex, unsigned channelNo,
+			unsigned waveformLength);
+	void ResetHistogram(HistType& h, unsigned waveformLength);
 
-	virtual unsigned loadWaveformLength(INT feIndex) = 0;
-	virtual std::vector<bool> loadEnabledChannels(INT feIndex) = 0;
+//	virtual unsigned loadWaveformLength(INT feIndex) = 0;
+//	virtual std::vector<bool> loadEnabledChannels(INT feIndex) = 0;
 
 	virtual std::string ConstructName(INT feIndex, unsigned channelNo);
 	virtual std::string ConstructTitle(INT feIndex, unsigned channelNo);

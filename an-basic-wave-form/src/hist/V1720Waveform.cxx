@@ -31,17 +31,14 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 				auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
 						> (TWaveFormRawData::bankName(channelNo));
 				if (wfRaw) {
-					auto const h = GetHist(
-							frontendIndex(v1720Info->info().frontendIndex),
-							channelNo);
-					if (h) {
-						auto const numOfSamples = wfRaw->numOfSamples();
-						auto s = wfRaw->waveForm();
+					auto const numOfSamples = wfRaw->numOfSamples();
+					if (numOfSamples > 0) {
+						auto &h = GetHist(
+								frontendIndex(v1720Info->info().frontendIndex),
+								channelNo, numOfSamples);
 
-						h->Reset();
-						for (unsigned i = 0; i < numOfSamples; i++) {
-							h->SetBinContent(i + 1, *s++);
-						}
+						auto const wf = wfRaw->waveForm();
+						SetData(h, wf, wf + numOfSamples);
 					}
 				}
 			}
@@ -50,37 +47,37 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 	}
 }
 
-unsigned V1720Waveform::loadWaveformLength(INT const feIndex) {
-
-	auto const hKeyName = odb::equipSettingsKeyName(getBaseEquipName(), feIndex,
-			fe::v1720::settings::waveformLength);
-
-	if (getOdb()->odbReadArraySize(hKeyName.c_str()) <= 0) {
-		return 0;
-	}
-
-	return getOdb()->odbReadUint32(hKeyName.c_str(), 0, 0);
-
-}
-
-std::vector<bool> V1720Waveform::loadEnabledChannels(INT feIndex) {
-
-	std::vector<bool> result;
-	auto const hKeyName = odb::equipSettingsKeyName(getBaseEquipName(), feIndex,
-			fe::v1720::settings::enabledChannels);
-
-	auto const size = getOdb()->odbReadArraySize(hKeyName.c_str());
-	if (size > 0) {
-		result.resize(size);
-
-		for (int i = 0; i < size; i++) {
-			result[i] = getOdb()->odbReadBool(hKeyName.c_str(), i, false);
-		}
-	}
-
-	return result;
-
-}
+//unsigned V1720Waveform::loadWaveformLength(INT const feIndex) {
+//
+//	auto const hKeyName = odb::equipSettingsKeyName(getBaseEquipName(), feIndex,
+//			fe::v1720::settings::waveformLength);
+//
+//	if (getOdb()->odbReadArraySize(hKeyName.c_str()) <= 0) {
+//		return 0;
+//	}
+//
+//	return getOdb()->odbReadUint32(hKeyName.c_str(), 0, 0);
+//
+//}
+//
+//std::vector<bool> V1720Waveform::loadEnabledChannels(INT feIndex) {
+//
+//	std::vector<bool> result;
+//	auto const hKeyName = odb::equipSettingsKeyName(getBaseEquipName(), feIndex,
+//			fe::v1720::settings::enabledChannels);
+//
+//	auto const size = getOdb()->odbReadArraySize(hKeyName.c_str());
+//	if (size > 0) {
+//		result.resize(size);
+//
+//		for (int i = 0; i < size; i++) {
+//			result[i] = getOdb()->odbReadBool(hKeyName.c_str(), i, false);
+//		}
+//	}
+//
+//	return result;
+//
+//}
 
 }
 
