@@ -16,9 +16,6 @@ AbstractWaveform::AbstractWaveform(VirtualOdb* anOdb,
 
 AbstractWaveform::~AbstractWaveform() {
 
-//	std::for_each(begin(), end(), [](TH1* h) {h->SetDirectory(nullptr);});
-	std::cout << "AbstractWaveform::~AbstractWaveform()" << std::endl;
-
 }
 
 //void AbstractWaveform::CreateHistograms() {
