@@ -3,7 +3,7 @@ project(CaenV1720eFrontend VERSION 1.0.0 LANGUAGES CXX C DESCRIPTION "MIDAS Fron
 add_subdirectory(caen-lib)
 add_subdirectory(midas-util-lib)
 add_subdirectory(util-lib)
-#add_subdirectory(an-util-lib)
+add_subdirectory(analyzer-lib)
 add_subdirectory(fe-sinus)
 add_subdirectory(fe-v1720)
 add_subdirectory(an-basic-wave-form)

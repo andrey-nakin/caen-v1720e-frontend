@@ -1,8 +1,8 @@
 #include <iomanip>
 #include <sstream>
-#include "hist/AbstractWaveform.hxx"
+#include "analyzer/hist/AbstractWaveform.hxx"
 
-namespace bwf {
+namespace analyzer {
 
 namespace hist {
 

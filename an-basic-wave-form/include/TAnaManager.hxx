@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <TDataContainer.hxx>
-#include "hist/V1720Waveform.hxx"
+#include <analyzer/hist/V1720Waveform.hxx>
 
 namespace bwf {
 
@@ -21,7 +21,7 @@ public:
 private:
 
 	VirtualOdb* const odb;
-	std::unique_ptr<hist::V1720Waveform> v1720Waveform;
+	std::unique_ptr<analyzer::hist::V1720Waveform> v1720Waveform;
 
 };
 

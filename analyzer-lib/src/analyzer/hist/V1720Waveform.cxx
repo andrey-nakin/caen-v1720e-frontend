@@ -3,9 +3,9 @@
 #include <fe-v1720.hxx>
 #include <util/V1720InfoRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
-#include "hist/V1720Waveform.hxx"
+#include "analyzer/hist/V1720Waveform.hxx"
 
-namespace bwf {
+namespace analyzer {
 
 namespace hist {
 

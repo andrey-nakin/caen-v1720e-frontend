@@ -1,11 +1,11 @@
-#ifndef AN_BASIC_WAVE_FORM_HIST_V1720Waveform_hxx
-#define AN_BASIC_WAVE_FORM_HIST_V1720Waveform_hxx
+#ifndef ANALYZER_HIST_V1720Waveform_hxx
+#define ANALYZER_HIST_V1720Waveform_hxx
 
 #include <cstdint>
 #include <VirtualOdb.h>
 #include "AbstractWaveform.hxx"
 
-namespace bwf {
+namespace analyzer {
 
 namespace hist {
 
@@ -34,4 +34,4 @@ private:
 
 }
 
-#endif   //	AN_BASIC_WAVE_FORM_HIST_V1720Waveform_hxx
+#endif   //	ANALYZER_HIST_V1720Waveform_hxx

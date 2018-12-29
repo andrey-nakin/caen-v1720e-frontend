@@ -1,5 +1,5 @@
-#ifndef AN_BASIC_WAVE_FORM_HIST_AbstractWaveform_hxx
-#define AN_BASIC_WAVE_FORM_HIST_AbstractWaveform_hxx
+#ifndef ANALYZER_HIST_AbstractWaveform_hxx
+#define ANALYZER_HIST_AbstractWaveform_hxx
 
 #include <string>
 #include <vector>
@@ -17,7 +17,7 @@
 
 #pragma GCC diagnostic pop
 
-namespace bwf {
+namespace analyzer {
 
 namespace hist {
 
@@ -93,4 +93,4 @@ private:
 
 }
 
-#endif   //	AN_BASIC_WAVE_FORM_HIST_AbstractWaveform_hxx
+#endif   //	ANALYZER_HIST_AbstractWaveform_hxx
