@@ -38,7 +38,7 @@ public:
 
 		switch (mode) {
 		case Mode::Rising:
-			FindPeak(std::greater_equal<value_type>(), upperThreshold,
+			FindPeak(std::greater<value_type>(), upperThreshold,
 					lowerThreshold);
 			peakMode = Mode::Rising;
 			break;
