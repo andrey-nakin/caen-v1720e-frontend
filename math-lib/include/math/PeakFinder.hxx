@@ -55,8 +55,6 @@ private:
 
 	void FindPeak() {
 
-		InputIt i;
-
 		for (; i != last; i++) {
 			if (*i <= lowerThreshold) {
 				switch (state) {
