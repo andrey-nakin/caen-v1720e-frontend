@@ -16,12 +16,18 @@ class PeakFinder {
 
 public:
 
+	enum class Mode {
+
+		Rising, Falling
+
+	};
+
 	typedef typename std::iterator_traits<InputIt>::value_type value_type;
 	typedef typename std::iterator_traits<InputIt>::difference_type difference_type;
 
-	PeakFinder(InputIt const begin, InputIt const end,
+	PeakFinder(Mode const aMode, InputIt const begin, InputIt const end,
 			value_type const aLowerThreshold, value_type const anUpperThreshold) :
-			i(begin), peak(end), first(begin), last(end), lowerThreshold(
+			mode(aMode), i(begin), peak(end), first(begin), last(end), lowerThreshold(
 					aLowerThreshold), upperThreshold(anUpperThreshold), state(
 					State::Init) {
 
@@ -46,12 +52,20 @@ public:
 
 	}
 
+	Mode GetType() const {
+
+		return peakMode;
+
+	}
+
 private:
 
+	Mode const mode;
 	InputIt i, peak;
 	InputIt const first, last;
 	value_type const lowerThreshold, upperThreshold;
 	State state;
+	Mode peakMode;
 
 	void FindPeak() {
 
@@ -74,6 +88,7 @@ private:
 				switch (state) {
 				case State::UnderLower:
 					state = State::AboveUpper;
+					peakMode = Mode::Falling;
 					return;
 				}
 
