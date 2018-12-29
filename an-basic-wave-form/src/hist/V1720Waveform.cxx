@@ -26,7 +26,8 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 	auto const v1720Info = dataContainer.GetEventData < V1720InfoRawData
 			> (V1720InfoRawData::bankName());
 	if (v1720Info) {
-		for (unsigned channelNo = 0; channelNo < 8; channelNo++) {
+		for (unsigned channelNo = 0; channelNo < caen::v1720::NUM_OF_CHANNELS;
+				channelNo++) {
 			if (v1720Info->channelIncluded(channelNo)) {
 				auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
 						> (TWaveFormRawData::bankName(channelNo));
