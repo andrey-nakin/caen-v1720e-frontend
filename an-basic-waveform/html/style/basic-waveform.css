@@ -1,3 +1,14 @@
 #controlPanel {
+	margin-left: 8px;
+	position: absolute;
+	left: 0px;
 	width: 200px;
+	position: absolute;
+}
+
+#chartPanel {
+	margin-right: 8px;
+	position: absolute;
+	right: 0px;
+	left: 230px;
 }
