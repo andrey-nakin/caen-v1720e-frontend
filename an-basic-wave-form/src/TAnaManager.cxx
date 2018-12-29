@@ -7,16 +7,14 @@
 
 namespace bwf {
 
-TAnaManager::TAnaManager(VirtualOdb* const anOdb) :
-		odb(anOdb) {
-
-	v1720Waveform.reset(new analyzer::hist::V1720Waveform(anOdb));
+TAnaManager::TAnaManager(VirtualOdb* const odb) :
+		v1720Waveform(odb) {
 
 }
 
 int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer) {
 
-	v1720Waveform->UpdateHistograms(dataContainer);
+	v1720Waveform.UpdateHistograms(dataContainer);
 
 	return 1;
 }
@@ -24,7 +22,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer) {
 void TAnaManager::BeginRun(int const transition, int const run,
 		int const time) {
 
-	v1720Waveform->BeginRun(transition, run, time);
+	v1720Waveform.BeginRun(transition, run, time);
 
 }
 

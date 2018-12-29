@@ -1,7 +1,6 @@
 #ifndef AN_BASIC_WAVE_FORM_TAnaManager_hxx
 #define AN_BASIC_WAVE_FORM_TAnaManager_hxx
 
-#include <memory>
 #include <TDataContainer.hxx>
 #include <analyzer/hist/V1720Waveform.hxx>
 
@@ -20,8 +19,7 @@ public:
 
 private:
 
-	VirtualOdb* const odb;
-	std::unique_ptr<analyzer::hist::V1720Waveform> v1720Waveform;
+	analyzer::hist::V1720Waveform v1720Waveform;
 
 };
 
