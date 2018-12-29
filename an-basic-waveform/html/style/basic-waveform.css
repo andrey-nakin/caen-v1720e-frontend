@@ -2,13 +2,34 @@
 	margin-left: 8px;
 	position: absolute;
 	left: 0px;
-	width: 200px;
+	width: 42ex;
 	position: absolute;
+}
+
+#controlPanel INPUT[type="number"], #controlPanel SELECT {
+	width: 12ex;
 }
 
 #chartPanel {
 	margin-right: 8px;
 	position: absolute;
 	right: 0px;
-	left: 230px;
+	left: 45ex;
+}
+
+.bw-cell {
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+.bw-left-column {
+	float: left;
+}
+
+.bw-right-column {
+	float: right;
+}
+
+.bw-row {
+	clear: both;
 }

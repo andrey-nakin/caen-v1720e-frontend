@@ -21,13 +21,80 @@
 	<div id="mmain">
 
 		<div class="mtable" id="controlPanel">
-			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-				do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-				enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
-				ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-				reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-				pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-				culpa qui officia deserunt mollit anim id est laborum.
+			<fieldset>
+				<legend>Historgam Groups</legend>
+				<div class="bw-row bw-cell">
+					<input type="radio" id="selector_V1720_WF" name="histgroup" checked>
+					<label for="selector_V1720_WF">V1720 Waveforms</label>
+				</div>
+				<div class="bw-row bw-cell">
+					<input type="radio" id="selector_V1720_PA" name="histgroup">
+					<label for="selector_V1720_PA">V1720 Peak Amplitude
+						Distribution</label>
+				</div>
+				<div class="bw-row bw-cell">
+					<input type="radio" id="selector_V1720_PT" name="histgroup">
+					<label for="selector_V1720_PT">V1720 Peak Timing
+						Distribution</label>
+				</div>
+			</fieldset>
+
+			<br>
+
+			<fieldset>
+				<legend>Display Control</legend>
+				<div class="bw-row">
+					<div class="bw-cell bw-left-column">
+						<input type="button" value="Pause">
+					</div>
+					<div class="bw-cell bw-right-column">
+						<input type="button" value="Reset All Histograms">
+					</div>
+				</div>
+				<div class="bw-row">
+					<div class="bw-cell">
+						<hr>
+					</div>
+				</div>
+				<div class="bw-row">
+					<div class="bw-cell bw-left-column">
+						<span>Refresh Period (ms):</span>
+					</div>
+					<div class="bw-cell bw-right-column">
+						<input type="number" class="displayControlEl" min="100"
+							max="100000" value="5000">
+					</div>
+				</div>
+				<div class="bw-row">
+					<div class="bw-cell bw-left-column">
+						<span>Channel:</span>
+					</div>
+					<div class="bw-cell bw-right-column">
+						<input type="number" class="displayControlEl" min="0" max="8"
+							value="0">
+					</div>
+				</div>
+				<div class="bw-row">
+					<div class="bw-cell bw-left-column">
+						<span>Select Dislay Type:</span>
+					</div>
+					<div class="bw-cell bw-right-column">
+						<select>
+							<option>Single</option>
+							<option>Overlay</option>
+						</select>
+					</div>
+				</div>
+				<div class="bw-row">
+					<div class="bw-cell bw-left-column">
+						<span>Overlay Histograms:</span>
+					</div>
+					<div class="bw-cell bw-right-column">
+						<input type="number" class="displayControlEl" min="2" max="8"
+							value="2">
+					</div>
+				</div>
+			</fieldset>
 		</div>
 
 		<div class="mtable" id="chartPanel">
