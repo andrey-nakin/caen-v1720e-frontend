@@ -2,6 +2,7 @@
 #define	MATH_Peakfinder_hxx
 
 #include <iterator>
+#include <functional>
 
 namespace math {
 
@@ -35,7 +36,18 @@ public:
 
 	bool Next() {
 
-		FindPeak();
+		switch (mode) {
+		case Mode::Rising:
+			FindPeak(std::greater_equal<value_type>(), upperThreshold,
+					lowerThreshold);
+			peakMode = Mode::Rising;
+			break;
+
+		case Mode::Falling:
+			FindPeak(std::less<value_type>(), lowerThreshold, upperThreshold);
+			peakMode = Mode::Falling;
+			break;
+		}
 		return i != last;
 
 	}
@@ -67,10 +79,11 @@ private:
 	State state;
 	Mode peakMode;
 
-	void FindPeak() {
+	void FindPeak(std::function<bool(value_type, value_type)> comparator,
+			value_type const aLimit, value_type const bLimit) {
 
 		for (; i != last; i++) {
-			if (*i <= lowerThreshold) {
+			if (comparator(*i, aLimit)) {
 				switch (state) {
 				case State::Init:
 				case State::Middle:
@@ -80,19 +93,18 @@ private:
 					break;
 
 				case State::UnderLower:
-					if (*i < *peak) {
+					if (comparator(*i, *peak)) {
 						peak = i;
 					}
 					break;
 				}
-			} else if (*i > upperThreshold) {
+			} else if (!comparator(*i, bLimit)) {
 				switch (state) {
 				case State::Init:
 					state = State::AboveUpper;
 					break;
 				case State::UnderLower:
 					state = State::AboveUpper;
-					peakMode = Mode::Falling;
 					return;
 				}
 
