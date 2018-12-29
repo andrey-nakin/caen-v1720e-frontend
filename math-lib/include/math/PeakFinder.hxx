@@ -10,7 +10,7 @@ class PeakFinder {
 
 	enum class State {
 
-		Init, UnderLower, AboveUpper
+		Init, Middle, UnderLower, AboveUpper
 
 	};
 
@@ -73,6 +73,7 @@ private:
 			if (*i <= lowerThreshold) {
 				switch (state) {
 				case State::Init:
+				case State::Middle:
 				case State::AboveUpper:
 					state = State::UnderLower;
 					peak = i;
@@ -86,12 +87,22 @@ private:
 				}
 			} else if (*i > upperThreshold) {
 				switch (state) {
+				case State::Init:
+					state = State::AboveUpper;
+					break;
 				case State::UnderLower:
 					state = State::AboveUpper;
 					peakMode = Mode::Falling;
 					return;
 				}
 
+			} else {
+				switch (state) {
+				case State::Init:
+					state = State::Middle;
+					peak = i;
+					break;
+				}
 			}
 		}
 
