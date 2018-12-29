@@ -14,10 +14,6 @@ AbstractWaveform::AbstractWaveform(VirtualOdb* anOdb,
 
 }
 
-AbstractWaveform::~AbstractWaveform() {
-
-}
-
 //void AbstractWaveform::CreateHistograms() {
 //
 //	createHistograms(-1);

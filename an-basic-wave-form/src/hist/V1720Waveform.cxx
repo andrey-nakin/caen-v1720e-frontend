@@ -15,9 +15,6 @@ V1720Waveform::V1720Waveform(VirtualOdb* const anOdb) :
 
 }
 
-V1720Waveform::~V1720Waveform() {
-}
-
 void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
 	using util::V1720InfoRawData;
