@@ -70,7 +70,7 @@ private:
 					}
 					break;
 				}
-			} else if (*i >= upperThreshold) {
+			} else if (*i > upperThreshold) {
 				switch (state) {
 				case State::UnderLower:
 					state = State::AboveUpper;
