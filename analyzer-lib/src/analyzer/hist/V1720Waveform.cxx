@@ -1,3 +1,4 @@
+#include <sstream>
 #include <caen/v1720.hxx>
 #include <midas/odb.hxx>
 #include <fe-v1720.hxx>
@@ -11,7 +12,8 @@ namespace hist {
 
 V1720Waveform::V1720Waveform(VirtualOdb* const anOdb) :
 		AbstractWaveform(anOdb, fe::v1720::equipName, fe::v1720::displayName,
-				caen::v1720::nsPerSample<ns_per_sample_type>()) {
+				caen::v1720::nsPerSample<ns_per_sample_type>()), minFront(14), frontLength(
+				3) {
 
 }
 
@@ -37,6 +39,49 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
 						auto const wf = wfRaw->waveForm();
 						SetData(h, wf, wf + numOfSamples);
+
+						if (buffers.end() == buffers.find(channelNo)) {
+							buffers[channelNo] = std::vector<int32_t>();
+							buffers[channelNo].resize(numOfSamples);
+						}
+
+						auto& v = buffers[channelNo];
+						auto const last = std::min(numOfSamples, v.size());
+						for (unsigned i = frontLength; i < last; i++) {
+							v[i] = (int32_t) wf[i - frontLength]
+									- (int32_t) wf[i];
+						}
+						auto const maxf = *std::max_element(v.begin(), v.end());
+						auto const avgf = std::accumulate(v.begin(), v.end(),
+								0.0) / numOfSamples;
+
+						if (files.end() == files.find(channelNo)) {
+							std::stringstream s;
+							s << "channel." << channelNo << ".txt";
+							std::string name = s.str();
+							files[channelNo] = std::unique_ptr < std::ofstream
+									> (new std::ofstream(name));
+							*files[channelNo] << "minv\tmaxv\tavgv\tmaxf"
+									<< std::endl;
+						}
+
+						auto const minv = 0;
+						auto const maxv = 0;
+						*files[channelNo] << minv << '\t' << maxv << '\t'
+								<< avgf << '\t' << maxf << std::endl;
+						static int cnt = 0;
+						if (maxf == 15 && channelNo == 1 && cnt++ < 10) {
+							std::stringstream s;
+							s << "waveform." << channelNo << "."
+									<< v1720Info->info().eventCounter << ".txt";
+							std::ofstream f(s.str());
+
+							std::for_each(wf, wf + numOfSamples,
+									[&f](decltype(*wf) s) {
+										f << s << '\n';
+									});
+						}
+
 					}
 				}
 			}

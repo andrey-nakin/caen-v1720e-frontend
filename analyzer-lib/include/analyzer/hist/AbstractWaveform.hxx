@@ -25,6 +25,7 @@ class AbstractWaveform: public THistogramArrayBase {
 protected:
 
 	typedef unsigned ns_per_sample_type;
+	typedef unsigned channel_type;
 	typedef TH1D HistType;
 
 public:
@@ -56,8 +57,6 @@ protected:
 	template<class InputIt>
 	void SetData(HistType& h, InputIt const begin, InputIt const end) {
 
-		h.Reset();
-
 		Int_t bin = 1;
 		std::for_each(begin, end, [&h, &bin](decltype(*begin) s) {
 			h.SetBinContent(bin++, s);
@@ -79,7 +78,7 @@ private:
 			unsigned waveformLength);
 	HistType& FindCreateHist(INT feIndex, unsigned channelNo,
 			unsigned waveformLength);
-	void ResetHistogram(HistType& h, unsigned waveformLength);
+	virtual void ResetHistogram(HistType& h, unsigned waveformLength);
 
 //	virtual unsigned loadWaveformLength(INT feIndex) = 0;
 //	virtual std::vector<bool> loadEnabledChannels(INT feIndex) = 0;
