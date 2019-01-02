@@ -3,8 +3,6 @@ $(document).ready(function () {
     $('#controlPanel').height(divHeight);
     $('#chartPanel').height(divHeight);
 
-    alert(77);
-
     ru.loadGroupList(function (groups) {
         alert(groups);
     });
