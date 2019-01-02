@@ -47,7 +47,7 @@
 				<legend>Display Control</legend>
 				<div class="bw-row">
 					<div class="bw-cell bw-left-column">
-						<input type="button" value="Pause">
+						<input type="button" value="Pause" onClick="bw.togglePause(this)">
 					</div>
 					<div class="bw-cell bw-right-column">
 						<input type="button" value="Reset All Histograms">
@@ -63,8 +63,9 @@
 						<span>Refresh Period (ms):</span>
 					</div>
 					<div class="bw-cell bw-right-column">
-						<input type="number" class="displayControlEl" min="100"
-							max="100000" value="5000">
+						<input id="refreshPeriod" type="number" class="displayControlEl"
+							min="1000" max="100000" value="5000" step="1000"
+							onchange="bw.refreshPeriodChanged(this)">
 					</div>
 				</div>
 				<div class="bw-row">

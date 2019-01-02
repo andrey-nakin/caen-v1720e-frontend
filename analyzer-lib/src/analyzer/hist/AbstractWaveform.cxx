@@ -109,9 +109,9 @@ std::string AbstractWaveform::ConstructName(INT const feIndex,
 		unsigned const channelNo) {
 
 	std::stringstream s;
-	s << "WF_" << displayName;
+	s << "WF" << displayName;
 	if (feIndex >= 0) {
-		s << '-' << std::setfill('0') << std::setw(2) << feIndex;
+		s << std::setfill('0') << std::setw(2) << feIndex;
 	}
 	s << '_' << channelNo;
 	return s.str();
@@ -122,11 +122,11 @@ std::string AbstractWaveform::ConstructTitle(INT const feIndex,
 		unsigned const channelNo) {
 
 	std::stringstream s;
-	s << displayName;
+	s << "Waveform " << displayName;
 	if (feIndex >= 0) {
 		s << " #" << feIndex;
 	}
-	s << ", Channel #" << channelNo << ", Waveform";
+	s << ", Channel #" << channelNo;
 	return s.str();
 
 }
