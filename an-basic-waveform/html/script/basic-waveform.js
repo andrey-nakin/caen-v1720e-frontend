@@ -47,6 +47,7 @@ $(document).ready(function () {
     $('#chartPanel').height(divHeight);
 
     ru.loadGroupList(function (groups) {
+        bw.refresh();
         // alert(groups.length);
         // alert(groups[0].channels);
     });
