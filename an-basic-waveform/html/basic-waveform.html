@@ -25,9 +25,18 @@
 		<div class="mtable" id="controlPanel">
 			<fieldset>
 				<legend>Historgam Groups</legend>
-				<div class="bw-row bw-cell">
-					<input type="radio" id="selector_V1720_WF" name="histgroup" checked>
-					<label for="selector_V1720_WF">V1720 Waveforms</label>
+				<div id="histGroups">
+					<span class="bw-warn">Histogram Groups are not loaded yet.
+						Please ensure that analyzer application is started an the run is
+						on.</span>
+				</div>
+				<div class="bw-template" id="tmplHistGroup" style="display: none">
+					{{#histGroups}}
+					<div class="bw-row bw-cell">
+						<input type="radio" id="group_selector_{{name}}" name="histgroup">
+						<label for="group_selector_{{name}}">{{title}}</label>
+					</div>
+					{{/histGroups}}
 				</div>
 				<div class="bw-row bw-cell">
 					<input type="radio" id="selector_V1720_PA" name="histgroup">

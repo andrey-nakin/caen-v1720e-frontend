@@ -33,3 +33,12 @@
 .bw-row {
 	clear: both;
 }
+
+.bw-warn {
+	color: #d57815;
+	font-weight: bold;
+}
+
+.bw-template {
+	display: none;
+}
