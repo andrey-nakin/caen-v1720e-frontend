@@ -1,32 +1,26 @@
-\documentclass[12pt, a4paper]{article}
-\usepackage[utf8]{inputenc}
-\usepackage[russian]{babel}
-\usepackage{gensymb}
-\usepackage{graphicx}
-\usepackage{indentfirst}
-\usepackage{url}
+%\documentclass[12pt, a4paper]{article}
+%\usepackage[utf8]{inputenc}
+%\usepackage[russian]{babel}
+%\usepackage{gensymb}
+%\usepackage{graphicx}
+%\usepackage{indentfirst}
+%\usepackage{url}
 
-\newcommand{\BANK}[1]{{\tt #1}}
-\newcommand{\APP}{{\tt fe-v1720}}
-\newcommand{\DEVICE}{CAEN~V1720}
-\newcommand{\TERM}[1]{{\it #1}}
-\newcommand{\ODBNODE}[1]{<<{\tt #1}>>}
+%\title{\APP{fe-v1720} --- MIDAS фронтенд-приложение для дигитайзера \DEVICE{}}
+%\author{Накин~А.~В.}
 
-\title{\APP{} --- MIDAS фронтенд-приложение для дигитайзера \DEVICE{}}
-\author{Накин~А.~В.}
+%\begin{document}
 
-\begin{document}
-
-\maketitle
+%\maketitle
 
 \section{Введение}
 
-Приложение \APP{} является \TERM{фронтендом} (\TERM{Frontend Application}) \cite{MidasWikiFrontend} в системе сбора данных MIDAS \cite{MidasWiki}. Назначение приложения~--- управление дигитайзером \DEVICE{} и чтение wave-форм с него.
+Приложение \APP{fe-v1720} является \TERM{фронтендом} (\TERM{Frontend Application}) \cite{MidasWikiFrontend} в системе сбора данных \MIDAS{} \cite{midas}. Назначение приложения~--- управление дигитайзером \DEVICE{} и чтение wave-форм с него.
 
 \section{Принцип работы}
 \label{sec_basic}
 
-\APP{} обеспечивает работу \DEVICE{} в следующем режиме:
+\APP{fe-v1720} обеспечивает работу \DEVICE{} в следующем режиме:
 
 \begin{itemize}
 \item чтение wave-форм осуществляется с одного или нескольких каналов;
@@ -36,14 +30,14 @@
 \item триггерные импульсы могут иметь как положительную, так и отрицательную полярность;
 \item с момента срабатывания триггера и до окончания записи wave-форм прочие сигналы триггера игнорируются;
 \item в данной версии приложения НЕ поддерживается синхронизация нескольких устройств \DEVICE{} по одному триггерному сигналу;
-\item параметры работы, такие как длина wave-форм, уровень порогового импульса и пр. задаются перед началом работы и хранятся в базе данных ODB \cite{MidasWikiODB}, которая хранит всю информацию об эксперименте в системе MIDAS.
+\item параметры работы, такие как длина wave-форм, уровень порогового импульса и пр. задаются перед началом работы и хранятся в базе данных ODB \cite{MidasWikiODB}, которая хранит всю информацию об эксперименте в системе \MIDAS{}.
 \end{itemize}
 
 \section{Подготовка к работе}
 
-Максимальный размер одного события, приходящего от \DEVICE{}, составляет чуть более 16~Мб, что превышает значение принятое по умолчанию в системе MIDAS и равное 4194304~байтам.
+Максимальный размер одного события, приходящего от \DEVICE{}, составляет чуть более 16~Мб, что превышает значение принятое по умолчанию в системе \MIDAS{} и равное 4194304~байтам.
 
-Перед началом работы с \APP{} необходимо скорректировать это значение в следующем разделе базе данных ODB:
+Перед началом работы с \APP{fe-v1720} необходимо скорректировать это значение в следующем разделе базе данных ODB:
 
 \medskip
 {\tt /Experiment/MAX\_EVENT\_SIZE}
@@ -53,11 +47,11 @@
 
 \section{Запуск и параметры командной строки}
 
-Приложение \APP{} запускается из командной строки или веб-ин\-тер\-фейса MIDAS \cite{MidasWikiMhttpd} и не имеет собственного графического пользовательского интерфейса. Управление режимами работы осуществляется при помощи параметров командной строки.
+Приложение \APP{fe-v1720} запускается из командной строки или веб-ин\-тер\-фейса \MIDAS{} \cite{MidasWikiMhttpd} и не имеет собственного графического пользовательского интерфейса. Управление режимами работы осуществляется при помощи параметров командной строки.
 
-Если в эксперименте задействовано одно единственное устройство \DEVICE{}, то приложение \APP{} запускается без параметров. При этом в базе данных ODB в ветке \ODBNODE{Equipment} \cite{MidasWikiEquipment} создаётся запись с названием \ODBNODE{v1720}.
+Если в эксперименте задействовано одно единственное устройство \DEVICE{}, то приложение \APP{fe-v1720} запускается без параметров. При этом в базе данных ODB в ветке \ODBNODE{Equipment} \cite{MidasWikiEquipment} создаётся запись с названием \ODBNODE{v1720}.
 
-Если в эксперименте задействовано несколько устройств \DEVICE{}, то приложение \APP{} должно быть запущено несколько раз, по числу устройств, с параметром командной строки <<{\tt -i {\it x}}>>, где $x$~--- порядковый номер устройства начиная с нуля. При этом в базе данных ODB создаются записи с названиями \ODBNODE{v172000}, \ODBNODE{v172001} и т.~д.
+Если в эксперименте задействовано несколько устройств \DEVICE{}, то приложение \APP{fe-v1720} должно быть запущено несколько раз, по числу устройств, с параметром командной строки <<{\tt -i {\it x}}>>, где $x$~--- порядковый номер устройства начиная с нуля. При этом в базе данных ODB создаются записи с названиями \ODBNODE{v172000}, \ODBNODE{v172001} и т.~д.
 
 Полный список поддерживаемых параметров командной строки приведён в \cite{MidasWikiFrontend}. 
 
@@ -99,9 +93,9 @@
 
 \section{Формат результирующих данных}
 
-В системе MIDAS единицей хранения информации является \TERM{событие} (\TERM{Event}), которое в свою очередь состоит из одного или нескольких \TERM{банков} (\TERM{Banks}) \cite{MidasWikiEvent}. Каждый банк имеет 4-х буквенное название, по которому определяется его тип. Событие может включать в себя банки разного типа.
+В системе \MIDAS{} единицей хранения и передачи информации является \TERM{событие} (\TERM{Event}), которое в свою очередь состоит из одного или нескольких \TERM{банков} (\TERM{Banks}) \cite{MidasWikiEvent}. Каждый банк имеет 4-х буквенное название, по которому определяется его тип. Событие может включать в себя банки разного типа.
 
-Приложение \APP{} формирует отдельное событие при каждом полезном срабывании триггера. Событие включает в себя следующие банки данных:
+Приложение \APP{fe-v1720} формирует отдельное событие при каждом полезном срабывании триггера. Событие включает в себя следующие банки данных:
 
 \begin{itemize}
 
@@ -156,28 +150,29 @@
 
 Наличие банка в составе события зависит от того, участвует ли данный канал в сборе данных. Если канал $i$ включён, то $i$-ый бит в битовой маске банка \BANK{V200} (стр.~\pageref{sec_bank_info}) установлен в единицу, и банк \BANK{WF0{\it i}} входит в состав события.
 
-\begin{thebibliography}{99} 
+%\begin{thebibliography}{99} 
 
-\bibitem{MidasWikiFrontend}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Frontend_Application}} 
+%\bibitem{MidasWikiFrontend}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Frontend_Application}} 
 
-\bibitem{MidasWiki}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Main_Page}} 
+%\bibitem{MidasWiki}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Main_Page}} 
 
-\bibitem{CaenUM3051ST}  {CAEN User Manual UM3051, раздел <<Self-Trigger>>, стр.~41} 
+%\bibitem{CaenUM3051ST}  {CAEN User Manual UM3051, раздел <<Self-Trigger>>, стр.~41} 
 
-\bibitem{MidasWikiODB}  {\url{https://midas.triumf.ca/MidasWiki/index.php/ODB_Access_and_Use}} 
+%\bibitem{MidasWikiODB}  {\url{https://midas.triumf.ca/MidasWiki/index.php/ODB_Access_and_Use}} 
 
-\bibitem{MidasWikiMhttpd}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Mhttpd}} 
+%\bibitem{MidasWikiMhttpd}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Mhttpd}} 
 
-\bibitem{MidasWikiEquipment}  {\url{https://midas.triumf.ca/MidasWiki/index.php//Equipment_ODB_tree}} 
+%\bibitem{MidasWikiEquipment}  {\url{https://midas.triumf.ca/MidasWiki/index.php//Equipment_ODB_tree}} 
 
-\bibitem{CaenUM3051AIS}  {CAEN User Manual UM3051, раздел <<Analog Input Stage>>, стр.~22} 
+%\bibitem{CaenUM3051AIS}  {CAEN User Manual UM3051, раздел <<Analog Input Stage>>, стр.~22} 
 
-\bibitem{CaenUM5961PostTrigger}  {CAEN User Manual UM5961, раздел <<Post Trigger>>, стр.~26} 
+%\bibitem{CaenUM5961PostTrigger}  {CAEN User Manual UM5961, раздел <<Post Trigger>>, стр.~26} 
 
-\bibitem{MidasWikiEvent}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Event_Structure}} 
+%\bibitem{MidasWikiEvent}  {\url{https://midas.triumf.ca/MidasWiki/index.php/Event_Structure}} 
 
-\bibitem{CaenUM3051TS}  {CAEN User Manual UM3051, раздел <<Technical Specifications>>, стр.~12} 
+%\bibitem{CaenUM3051TS}  {CAEN User Manual UM3051, раздел <<Technical Specifications>>, стр.~12} 
 
-\end{thebibliography}
+%\end{thebibliography}
 
-\end{document}
+%\end{document}
+
