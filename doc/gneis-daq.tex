@@ -21,6 +21,7 @@
 \newcommand{\ODBNODE}[1]{<<{\tt #1}>>}
 \newcommand{\CPPCLASS}[1]{\mbox{\tt #1}}
 \newcommand{\DIRECTORY}[1]{<<{\tt #1}>>}
+\newcommand{\FILE}[1]{<<{\tt #1}>>}
 \newcommand{\COMMAND}[1]{{\tt #1}}
 
 \title{\GD{}: набор программ по сбору и анализу данных для установки ГНЕЙС}
@@ -184,7 +185,7 @@
 
 \ROOT{} входит в репозитории большинства современных версий Linux, но его версия зачастую бывает устаревшей. Поэтому рекомендуется скачивать \ROOT{} в исходных кодах и собирать их непосредственно на экспериментальном компьютере. Сборка \ROOT{} из исходных кодов гарантрирует правильность используемых версий сторонних библиотек.
 
-Перед сборкой \ROOT{} необходимо убедиться, что все необходимые библиотеки установлены. Их  списк приведён в \cite{RootPrerequisites}.
+Перед сборкой \ROOT{} необходимо убедиться, что все необходимые библиотеки установлены. Их  список приведён в \cite{RootPrerequisites}, там же приведены установочные команды для основных операционных систем.
 
 Далее, скачайте последнюю стабильную версию \ROOT{} из \cite{RootDownload}. Если предполагается собирать \ROOT{} из исходных кодов, то необходимо выбрать архив под заголовком <<Source distribution>>. Если имеется бинарная версия \ROOT{}, подходящая к Вашей версии операционной системы, то выбирается соответствующий архив под заголовком <<Binary distributions>>.
 
@@ -226,6 +227,32 @@
 \end{enumerate}
 
 В случае проблем  со сборкой или необходимости тонкой настройки \ROOT{} обратитесь к официальной инструкции \cite{RootBuild}.
+
+\subsection{Установка \ROOT{} из бинарного архива в ОС Linux}
+
+\begin{enumerate}
+
+\item Выберите имя каталога для установки \ROOT{}. Для примера, выберем каталог \DIRECTORY{/opt/packages/root}.
+
+\item Скачайте архив с бинарными кодами из \cite{RootDownload} и распакуйте его содержимое в каталог \DIRECTORY{/opt/packages/root}.
+
+\end{enumerate}
+
+\subsection{Настройка окружения \ROOT{} в ОС Linux}
+
+После того, как \ROOT{} успешно установлен, добавьте следующие строки в файл \FILE{~/.profile}:
+
+export ROOTSYS=/opt/packages/root
+export PATH=\$ROOTSYS/bin:\$PATH
+export LD\_LIBRARY\_PATH=\$ROOTSYS/lib
+export PYTHONPATH=\$ROOTSYS/lib
+export CPATH=\$ROOTSYS/include:\$CPATH
+export C\_INCLUDE\_PATH=\$ROOTSYS/include:\$C\_INCLUDE\_PATH
+export CPLUS\_INCLUDE\_PATH=\$ROOTSYS/include:\$CPLUS\_INCLUDE\_PATH
+
+Если \ROOT{} установлен в директорию, отличающуюся от \DIRECTORY{/opt/packages/root}, то скорректируйте первую строку соответствующим образом.
+
+Для того, чтобы изменения вступили в силу, завершите сеанс работы в ОС Linux и начните новый.
 
 \chapter{Фронтенд для \DEVICE{}}
 
