@@ -1,13 +1,16 @@
 \documentclass[12pt, a4paper, oneside]{book}
 \usepackage[utf8]{inputenc}
-\usepackage[T2A]{fontenc}
 \usepackage[russian]{babel}
 \usepackage{gensymb}
 \usepackage{graphicx}
 \usepackage{indentfirst}
 \usepackage{hyperref}
+\usepackage{listings}
 \usepackage[backend=biber, style=gost-numeric]{biblatex} 
 \addbibresource{gneis-daq.bib}
+
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=false}
+\lstset{frame=tb}
 
 \newcommand{\GD}{{\tt gneis-daq}}
 \newcommand{\MIDAS}{\mbox{MIDAS}}
@@ -39,7 +42,7 @@
 
 \GD{} предназначен для считывания и записи экспериментальных данных в числовой форме и их оперативного анализа, в том числе удалённого.
 
-\GD{} разработан на базе системы сбора данных \MIDAS{} \cite{midas} с использованием библиотеки ROOT \cite{RootHome} и других.
+\GD{} разработан на базе системы сбора данных \MIDAS{} \cite{midas} с использованием программного пакета ROOT \cite{RootHome} и других.
 
 \section{Системные требования}
 
@@ -116,7 +119,7 @@
 
 \subsection{Условия использования}
 
-\MIDAS{} распространяется в исходных кодах под лицензией GNU (General Public License) \cite{midas}. Информация о возможности коммерческого или некоммерческого использования и технической поддержке не обнаружена на сайте проекта.
+\MIDAS{} распространяется в исходных кодах под лицензией GNU (General Public License) \cite{midas}.
 
 \section{Общие сведения о \ROOT{}}
 
@@ -145,13 +148,15 @@
 
 \item Диаграммы могут быть построены в процессе измерений и сохранены в виде файлов. Но их визуализация и анализ производятся позднее по необходимости.
 
-\item Диаграммы формируются при помощи программ-анализаторов (стр.~\pageref{sec-midas-analyzer}) на компьютере, связанном с экспериментальным оборудованием. Но наблюдать эти диаграммы может быть удобнее с удалённого рабочего места, связанного с экспериментальным компьютером по сети.
+\item Диаграммы формируются при помощи программ-анализаторов (стр.~\pageref{sec-midas-analyzer}) на компьютере, подключённом к экспериментальному оборудованию. Но наблюдать эти диаграммы может быть удобнее с удалённого рабочего места, связанного с экспериментальным компьютером по сети. Заниматься же отрисовкой непосредственно на экспериментальном компьютере --- значит отбирать его вычислительные ресурсы (то есть увеличивать расход процессорного времени и оперативной памяти).
 
 \end{itemize}
 
-С другой стороны, развитие веб-технологий в настоящее время позволяет рисовать сложные диаграммы непосредственно в браузере. Причём эти диаграммы могут быть интерактивными, реагирующими на команды пользователя.
+С другой стороны, развитие веб-технологий в настоящее время позволяет рисовать сложные диаграммы непосредственно в браузере. Причём эти диаграммы могут быть интерактивными, т.~е. реагирующими на команды пользователя.
 
-Изложенное выше послужило отправной точкой для написания JavaScript-библиотеки  \ROOTJS{} \cite{JsRootHome}. Данная библитека принимает данные графиков, гистограмм и пр., сформированных посредством \ROOT{}, и рисует на их основе диаграммы в окне браузера. 
+Вероятно, изложенное выше и послужило отправной точкой для написания библиотеки JavaScript-функций \ROOTJS{} \cite{JsRootHome}.
+
+\ROOTJS{} принимает на вход данные графиков, гистограмм и пр., сформированные посредством \ROOT{}, и рисует на их основе диаграммы в окне браузера. 
 
 Диаграммы являются интерактивными, в частности пользователь может:
 
@@ -160,7 +165,7 @@
 \item увеличить масштаб для детального отображения интересующей области.
 \end{itemize}
 
-Разработка \ROOTJS{} ведётся с 2014 года силами CERN.
+Разработка \ROOTJS{} ведётся с 2014 года силами разработчиков CERN.
 
 \subsection{Условия использования}
 
@@ -170,12 +175,12 @@
 
 Данный раздел будет написан позднее.
 
-\chapter{Установка и начало работы}
+\chapter{Установка}
 
 Информация, изложенная в этом разделе, требует некоторых минимальных знаний по работе в ОС Linux, в частности:
 
 \begin{itemize}
-\item назначение команд \APP{sudo}, \APP{make};
+\item назначение команды \APP{sudo};
 \item как устанавливать пакеты программного обеспечения (\TERM{packages});
 \item простейшие манипуляции с файловой системой, такие как переход по каталогам, создание каталогов и пр;
 \item манипуляции с архивами в формате {\tt .tar.gz}.
@@ -205,18 +210,24 @@
 
 \item Запустите команду из каталога \DIRECTORY{/tmp/root/obj}:
 
-\COMMAND{cmake -DCMAKE\_INSTALL\_PREFIX=/opt/packages/root ..}
+\begin{lstlisting}[language=bash]
+cmake -DCMAKE_INSTALL_PREFIX=/opt/packages/root ..
+\end{lstlisting}
 
 Если все необходимые библиотеки установлены и версия компилятора C++ достаточно <<свежая>>, команда завершится следующим сообщением в консоли:
 
+\begin{lstlisting}
 -- Generating done
 -- Build files have been written to: /tmp/root/obj
+\end{lstlisting}
 
 В противном случае необходимо ознакомиться с сообщениями в консоли или просмотреть файлы протокола \APP{cmake}, чтобы устранить ошибку.
 
 \item Запустите команду из каталога \DIRECTORY{/tmp/root/obj}:
 
-\COMMAND{sudo cmake --build . --target install}
+\begin{lstlisting}[language=bash]
+sudo cmake --build . --target install
+\end{lstlisting}
 
 Использования \APP{sudo} необходимо, потому что как правило каталог \DIRECTORY{/opt} недоступен для записи для обычного пользователя. Если Вы устанавливаете \ROOT{} в иной каталог, который доступен для записи, использование \APP{sudo} не требуется.
  
@@ -240,15 +251,17 @@
 
 \subsection{Настройка окружения \ROOT{} в ОС Linux}
 
-После того, как \ROOT{} успешно установлен, добавьте следующие строки в файл \FILE{~/.profile}:
+После того, как \ROOT{} успешно установлен, добавьте следующие строки в файл \FILE{\~{}/.profile}:
 
+\begin{lstlisting}[language=bash]
 export ROOTSYS=/opt/packages/root
-export PATH=\$ROOTSYS/bin:\$PATH
-export LD\_LIBRARY\_PATH=\$ROOTSYS/lib
-export PYTHONPATH=\$ROOTSYS/lib
-export CPATH=\$ROOTSYS/include:\$CPATH
-export C\_INCLUDE\_PATH=\$ROOTSYS/include:\$C\_INCLUDE\_PATH
-export CPLUS\_INCLUDE\_PATH=\$ROOTSYS/include:\$CPLUS\_INCLUDE\_PATH
+export PATH=$ROOTSYS/bin:$PATH
+export LD_LIBRARY_PATH=$ROOTSYS/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$ROOTSYS/lib:$PYTHONPATH
+export CPATH=$ROOTSYS/include:$CPATH
+export C_INCLUDE_PATH=$ROOTSYS/include:$C_INCLUDE_PATH
+export CPLUS_INCLUDE_PATH=$ROOTSYS/include:$CPLUS_INCLUDE_PATH
+\end{lstlisting}
 
 Если \ROOT{} установлен в директорию, отличающуюся от \DIRECTORY{/opt/packages/root}, то скорректируйте первую строку соответствующим образом.
 
