@@ -14,12 +14,14 @@ Collection of data-acquisition applications for [GNEIS](http://accelconf.web.cer
 * `util-lib`: library with commonly used definitions.
 * `analyzer-lib`: library for analyzer applications.
 * `math-lib`: general purpose math library.
+* `math-lib-test`: unit tests for `math-lib`.
 * `doc`: documentation.
 
 ## Requirements
 
 * CMake 3.1+
 * GCC 4.8+
+* GoogleTest
 * Latex
 
 ## Dependencies
