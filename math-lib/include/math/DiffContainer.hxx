@@ -24,13 +24,13 @@ public:
 
 		bool operator==(Iterator const i) const {
 
-			return first == i.first;
+			return last == i.last;
 
 		}
 
 		bool operator!=(Iterator const i) const {
 
-			return first != i.first;
+			return last != i.last;
 
 		}
 
@@ -52,7 +52,7 @@ public:
 
 		difference_type operator-(Iterator const i) const {
 
-			return std::distance(i.first, first);
+			return std::distance(i.last, last);
 
 		}
 
@@ -70,23 +70,21 @@ public:
 				>= static_cast<typename Iterator::difference_type>(aShift)) {
 			from = aBegin;
 			to = aEnd;
-			empty = false;
 		} else {
 			from = to = aEnd;
-			empty = true;
 		}
 
 	}
 
-	Iterator begin() {
+	Iterator begin() const {
 
-		return empty ? Iterator(to, to) : Iterator(from, from + shift);
+		return from == to ? end() : Iterator(from, std::next(from, shift));
 
 	}
 
-	Iterator end() {
+	Iterator end() const {
 
-		return empty ? Iterator(to, to) : Iterator(to - shift, to);
+		return Iterator(to, to);
 
 	}
 
@@ -94,7 +92,6 @@ private:
 
 	std::size_t const shift;
 	InputIt from, to;
-	bool empty;
 
 };
 
