@@ -66,7 +66,8 @@ public:
 			std::size_t const aShift) :
 			shift(aShift) {
 
-		if (std::distance(aBegin, aEnd) >= aShift) {
+		if (std::distance(aBegin, aEnd)
+				>= static_cast<typename Iterator::difference_type>(aShift)) {
 			from = aBegin;
 			to = aEnd;
 			empty = false;

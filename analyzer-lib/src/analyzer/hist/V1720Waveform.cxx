@@ -42,8 +42,9 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 						SetData(h, wf, wf + numOfSamples);
 
 						auto const frontLength = 3;
-//						auto dc = math::MakeDiffContainer<int16_t>(wf,
-//								wf + numOfSamples, frontLength);
+						auto dc = math::MakeDiffContainer<int16_t>(wf,
+								wf + numOfSamples, frontLength);
+						std::distance(std::begin(dc), std::end(dc));	//	@TODO
 
 						if (buffers.end() == buffers.find(channelNo)) {
 							buffers[channelNo] = std::vector<int32_t>();
