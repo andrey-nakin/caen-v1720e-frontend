@@ -347,13 +347,13 @@ export C_INCLUDE_PATH=$ROOTSYS/include:$C_INCLUDE_PATH
 export CPLUS_INCLUDE_PATH=$ROOTSYS/include:$CPLUS_INCLUDE_PATH
 \end{lstlisting}
 
+Если \ROOT{} установлен в директорию \DIRECTORY{\~{}/packages}, то скорректируйте первую строку соответствующим образом.
+
 Далее, добавьте следующие строки в файл \FILE{\~{}/.bashrc}:
 
 \begin{lstlisting}[language=bash]
-source /opt/root/bin/thisroot.sh
+source $ROOTSYS/bin/thisroot.sh
 \end{lstlisting}
-
-Если \ROOT{} установлен в директорию \DIRECTORY{\~{}/packages}, то скорректируйте первые строки соответствующим образом.
 
 Для того, чтобы изменения вступили в силу, завершите сеанс работы в ОС Linux и начните новый.
 
