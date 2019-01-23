@@ -4,6 +4,7 @@
 #include <fe-v1720.hxx>
 #include <util/V1720InfoRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
+#include <math/DiffContainer.hxx>
 #include "analyzer/hist/V1720Waveform.hxx"
 
 namespace analyzer {
@@ -39,6 +40,9 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
 						auto const wf = wfRaw->waveForm();
 						SetData(h, wf, wf + numOfSamples);
+
+						auto const frontLength = 3;
+						math::DiffContainer<decltype(wf), int16_t> dc(wf, wf + numOfSamples, frontLength);
 
 						if (buffers.end() == buffers.find(channelNo)) {
 							buffers[channelNo] = std::vector<int32_t>();
