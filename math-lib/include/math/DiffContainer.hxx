@@ -5,101 +5,105 @@
 
 namespace math {
 
-template<class InputIt, class ValueT>
+template<class ValueT, class InputIt>
 class DiffContainer {
 public:
 
-//	class Iterator {
-//	public:
-//		using iterator_category = std::input_iterator_tag;
-//		typedef ValueT value_type;
-//
-//		Iterator(InputIt const aFirst, InputIt const aLast) :
-//				first(aFirst), last(aLast) {
-//		}
-//
-//		bool operator==(Iterator const i) const {
-//
-//			return first == i.first;
-//
-//		}
-//
-//		bool operator!=(Iterator const i) const {
-//
-//			return first != i.first;
-//
-//		}
-//
-//		value_type operator*() const {
-//
-//			return static_cast<value_type>(*last)
-//					- static_cast<value_type>(*first);
-//
-//		}
-//
-//		Iterator& operator++() const {
-//
-//			++first;
-//			++last;
-//			return *this;
-//
-//		}
-//
-//		Iterator& operator++(int) const {
-//
-//			first++;
-//			last++;
-//			return *this;
-//
-//		}
-//
-//		Iterator& operator--() const {
-//
-//			--first;
-//			--last;
-//			return *this;
-//
-//		}
-//
-//		Iterator& operator--(int) const {
-//
-//			first--;
-//			last--;
-//			return *this;
-//
-//		}
-//
-//	private:
-//		InputIt const first, last;
-//
-//	};
+	class Iterator {
+	public:
 
-	typedef ValueT value_type;
+		using iterator_category = typename std::iterator_traits<InputIt>::iterator_category;
+		typedef ValueT value_type;
+		typedef ValueT* pointer;
+		typedef ValueT& reference;
+		using difference_type = typename std::iterator_traits<InputIt>::difference_type;
+
+		Iterator(InputIt const aFirst, InputIt const aLast) :
+				first(aFirst), last(aLast) {
+		}
+
+		bool operator==(Iterator const i) const {
+
+			return first == i.first;
+
+		}
+
+		bool operator!=(Iterator const i) const {
+
+			return first != i.first;
+
+		}
+
+		value_type operator*() const {
+
+			return static_cast<value_type>(*last)
+					- static_cast<value_type>(*first);
+
+		}
+
+		template<class Distance>
+		Iterator& operator+=(Distance const d) {
+
+			std::advance(first, d);
+			std::advance(last, d);
+			return *this;
+
+		}
+
+		difference_type operator-(Iterator const i) const {
+
+			return std::distance(i.first, first);
+
+		}
+
+	private:
+
+		InputIt first, last;
+
+	};
 
 	DiffContainer(InputIt const aBegin, InputIt const aEnd,
 			std::size_t const aShift) :
-			begin(aBegin), end(aEnd), shift(aShift) {
+			shift(aShift) {
+
+		if (std::distance(aBegin, aEnd) >= aShift) {
+			from = aBegin;
+			to = aEnd;
+			empty = false;
+		} else {
+			from = to = aEnd;
+			empty = true;
+		}
+
 	}
 
-//	Iterator begin() {
-//
-//		return Iterator(begin, begin + shift);
-//
-//	}
-//
-//	Iterator end() {
-//
-//		return Iterator(end - shift, end);
-//
-//	}
+	Iterator begin() {
+
+		return empty ? Iterator(to, to) : Iterator(from, from + shift);
+
+	}
+
+	Iterator end() {
+
+		return empty ? Iterator(to, to) : Iterator(to - shift, to);
+
+	}
 
 private:
 
-	InputIt const begin, end;
-	std::size_t shift;
+	std::size_t const shift;
+	InputIt from, to;
+	bool empty;
 
 };
 
+template<class ValueT, class InputIt>
+DiffContainer<ValueT, InputIt> MakeDiffContainer(InputIt const begin,
+		InputIt const end, std::size_t const shift) {
+
+	return DiffContainer<ValueT, InputIt>(begin, end, shift);
+
+}
 
 }
 
