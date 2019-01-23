@@ -216,6 +216,7 @@
 \ROOT{} распространяется как в исходных кодах, так и в виде бинарных сборок. Первый вариант предпочтительнее, поскольку это гарантирует правильность работы \ROOT{} в данной версии ОС. Далее рассмотрим оба варианта установки.
 
 \subsection{Установка \ROOT{} из исходных кодов}
+\label{sec-build-root-from-src}
 
 \begin{enumerate}
 
@@ -249,7 +250,10 @@ mkdir obj
 cd obj
 \end{lstlisting}
 
-\item Если \ROOT{} будет использоваться несколькими пользователями ПК (стр.~\pageref{sec_multiuser}), установим его в каталог \DIRECTORY{/opt/root-6.14.06}. Для этого выполните  следующую команду:
+\item 
+\label{item-select-root-dir}
+
+Если \ROOT{} будет использоваться несколькими пользователями ПК (стр.~\pageref{sec_multiuser}), установим его в каталог \DIRECTORY{/opt/root-6.14.06}. Для этого выполните  следующую команду:
 
 \begin{lstlisting}[language=bash]
 cmake -DCMAKE_INSTALL_PREFIX=/opt/root-6.14.06 ..
@@ -293,18 +297,40 @@ cd /tmp
 rm -fr root-6.14.06
 \end{lstlisting}
 
+\item Создайте символическую ссылку на каталог с установленным \ROOT{}:
+\label{item-root-symlink}
+
+\begin{lstlisting}[language=bash]
+cd /opt
+sudo ln -s root-6.14.06 root
+\end{lstlisting}
+
+Если \ROOT{} установлен в директорию \DIRECTORY{\~{}/packages}, используйте следующую команду:
+
+\begin{lstlisting}[language=bash]
+cd ~/packages
+ln -s root-6.14.06 root
+\end{lstlisting}
+
+Таким образом, символическая ссылка используется как псевдоним. Это позволяет одновременно иметь несколько версий \ROOT{} и легко переключаться между ними, перенаправляя символическую ссылку на нужный каталог.
+
 \end{enumerate}
 
-\subsection{Установка \ROOT{} из бинарного сборки}
+\subsection{Установка \ROOT{} из бинарной сборки}
 
 \begin{enumerate}
 
-\item Далее, скачайте последнюю стабильную версию \ROOT{} из \cite{RootDownload}. Если предполагается собирать \ROOT{} из исходных кодов, то необходимо выбрать архив под заголовком <<Source distribution>>. Если имеется бинарная версия \ROOT{}, подходящая к Вашей версии операционной системы, то выбирается соответствующий архив под заголовком <<Binary distributions>>.
+\item Выберите нужную версию \ROOT{} в \cite{RootDownload} и найдите архив с бинарной сборкой, который соответствует Вашей ОС, в разделе <<Binary distributions>>. Пусть, для примера, у Вас установлена Linux CentOS~7, и файл архива имеет следующее имя:
 
-\item Выберите имя каталога для установки \ROOT{}. Для примера, выберем каталог \DIRECTORY{/opt/packages/root}.
+\begin{lstlisting}[language=bash]
+root_v6.14.06.Linux-centos7-x86_64-gcc4.8.tar.gz
+\end{lstlisting}
+ 
+\noindent где <<6.14.06>>~--- версия \ROOT{}.
 
-\item Скачайте архив с бинарными кодами из \cite{RootDownload} и распакуйте его содержимое в каталог \DIRECTORY{/opt/packages/root}.
+\item Скачайте архив и распакуйте его в нужную директорию, в зависимости от того, будет ли \ROOT{} использоваться одними или несколькими пользователями (см. пункт~\ref{item-select-root-dir} раздела~\ref{sec-build-root-from-src} на стр.~\pageref{item-select-root-dir}).
 
+\item Создайте символическую ссылку (см. пункт~\ref{item-root-symlink} раздела~\ref{sec-build-root-from-src} на стр.~\pageref{item-root-symlink}).
 \end{enumerate}
 
 \subsection{Настройка окружения \ROOT{}}
