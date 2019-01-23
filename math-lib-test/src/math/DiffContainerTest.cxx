@@ -88,4 +88,31 @@ TEST(DiffContainer, ZeroShift) {
 
 }
 
+TEST(DiffContainer, IntOverflow) {
+
+	std::array<uint8_t, 3> const src = { 255, 0, 255 };
+	auto const diff = 1;
+	auto dc = math::MakeDiffContainer<int16_t>(std::begin(src), std::end(src),
+			diff);
+
+	auto a = std::begin(dc);
+	auto const b = std::end(dc);
+
+	EXPECT_EQ(2, std::distance(a, b));
+
+	EXPECT_FALSE(a == b);
+	EXPECT_TRUE(a != b);
+	EXPECT_EQ(-255, *a);
+
+	std::advance(a, 1);
+	EXPECT_FALSE(a == b);
+	EXPECT_TRUE(a != b);
+	EXPECT_EQ(255, *a);
+
+	std::advance(a, 1);
+	EXPECT_TRUE(a == b);
+	EXPECT_FALSE(a != b);
+
+}
+
 }
