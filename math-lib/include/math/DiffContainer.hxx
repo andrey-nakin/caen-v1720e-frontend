@@ -50,6 +50,14 @@ public:
 
 		}
 
+		Iterator& operator++() {
+
+			++first;
+			++last;
+			return *this;
+
+		}
+
 		difference_type operator-(Iterator const i) const {
 
 			return std::distance(i.last, last);

@@ -34,30 +34,23 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 				if (wfRaw) {
 					auto const numOfSamples = wfRaw->numOfSamples();
 					if (numOfSamples > 0) {
-						auto &h = GetHist(
-								frontendIndex(v1720Info->info().frontendIndex),
-								channelNo, numOfSamples);
-
 						auto const wf = wfRaw->waveForm();
-						SetData(h, wf, wf + numOfSamples);
+
+						{
+							// draw waveform
+							auto &h = GetHist(
+									frontendIndex(
+											v1720Info->info().frontendIndex),
+									channelNo, numOfSamples);
+							SetData(h, wf, wf + numOfSamples);
+						}
 
 						auto dc = math::MakeDiffContainer<int16_t>(wf,
 								wf + numOfSamples, frontLength);
-						std::distance(std::begin(dc), std::end(dc)); //	@TODO
 
-						if (buffers.end() == buffers.find(channelNo)) {
-							buffers[channelNo] = std::vector<int32_t>();
-							buffers[channelNo].resize(numOfSamples);
-						}
-
-						auto& v = buffers[channelNo];
-						auto const last = std::min(numOfSamples, v.size());
-						for (unsigned i = frontLength; i < last; i++) {
-							v[i] = (int32_t) wf[i - frontLength]
-									- (int32_t) wf[i];
-						}
-						auto const maxf = *std::max_element(v.begin(), v.end());
-						auto const avgf = std::accumulate(v.begin(), v.end(),
+						auto const maxf = *std::max_element(dc.begin(),
+								dc.end());
+						auto const avgf = std::accumulate(dc.begin(), dc.end(),
 								0.0) / numOfSamples;
 
 						if (files.end() == files.find(channelNo)) {
