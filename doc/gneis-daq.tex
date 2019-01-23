@@ -185,13 +185,15 @@
 
 \begin{itemize}
 \item назначение команды \APP{sudo};
-\item назначение переменных окружения;
+\item назначение переменных окружения (\TERM{environment variables});
+\item назначение символических ссылок (\TERM{symlinks});
 \item как устанавливать пакеты программного обеспечения (\TERM{packages});
 \item простейшие манипуляции с файловой системой, такие как переход по каталогам, создание каталогов и пр;
 \item манипуляции с архивами в формате {\tt .tar.gz}.
 \end{itemize}
 
 \subsection{Поддержка нескольких пользователей}
+\label{sec_multiuser}
 
 Перед началом установки ПО необходимо решить, будет ли экспериментальный ПК использоваться исключительно экспериментатором, или же на нём предполагается работа и других пользователей, например, разработчиков ПО или участников других экспериментов.
 
@@ -247,40 +249,49 @@ mkdir obj
 cd obj
 \end{lstlisting}
 
-\item Выберите имя каталога для установки \ROOT{}. Для примера, выберем каталог \DIRECTORY{/opt/packages/root}.
-
-\item Выберите имя каталога для установки \ROOT{}. Для примера, выберем каталог \DIRECTORY{/opt/packages/root}.
-
-\item Выберите имя временного каталога для сборки \ROOT{}. Для примера, выберем каталог \DIRECTORY{/tmp/root}.
-
-\item Скачайте архив с исходными кодами из \cite{RootDownload} и распакуйте его содержимое в каталог \DIRECTORY{/tmp/root}.
-
-\item Запустите команду из каталога \DIRECTORY{/tmp/root/obj}:
+\item Если \ROOT{} будет использоваться несколькими пользователями ПК (стр.~\pageref{sec_multiuser}), установим его в каталог \DIRECTORY{/opt/root-6.14.06}. Для этого выполните  следующую команду:
 
 \begin{lstlisting}[language=bash]
-cmake -DCMAKE_INSTALL_PREFIX=/opt/packages/root ..
+cmake -DCMAKE_INSTALL_PREFIX=/opt/root-6.14.06 ..
 \end{lstlisting}
 
-Если все необходимые библиотеки установлены и версия компилятора C++ достаточно <<свежая>>, команда завершится следующим сообщением в консоли:
+Если же использование \ROOT{} другими пользователями не предполагается, выполните следующую команду:
+
+\begin{lstlisting}[language=bash]
+cmake -DCMAKE_INSTALL_PREFIX=~/packages/root-6.14.06 ..
+\end{lstlisting}
+
+\item Если все необходимые библиотеки установлены и версия компилятора C++ достаточно <<свежая>>, команда завершится следующим сообщением в консоли:
 
 \begin{lstlisting}
 -- Generating done
--- Build files have been written to: /tmp/root/obj
+-- Build files have been written to: /tmp/root-6.14.06/obj
 \end{lstlisting}
 
 В противном случае необходимо ознакомиться с сообщениями в консоли или просмотреть файлы протокола \APP{cmake}, чтобы устранить ошибку.
 
-\item Запустите команду из каталога \DIRECTORY{/tmp/root/obj}:
+\item Подготовка к сборке завершена. Если \ROOT{} устанавливается в каталог \DIRECTORY{/opt}, то сборка и установка выполняется следующей командой:
 
 \begin{lstlisting}[language=bash]
 sudo cmake --build . --target install
 \end{lstlisting}
 
-Использования \APP{sudo} необходимо, потому что как правило каталог \DIRECTORY{/opt} недоступен для записи для обычного пользователя. Если Вы устанавливаете \ROOT{} в иной каталог, который доступен для записи, использование \APP{sudo} не требуется.
- 
-Сборка может занять порядка получаса или больше, в зависимости от производительности компьютера.
+При этом у пользователя может быть запрошен пароль администратора системы.
 
-\item Удалите временный каталог \DIRECTORY{/tmp/root} для освобождения места на диске.
+Если же установка \ROOT{} производится в каталог \DIRECTORY{\~{}/packages}, то используйте следующую команду:
+
+\begin{lstlisting}[language=bash]
+cmake --build . --target install
+\end{lstlisting}
+ 
+Сборка может занять порядка часа или больше, в зависимости от производительности компьютера.
+
+\item Удалите временный каталог \DIRECTORY{/tmp/root-6.14.06} для освобождения места на диске:
+
+\begin{lstlisting}[language=bash]
+cd /tmp
+rm -fr root-6.14.06
+\end{lstlisting}
 
 \end{enumerate}
 
@@ -296,12 +307,12 @@ sudo cmake --build . --target install
 
 \end{enumerate}
 
-\subsection{Настройка окружения \ROOT{} в ОС Linux}
+\subsection{Настройка окружения \ROOT{}}
 
 После того, как \ROOT{} успешно установлен, добавьте следующие строки в файл \FILE{\~{}/.profile}:
 
 \begin{lstlisting}[language=bash]
-export ROOTSYS=/opt/packages/root
+export ROOTSYS=/opt/root
 export PATH=$ROOTSYS/bin:$PATH
 export LD_LIBRARY_PATH=$ROOTSYS/lib:$LD_LIBRARY_PATH
 export PYTHONPATH=$ROOTSYS/lib:$PYTHONPATH
@@ -310,7 +321,13 @@ export C_INCLUDE_PATH=$ROOTSYS/include:$C_INCLUDE_PATH
 export CPLUS_INCLUDE_PATH=$ROOTSYS/include:$CPLUS_INCLUDE_PATH
 \end{lstlisting}
 
-Если \ROOT{} установлен в директорию, отличающуюся от \DIRECTORY{/opt/packages/root}, то скорректируйте первую строку соответствующим образом.
+Далее, добавьте следующие строки в файл \FILE{\~{}/.bashrc}:
+
+\begin{lstlisting}[language=bash]
+source /opt/root/bin/thisroot.sh
+\end{lstlisting}
+
+Если \ROOT{} установлен в директорию \DIRECTORY{\~{}/packages}, то скорректируйте первые строки соответствующим образом.
 
 Для того, чтобы изменения вступили в силу, завершите сеанс работы в ОС Linux и начните новый.
 
