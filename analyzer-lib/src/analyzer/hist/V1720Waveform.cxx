@@ -105,7 +105,8 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 							while (pf.HasNext()) {
 								auto const i = pf.GetNext();
 								auto const position = std::distance(wf, i);
-								auto const amplitude = *i;
+								auto const amplitude = std::min(*i,
+										caen::v1720::MAX_SAMPLE_VALUE);
 
 								ph.AddBinContent(position);
 								ah.AddBinContent(amplitude);
