@@ -72,15 +72,15 @@ public:
 	};
 
 	DiffContainer(InputIt const aBegin, InputIt const aEnd,
-			std::size_t const aShift) :
-			shift(aShift), range(MakeRange(aBegin, aEnd, aShift)) {
+			std::size_t const aDistance) :
+			distance(aDistance), range(MakeRange(aBegin, aEnd, aDistance)) {
 
 	}
 
 	Iterator begin() const {
 
 		return range.first == range.second ?
-				end() : Iterator(range.first, std::next(range.first, shift));
+				end() : Iterator(range.first, std::next(range.first, distance));
 
 	}
 
@@ -92,14 +92,14 @@ public:
 
 private:
 
-	std::size_t const shift;
+	std::size_t const distance;
 	std::pair<InputIt, InputIt> const range;
 
 	static std::pair<InputIt, InputIt> MakeRange(InputIt const aBegin,
-			InputIt const aEnd, std::size_t const aShift) {
+			InputIt const aEnd, std::size_t const aDistance) {
 
 		if (std::distance(aBegin, aEnd)
-				>= static_cast<typename Iterator::difference_type>(aShift)) {
+				>= static_cast<typename Iterator::difference_type>(aDistance)) {
 			return std::pair<InputIt, InputIt>(aBegin, aEnd);
 		} else {
 			return std::pair<InputIt, InputIt>(aEnd, aEnd);
