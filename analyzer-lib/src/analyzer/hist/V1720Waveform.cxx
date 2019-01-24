@@ -95,9 +95,14 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 						if (hasPeak) {
 							auto &ph = GetPositionHist(feIndex, channelNo,
 									numOfSamples);
+							if (raising) {
+
+							} else {
+
+							}
 
 							auto &ah = GetAmplitudeHist(feIndex, channelNo,
-									4096);
+									caen::v1720::MAX_SAMPLE_VALUE + 1);
 							ah.AddBinContent(
 									sa.GetRoughMean() - sa.GetMinValue());
 
