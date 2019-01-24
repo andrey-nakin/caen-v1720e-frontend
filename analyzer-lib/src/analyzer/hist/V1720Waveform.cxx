@@ -5,6 +5,7 @@
 #include <util/V1720InfoRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
 #include <math/DiffContainer.hxx>
+#include <math/StatAccum.hxx>
 #include "analyzer/hist/V1720Waveform.hxx"
 
 namespace analyzer {
@@ -14,7 +15,7 @@ namespace hist {
 V1720Waveform::V1720Waveform(VirtualOdb* const anOdb) :
 		AbstractWaveform(anOdb, fe::v1720::equipName, fe::v1720::displayName,
 				caen::v1720::nsPerSample<ns_per_sample_type>()), minFront(14), frontLength(
-				3), threshold(6.0) {
+				3), threshold(2.0), raising(false) {
 
 }
 
@@ -48,11 +49,8 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
 						auto dc = math::MakeDiffContainer<int16_t>(wf,
 								wf + numOfSamples, frontLength);
-
-						auto const maxf = *std::max_element(dc.begin(),
-								dc.end());
-//						auto const avgf = std::accumulate(dc.begin(), dc.end(),
-//								0.0) / numOfSamples;
+						auto sa = math::MakeStatAccum(std::begin(dc),
+								std::end(dc));
 
 						if (files.end() == files.find(channelNo)) {
 							std::stringstream s;
@@ -69,8 +67,14 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 									s << d << '\n';
 								});
 
+						auto const t = threshold * sa.GetRoughVariance();
+						auto const hasPeak =
+								raising ?
+										sa.GetMaxValue() >= t :
+										sa.GetMaxValue() <= -t;
+
 						static int cnt = 0;
-						if (maxf == 15 && channelNo == 1 && cnt++ < 10) {
+						if (hasPeak && channelNo == 1 && cnt++ < 10) {
 							std::stringstream s;
 							s << "waveform." << channelNo << "."
 									<< v1720Info->info().eventCounter << ".txt";
