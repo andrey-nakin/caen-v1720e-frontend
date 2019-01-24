@@ -106,7 +106,7 @@ AbstractWaveform::HistType* AbstractWaveform::CreatePositionHistogram(
 	auto const title = ConstructTitle(feIndex, channelNo, "Position");
 
 	auto const h = new HistType(name.c_str(), title.c_str(), waveformLength, 0,
-			waveformLength - 1);
+			waveformLength);
 	h->SetXTitle("Channel");
 	h->SetYTitle("Count");
 	push_back(h);
@@ -122,7 +122,7 @@ AbstractWaveform::HistType* AbstractWaveform::CreateAmplitudeHistogram(
 	auto const title = ConstructTitle(feIndex, channelNo, "Amplitude");
 
 	auto const h = new HistType(name.c_str(), title.c_str(), maxValue, 0,
-			maxValue - 1);
+			maxValue);
 	h->SetXTitle("Amplitude");
 	h->SetYTitle("Count");
 	push_back(h);
