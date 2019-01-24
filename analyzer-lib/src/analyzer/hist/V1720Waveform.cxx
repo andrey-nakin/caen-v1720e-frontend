@@ -47,9 +47,9 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 							SetData(h, wf, wf + numOfSamples);
 						}
 
-						auto dc = math::MakeDiffContainer<int16_t>(wf,
+						auto const dc = math::MakeDiffContainer<int16_t>(wf,
 								wf + numOfSamples, frontLength);
-						auto sa = math::MakeStatAccum(std::begin(dc),
+						auto const sa = math::MakeStatAccum(std::begin(dc),
 								std::end(dc));
 
 						if (files.end() == files.find(channelNo)) {
