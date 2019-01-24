@@ -61,7 +61,9 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 							*files[channelNo] << "diff" << std::endl;
 						}
 
-						auto const t = sa.GetStdScaled < uint16_t > (threshold);
+						auto const t = sa.GetStdScaled
+								< util::TWaveFormRawData::value_type
+								> (threshold);
 
 						{
 							auto& s = *files[channelNo];

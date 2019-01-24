@@ -10,6 +10,8 @@ namespace util {
 class TWaveFormRawData: public TGenericData {
 public:
 
+	typedef uint16_t value_type;
+
 	TWaveFormRawData(int bklen, int bktype, const char* name, void *pdata);
 
 	static const char* bankName(uint8_t channelNo);
@@ -20,7 +22,7 @@ public:
 
 	}
 
-	uint16_t const* waveForm() const {
+	value_type const* waveForm() const {
 
 		return GetData16();
 
