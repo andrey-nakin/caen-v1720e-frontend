@@ -1,6 +1,7 @@
 #ifndef MATH_StatAccum_hxx
 #define	MATH_StatAccum_hxx
 
+#include <iterator>
 #include <algorithm>
 #include <cmath>
 
