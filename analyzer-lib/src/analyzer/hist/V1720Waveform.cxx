@@ -102,7 +102,7 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 							}
 
 							auto &ah = GetAmplitudeHist(feIndex, channelNo,
-									caen::v1720::MAX_SAMPLE_VALUE + 1);
+									caen::v1720::NUM_OF_SAMPLE_VALUES);
 							ah.AddBinContent(
 									sa.GetRoughMean() - sa.GetMinValue());
 
