@@ -56,6 +56,8 @@ TEST(DiffContainer, Boundary) {
 	EXPECT_EQ(0, std::distance(a, b));
 	EXPECT_TRUE(a == b);
 	EXPECT_FALSE(a != b);
+	EXPECT_EQ(b, std::min_element(a, b));
+	EXPECT_EQ(b, std::max_element(a, b));
 
 }
 
@@ -71,6 +73,8 @@ TEST(DiffContainer, OutOfBoundary) {
 	EXPECT_EQ(0, std::distance(a, b));
 	EXPECT_TRUE(a == b);
 	EXPECT_FALSE(a != b);
+	EXPECT_EQ(b, std::min_element(a, b));
+	EXPECT_EQ(b, std::max_element(a, b));
 
 }
 
@@ -87,6 +91,8 @@ TEST(DiffContainer, ZeroShift) {
 	EXPECT_FALSE(a == b);
 	EXPECT_TRUE(a != b);
 	EXPECT_EQ(0, *a);
+	EXPECT_EQ(0, *std::min_element(a, b));
+	EXPECT_EQ(0, *std::max_element(a, b));
 
 }
 
