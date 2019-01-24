@@ -2,7 +2,6 @@
 #define	MATH_Peakfinder_hxx
 
 #include <iterator>
-#include <functional>
 #include <algorithm>
 
 namespace math {
