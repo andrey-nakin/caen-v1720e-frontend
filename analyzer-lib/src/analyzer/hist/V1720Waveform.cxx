@@ -34,10 +34,11 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 				if (wfRaw) {
 					auto const numOfSamples = wfRaw->numOfSamples();
 					if (numOfSamples > 0) {
+						// retrieve waveform
 						auto const wf = wfRaw->waveForm();
 
 						{
-							// draw waveform
+							// draw raw waveform
 							auto &h = GetHist(
 									frontendIndex(
 											v1720Info->info().frontendIndex),
@@ -50,8 +51,8 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
 						auto const maxf = *std::max_element(dc.begin(),
 								dc.end());
-						auto const avgf = std::accumulate(dc.begin(), dc.end(),
-								0.0) / numOfSamples;
+//						auto const avgf = std::accumulate(dc.begin(), dc.end(),
+//								0.0) / numOfSamples;
 
 						if (files.end() == files.find(channelNo)) {
 							std::stringstream s;
@@ -59,14 +60,15 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 							std::string name = s.str();
 							files[channelNo] = std::unique_ptr < std::ofstream
 									> (new std::ofstream(name));
-							*files[channelNo] << "minv\tmaxv\tavgv\tmaxf"
-									<< std::endl;
+							*files[channelNo] << "diff" << std::endl;
 						}
 
-						auto const minv = 0;
-						auto const maxv = 0;
-						*files[channelNo] << minv << '\t' << maxv << '\t'
-								<< avgf << '\t' << maxf << std::endl;
+						auto& s = *files[channelNo];
+						std::for_each(std::begin(dc), std::end(dc),
+								[&s](int16_t d) {
+									s << d << '\n';
+								});
+
 						static int cnt = 0;
 						if (maxf == 15 && channelNo == 1 && cnt++ < 10) {
 							std::stringstream s;
