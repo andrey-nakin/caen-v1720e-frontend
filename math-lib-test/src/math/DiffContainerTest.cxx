@@ -1,4 +1,6 @@
 #include <array>
+#include <vector>
+#include <set>
 #include <cstdint>
 #include <algorithm>
 #include <numeric>
@@ -37,6 +39,38 @@ TEST(DiffContainer, Generic) {
 	EXPECT_FALSE(a == b);
 	EXPECT_TRUE(a != b);
 	EXPECT_EQ(-6, *a);
+
+	std::advance(a, 1);
+	EXPECT_TRUE(a == b);
+	EXPECT_FALSE(a != b);
+
+}
+
+TEST(DiffContainer, FromSet) {
+
+	std::set<uint8_t> const src = { 0, 15, 10, 1, 3, 6 };
+	auto const diff = 3;
+	auto dc = math::MakeDiffContainer<int8_t>(std::begin(src), std::end(src),
+			diff);
+
+	auto a = std::begin(dc);
+	auto const b = std::end(dc);
+
+	EXPECT_EQ(3, std::distance(a, b));
+
+	EXPECT_FALSE(a == b);
+	EXPECT_TRUE(a != b);
+	EXPECT_EQ(6, *a);
+
+	std::advance(a, 1);
+	EXPECT_FALSE(a == b);
+	EXPECT_TRUE(a != b);
+	EXPECT_EQ(9, *a);
+
+	std::advance(a, 1);
+	EXPECT_FALSE(a == b);
+	EXPECT_TRUE(a != b);
+	EXPECT_EQ(12, *a);
 
 	std::advance(a, 1);
 	EXPECT_TRUE(a == b);
@@ -136,6 +170,16 @@ TEST(DiffContainer, StdAlg) {
 	EXPECT_EQ(-6, *std::min_element(a, b));
 	EXPECT_EQ(6, *std::max_element(a, b));
 	EXPECT_EQ(0, std::accumulate(a, b, 0));
+
+	{
+		std::vector<int8_t> v;
+		std::copy(a, b, std::back_inserter(v));
+		EXPECT_EQ(4, v.size());
+		EXPECT_EQ(6, v[0]);
+		EXPECT_EQ(2, v[1]);
+		EXPECT_EQ(-2, v[2]);
+		EXPECT_EQ(-6, v[3]);
+	}
 
 }
 
