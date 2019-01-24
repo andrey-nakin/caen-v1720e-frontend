@@ -18,6 +18,8 @@ TEST(StatAccum, Generic) {
 	EXPECT_EQ(7, sa.GetRoughVariance());
 	EXPECT_NEAR(6.952381, sa.GetVariance(), 0.5e-6);
 	EXPECT_NEAR(2.636737, sa.GetStd(), 0.5e-6);
+	EXPECT_EQ(26, sa.GetStdScaled(10.0));
+	EXPECT_EQ(264, sa.GetStdScaled<int16_t>(100.0));
 
 }
 

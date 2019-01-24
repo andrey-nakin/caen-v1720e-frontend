@@ -76,9 +76,10 @@ public:
 
 	}
 
-	value_type GetStdScaled(double const scale) const {
+	template<class ResultT = value_type>
+	ResultT GetStdScaled(double const scale) const {
 
-		return static_cast<value_type>(GetStd() * scale + .5);
+		return static_cast<ResultT>(GetStd() * scale + .5);
 
 	}
 
