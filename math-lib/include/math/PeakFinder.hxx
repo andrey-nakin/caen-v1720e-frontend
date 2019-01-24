@@ -3,108 +3,82 @@
 
 #include <iterator>
 #include <functional>
+#include <algorithm>
 
 namespace math {
 
 template<class InputIt>
 class PeakFinder {
-/*
-	enum class State {
-
-		Init, Middle, UnderLower, AboveUpper
-
-	};
-
 public:
 
-	enum class Mode {
+	typedef InputIt iterator_type;
+	using value_type = typename std::iterator_traits<InputIt>::value_type;
+	using difference_type = typename std::iterator_traits<InputIt>::difference_type;
 
-		Rising, Falling
-
-	};
-
-	typedef typename std::iterator_traits<InputIt>::value_type value_type;
-	typedef typename std::iterator_traits<InputIt>::difference_type difference_type;
-
-	PeakFinder(Mode const aMode, InputIt const begin, InputIt const end,
-			difference_type const aFrontLength,
-			difference_type const aPeakLength, value_type const aThreshold) :
-			mode(aMode), peak(end), first(begin), last(end), frontLength(
-					aFrontLength), peakLength(aPeakLength), threshold(
-					aThreshold), state(State::Init) {
-
-		if (std::distance(begin, end) < aFrontLength) {
-			i = end;
-		} else {
-			i = std::next(begin, aFrontLength);
-		}
+	PeakFinder(bool const aRising, InputIt const aBegin, InputIt const aEnd,
+			difference_type const aFrontLength, value_type const aThreshold,
+			difference_type const aPeakLength) :
+			rising(aRising), from(aBegin), to(aEnd), frontLength(aFrontLength), threshold(
+					aThreshold), peakLength(aPeakLength) {
 
 	}
 
-	bool Next() {
+	bool HasNext() {
 
-		switch (mode) {
-		case Mode::Rising:
-			FindPeak(std::greater<value_type>(), upperThreshold,
-					lowerThreshold);
-			peakMode = Mode::Rising;
-			break;
-
-		case Mode::Falling:
-			FindPeak(std::less<value_type>(), lowerThreshold, upperThreshold);
-			peakMode = Mode::Falling;
-			break;
-		}
-		return i != last;
+		peak = FindNext(from);
+		return peak != to;
 
 	}
 
-	value_type GetValue() const {
+	iterator_type GetNext() {
 
-		return peak == last ? value_type() : *peak;
-
-	}
-
-	difference_type GetPosition() const {
-
-		return peak == last ? 0 : std::distance(first, peak);
-
-	}
-
-	Mode GetType() const {
-
-		return peakMode;
+		return peak;
 
 	}
 
 private:
 
-	Mode const mode;
-	InputIt i, peak;
-	InputIt const first, last;
+	bool const rising;
+	iterator_type from, peak;
+	iterator_type const to;
+	difference_type const frontLength;
 	value_type const threshold;
-	difference_type const frontLength, peakLength;
-	State state;
-	Mode peakMode;
+	difference_type const peakLength;
 
-	void FindPeak(std::function<bool(value_type, value_type)> comparator,
-			value_type const aLimit, value_type const bLimit) {
+	iterator_type FindNext(iterator_type& from) {
 
-		auto prev = i - frontLength;
-		for (; i != last; i++, prev++) {
-			auto const edge = *i - *prev;
-			switch (mode) {
-			case Mode::Falling:
-				if (-edge >= threshold) {
-
+		if (std::distance(from, to) >= frontLength) {
+			for (iterator_type i = from + frontLength, j = from; i != to;
+					++i, ++j) {
+				auto const exceeds =
+						rising ? *i - *j >= threshold : *j - *i >= threshold;
+				if (exceeds) {
+					from = j + std::min(peakLength, std::distance(j, to));
+					return rising ?
+							std::max_element(j, from) :
+							std::min_element(j, from);
 				}
-				break;
 			}
 		}
 
+		from = to;
+		return to;
+
 	}
-*/
+
 };
+
+template<class InputIt>
+PeakFinder<InputIt> MakePeakFinder(bool const rising, InputIt const begin,
+		InputIt const end,
+		typename PeakFinder<InputIt>::difference_type const frontLength,
+		typename PeakFinder<InputIt>::value_type const threshold,
+		typename PeakFinder<InputIt>::difference_type const peakLength) {
+
+	return PeakFinder<InputIt>(rising, begin, end, frontLength, threshold,
+			peakLength);
+
+}
 
 }
 

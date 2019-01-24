@@ -6,6 +6,7 @@
 #include <util/TWaveFormRawData.hxx>
 #include <math/DiffContainer.hxx>
 #include <math/StatAccum.hxx>
+#include <math/PeakFinder.hxx>
 #include "analyzer/hist/V1720Waveform.hxx"
 
 namespace analyzer {
@@ -15,7 +16,7 @@ namespace hist {
 V1720Waveform::V1720Waveform(VirtualOdb* const anOdb) :
 		AbstractWaveform(anOdb, fe::v1720::equipName, fe::v1720::displayName,
 				caen::v1720::nsPerSample<ns_per_sample_type>()), minFront(14), frontLength(
-				3), threshold(6.0), raising(false) {
+				3), peakLength(16), threshold(6.0), rising(false) {
 
 }
 
@@ -74,7 +75,7 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 						}
 
 						auto const hasPeak =
-								raising ?
+								rising ?
 										sa.GetMaxValue() >= t :
 										sa.GetMinValue() <= -t;
 
@@ -95,25 +96,24 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 						if (hasPeak) {
 							auto &ph = GetPositionHist(feIndex, channelNo,
 									numOfSamples);
-							if (raising) {
-
-							} else {
-
-							}
-
 							auto &ah = GetAmplitudeHist(feIndex, channelNo,
 									caen::v1720::NUM_OF_SAMPLE_VALUES);
-							ah.AddBinContent(
-									sa.GetRoughMean() - sa.GetMinValue());
 
+							auto pf = math::MakePeakFinder(rising, wf,
+									wf + numOfSamples, frontLength, t, peakLength);
+							while (pf.HasNext()) {
+								auto const i = pf.GetNext();
+								ah.AddBinContent(std::distance(wf, i));
+								ah.AddBinContent(
+										std::abs(*i - sa.GetRoughMean()));
+							}
 						}
-
 					}
 				}
 			}
 		}
-
 	}
+
 }
 
 //unsigned V1720Waveform::loadWaveformLength(INT const feIndex) {
