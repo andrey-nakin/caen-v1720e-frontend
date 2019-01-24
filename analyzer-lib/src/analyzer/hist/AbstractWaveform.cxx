@@ -23,10 +23,10 @@ AbstractWaveform::AbstractWaveform(VirtualOdb* anOdb,
 //
 //}
 
-AbstractWaveform::HistType& AbstractWaveform::GetHist(INT const feIndex,
+AbstractWaveform::HistType& AbstractWaveform::GetWaveformHist(INT const feIndex,
 		unsigned const channelNo, unsigned const waveformLength) {
 
-	auto &h = FindCreateHist(feIndex, channelNo, waveformLength);
+	auto &h = FindCreateWaveformHist(feIndex, channelNo, waveformLength);
 	if (!histInitialized[feIndex][channelNo]) {
 		ResetHistogram(h, waveformLength);
 		histInitialized[feIndex][channelNo] = true;
@@ -83,16 +83,17 @@ AbstractWaveform::HistType* AbstractWaveform::CreateHistogram(INT const feIndex,
 
 }
 
-AbstractWaveform::HistType& AbstractWaveform::FindCreateHist(INT const feIndex,
-		unsigned const channelNo, unsigned const waveformLength) {
+AbstractWaveform::HistType& AbstractWaveform::FindCreateWaveformHist(
+		INT const feIndex, unsigned const channelNo,
+		unsigned const waveformLength) {
 
-	auto const& m = histograms[feIndex];
+	auto const& m = wfHistograms[feIndex];
 	auto const& j = m.find(channelNo);
 	if (m.end() != j) {
 		return *j->second;
 	} else {
 		auto const h = CreateHistogram(feIndex, channelNo, waveformLength);
-		histograms[feIndex][channelNo] = h;
+		wfHistograms[feIndex][channelNo] = h;
 		return *h;
 	}
 

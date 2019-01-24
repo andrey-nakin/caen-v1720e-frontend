@@ -40,7 +40,7 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
 						{
 							// draw raw waveform
-							auto &h = GetHist(
+							auto &h = GetWaveformHist(
 									frontendIndex(
 											v1720Info->info().frontendIndex),
 									channelNo, numOfSamples);

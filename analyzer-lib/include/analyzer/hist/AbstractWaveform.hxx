@@ -52,7 +52,8 @@ public:
 
 protected:
 
-	HistType& GetHist(INT feIndex, unsigned channelNo, unsigned waveformLength);
+	HistType& GetWaveformHist(INT feIndex, unsigned channelNo,
+			unsigned waveformLength);
 
 	template<class InputIt>
 	void SetData(HistType& h, InputIt const begin, InputIt const end) {
@@ -70,13 +71,13 @@ private:
 	std::string const baseEquipName;
 	std::string const displayName;
 	ns_per_sample_type const nsPerSample;
-	std::map<INT, std::map<unsigned, HistType*>> histograms;
+	std::map<INT, std::map<unsigned, HistType*>> wfHistograms;
 	std::map<INT, std::map<unsigned, bool>> histInitialized;
 
 //	void createHistograms(INT feIndex);
 	HistType* CreateHistogram(INT feIndex, unsigned channelNo,
 			unsigned waveformLength);
-	HistType& FindCreateHist(INT feIndex, unsigned channelNo,
+	HistType& FindCreateWaveformHist(INT feIndex, unsigned channelNo,
 			unsigned waveformLength);
 	virtual void ResetHistogram(HistType& h, unsigned waveformLength);
 
