@@ -15,7 +15,7 @@ namespace hist {
 V1720Waveform::V1720Waveform(VirtualOdb* const anOdb) :
 		AbstractWaveform(anOdb, fe::v1720::equipName, fe::v1720::displayName,
 				caen::v1720::nsPerSample<ns_per_sample_type>()), minFront(14), frontLength(
-				3), threshold(2.0), raising(false) {
+				3), threshold(6.0), raising(false) {
 
 }
 
@@ -61,13 +61,16 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 							*files[channelNo] << "diff" << std::endl;
 						}
 
-						auto& s = *files[channelNo];
-						std::for_each(std::begin(dc), std::end(dc),
-								[&s](int16_t d) {
-									s << d << '\n';
-								});
+						auto const t = sa.GetStdScaled(threshold);
 
-						auto const t = threshold * sa.GetVariance();
+						{
+							auto& s = *files[channelNo];
+							std::for_each(std::begin(dc), std::end(dc),
+									[&s, t](int16_t d) {
+										s << d << '\t' << t << '\n';
+									});
+						}
+
 						auto const hasPeak =
 								raising ?
 										sa.GetMaxValue() >= t :
@@ -90,6 +93,11 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 						if (hasPeak) {
 							auto &ph = GetPositionHist(feIndex, channelNo,
 									numOfSamples);
+
+							auto &ah = GetAmplitudeHist(feIndex, channelNo,
+									4096);
+							ah.AddBinContent(
+									sa.GetRoughMean() - sa.GetMinValue());
 
 						}
 

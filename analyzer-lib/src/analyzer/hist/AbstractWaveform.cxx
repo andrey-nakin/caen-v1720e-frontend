@@ -26,7 +26,7 @@ AbstractWaveform::AbstractWaveform(VirtualOdb* anOdb,
 AbstractWaveform::HistType& AbstractWaveform::GetWaveformHist(INT const feIndex,
 		unsigned const channelNo, unsigned const waveformLength) {
 
-	auto &h = FindCreateWaveformHist(feIndex, channelNo, waveformLength);
+	auto& h = FindCreateWaveformHist(feIndex, channelNo, waveformLength);
 	if (!histInitialized[feIndex][channelNo]) {
 		ResetHistogram(h, waveformLength);
 		histInitialized[feIndex][channelNo] = true;
@@ -38,12 +38,14 @@ AbstractWaveform::HistType& AbstractWaveform::GetWaveformHist(INT const feIndex,
 AbstractWaveform::HistType& AbstractWaveform::GetPositionHist(INT const feIndex,
 		unsigned const channelNo, unsigned const waveformLength) {
 
-	auto &h = FindCreatePositionHist(feIndex, channelNo, waveformLength);
-	if (!histInitialized[feIndex][channelNo]) {
-		h.SetBins(waveformLength, 0, waveformLength - 1);
-		histInitialized[feIndex][channelNo] = true;
-	}
-	return h;
+	return FindCreatePositionHist(feIndex, channelNo, waveformLength);
+
+}
+
+AbstractWaveform::HistType& AbstractWaveform::GetAmplitudeHist(
+		INT const feIndex, unsigned const channelNo, unsigned const maxValue) {
+
+	return FindCreateAmplitudeHist(feIndex, channelNo, maxValue);
 
 }
 
@@ -85,7 +87,7 @@ AbstractWaveform::HistType* AbstractWaveform::CreateWaveformHistogram(
 	auto const name = ConstructName(feIndex, channelNo, "WF");
 	auto const title = ConstructTitle(feIndex, channelNo, "Waveform");
 
-	auto const h = new TH1I(name.c_str(), title.c_str(), waveformLength, 0,
+	auto const h = new HistType(name.c_str(), title.c_str(), waveformLength, 0,
 			waveformLength * nsPerSample);
 	h->SetXTitle("Time, ns");
 	h->SetYTitle("ADC Value");
@@ -103,9 +105,25 @@ AbstractWaveform::HistType* AbstractWaveform::CreatePositionHistogram(
 	auto const name = ConstructName(feIndex, channelNo, "PO");
 	auto const title = ConstructTitle(feIndex, channelNo, "Position");
 
-	auto const h = new TH1I(name.c_str(), title.c_str(), waveformLength, 0,
+	auto const h = new HistType(name.c_str(), title.c_str(), waveformLength, 0,
 			waveformLength - 1);
 	h->SetXTitle("Channel");
+	h->SetYTitle("Count");
+	push_back(h);
+
+	return h;
+
+}
+
+AbstractWaveform::HistType* AbstractWaveform::CreateAmplitudeHistogram(
+		INT const feIndex, unsigned const channelNo, unsigned const maxValue) {
+
+	auto const name = ConstructName(feIndex, channelNo, "AM");
+	auto const title = ConstructTitle(feIndex, channelNo, "Amplitude");
+
+	auto const h = new HistType(name.c_str(), title.c_str(), maxValue, 0,
+			maxValue - 1);
+	h->SetXTitle("Amplitude");
 	h->SetYTitle("Count");
 	push_back(h);
 
@@ -147,6 +165,21 @@ AbstractWaveform::HistType& AbstractWaveform::FindCreatePositionHist(
 
 }
 
+AbstractWaveform::HistType& AbstractWaveform::FindCreateAmplitudeHist(
+		INT const feIndex, unsigned const channelNo, unsigned const maxValue) {
+
+	auto const& m = ampHistograms[feIndex];
+	auto const& j = m.find(channelNo);
+	if (m.end() != j) {
+		return *j->second;
+	} else {
+		auto const h = CreateAmplitudeHistogram(feIndex, channelNo, maxValue);
+		ampHistograms[feIndex][channelNo] = h;
+		return *h;
+	}
+
+}
+
 void AbstractWaveform::ResetHistogram(HistType& h,
 		unsigned const waveformLength) {
 
@@ -158,7 +191,7 @@ std::string AbstractWaveform::ConstructName(INT const feIndex,
 		unsigned const channelNo, const char* const name) {
 
 	std::stringstream s;
-	s << name << displayName;
+	s << name << '_' << displayName;
 	if (feIndex >= 0) {
 		s << std::setfill('0') << std::setw(2) << feIndex;
 	}

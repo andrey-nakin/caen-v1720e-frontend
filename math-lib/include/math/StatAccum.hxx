@@ -76,6 +76,12 @@ public:
 
 	}
 
+	value_type GetStdScaled(double const scale) const {
+
+		return static_cast<value_type>(GetStd() * scale + .5);
+
+	}
+
 	counter_type GetCount() const {
 
 		return counter;

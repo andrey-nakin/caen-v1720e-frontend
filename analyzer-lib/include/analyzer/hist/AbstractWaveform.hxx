@@ -56,6 +56,8 @@ protected:
 			unsigned waveformLength);
 	HistType& GetPositionHist(INT feIndex, unsigned channelNo,
 			unsigned waveformLength);
+	HistType& GetAmplitudeHist(INT feIndex, unsigned channelNo,
+			unsigned maxValue);
 
 	template<class InputIt>
 	void SetData(HistType& h, InputIt const begin, InputIt const end) {
@@ -73,7 +75,8 @@ private:
 	std::string const baseEquipName;
 	std::string const displayName;
 	ns_per_sample_type const nsPerSample;
-	std::map<INT, std::map<unsigned, HistType*>> wfHistograms, posHistograms;
+	std::map<INT, std::map<unsigned, HistType*>> wfHistograms, posHistograms,
+			ampHistograms;
 	std::map<INT, std::map<unsigned, bool>> histInitialized;
 
 //	void createHistograms(INT feIndex);
@@ -81,17 +84,24 @@ private:
 			unsigned waveformLength);
 	HistType* CreatePositionHistogram(INT feIndex, unsigned channelNo,
 			unsigned waveformLength);
+	HistType* CreateAmplitudeHistogram(INT feIndex, unsigned channelNo,
+			unsigned maxValue);
+
 	HistType& FindCreateWaveformHist(INT feIndex, unsigned channelNo,
 			unsigned waveformLength);
 	HistType& FindCreatePositionHist(INT feIndex, unsigned channelNo,
 			unsigned waveformLength);
+	HistType& FindCreateAmplitudeHist(INT feIndex, unsigned channelNo,
+			unsigned maxValue);
 	virtual void ResetHistogram(HistType& h, unsigned waveformLength);
 
 //	virtual unsigned loadWaveformLength(INT feIndex) = 0;
 //	virtual std::vector<bool> loadEnabledChannels(INT feIndex) = 0;
 
-	virtual std::string ConstructName(INT feIndex, unsigned channelNo, const char* name);
-	virtual std::string ConstructTitle(INT feIndex, unsigned channelNo, const char* title);
+	virtual std::string ConstructName(INT feIndex, unsigned channelNo,
+			const char* name);
+	virtual std::string ConstructTitle(INT feIndex, unsigned channelNo,
+			const char* title);
 
 };
 

@@ -79,6 +79,8 @@ public:
 
 	};
 
+	using value_type = typename Iterator::value_type;
+
 	DiffContainer(InputIt const aBegin, InputIt const aEnd,
 			std::size_t const aDistance) :
 			distance(aDistance), range(MakeRange(aBegin, aEnd, aDistance)) {
