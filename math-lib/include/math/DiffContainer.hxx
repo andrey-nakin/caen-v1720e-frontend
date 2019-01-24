@@ -2,6 +2,7 @@
 #define	MATH_DiffContainer_hxx
 
 #include <iterator>
+#include <utility>
 
 namespace math {
 
@@ -72,34 +73,39 @@ public:
 
 	DiffContainer(InputIt const aBegin, InputIt const aEnd,
 			std::size_t const aShift) :
-			shift(aShift) {
-
-		if (std::distance(aBegin, aEnd)
-				>= static_cast<typename Iterator::difference_type>(aShift)) {
-			from = aBegin;
-			to = aEnd;
-		} else {
-			from = to = aEnd;
-		}
+			shift(aShift), range(MakeRange(aBegin, aEnd, aShift)) {
 
 	}
 
 	Iterator begin() const {
 
-		return from == to ? end() : Iterator(from, std::next(from, shift));
+		return range.first == range.second ?
+				end() : Iterator(range.first, std::next(range.first, shift));
 
 	}
 
 	Iterator end() const {
 
-		return Iterator(to, to);
+		return Iterator(range.second, range.second);
 
 	}
 
 private:
 
 	std::size_t const shift;
-	InputIt from, to;
+	std::pair<InputIt, InputIt> const range;
+
+	static std::pair<InputIt, InputIt> MakeRange(InputIt const aBegin,
+			InputIt const aEnd, std::size_t const aShift) {
+
+		if (std::distance(aBegin, aEnd)
+				>= static_cast<typename Iterator::difference_type>(aShift)) {
+			return std::pair<InputIt, InputIt>(aBegin, aEnd);
+		} else {
+			return std::pair<InputIt, InputIt>(aEnd, aEnd);
+		}
+
+	}
 
 };
 
