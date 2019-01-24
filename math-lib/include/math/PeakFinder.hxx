@@ -6,9 +6,6 @@
 
 namespace math {
 
-/*
-*/
-
 template<class InputIt>
 class PeakFinder {
 /*

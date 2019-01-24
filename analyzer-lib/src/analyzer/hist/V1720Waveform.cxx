@@ -67,17 +67,18 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 									s << d << '\n';
 								});
 
-						auto const t = threshold * sa.GetRoughVariance();
+						auto const t = threshold * sa.GetVariance();
 						auto const hasPeak =
 								raising ?
 										sa.GetMaxValue() >= t :
-										sa.GetMaxValue() <= -t;
+										sa.GetMinValue() <= -t;
 
 						static int cnt = 0;
-						if (hasPeak && channelNo == 1 && cnt++ < 10) {
+						if (channelNo == 1 && cnt++ < 10) {
 							std::stringstream s;
 							s << "waveform." << channelNo << "."
-									<< v1720Info->info().eventCounter << ".txt";
+									<< v1720Info->info().eventCounter << '.'
+									<< (hasPeak ? "yes" : "no") << ".txt";
 							std::ofstream f(s.str());
 
 							std::for_each(wf, wf + numOfSamples,
