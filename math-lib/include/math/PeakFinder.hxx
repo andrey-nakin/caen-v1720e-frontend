@@ -7,41 +7,6 @@
 namespace math {
 
 /*
-template<class InputIt, class AccumT = std::int64_t>
-class StatAccum {
-public:
-	typedef typename std::iterator_traits<InputIt>::value_type value_type;
-	typedef typename std::iterator_traits<InputIt>::difference_type difference_type;
-
-	StatAccum(InputIt const begin, InputIt const end) :
-			counter(0), sum(0), sum2(0) {
-
-		std::for_each(begin, end, *this);
-
-	}
-
-	void operator(value_type const v) {
-		counter++;
-		sum += v;
-		sum2 += v * v;
-	}
-
-	AccumT GetVariance() const {
-
-	}
-
-	value_type GetStd() const {
-
-		return std::sqrt(GetVariance());
-
-	}
-
-private:
-
-	std::uint_fast32_t counter;
-	AccumT sum, sum2;
-
-};
 */
 
 template<class InputIt>

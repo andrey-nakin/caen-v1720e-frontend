@@ -22,6 +22,7 @@ private:
 
 	uint16_t minFront;
 	unsigned frontLength;
+	double threshold;
 
 //	unsigned loadWaveformLength(INT feIndex) override;
 //	std::vector<bool> loadEnabledChannels(INT feIndex) override;
