@@ -98,8 +98,8 @@ private:
 	static std::pair<InputIt, InputIt> MakeRange(InputIt const aBegin,
 			InputIt const aEnd, std::size_t const aDistance) {
 
-		if (std::distance(aBegin, aEnd)
-				>= static_cast<typename Iterator::difference_type>(aDistance)) {
+		auto const d = std::distance(aBegin, aEnd);
+		if (d >= static_cast<decltype(d)>(aDistance)) {
 			return std::pair<InputIt, InputIt>(aBegin, aEnd);
 		} else {
 			return std::pair<InputIt, InputIt>(aEnd, aEnd);
