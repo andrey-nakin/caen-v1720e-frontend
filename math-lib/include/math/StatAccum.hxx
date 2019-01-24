@@ -4,6 +4,7 @@
 #include <iterator>
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 
 namespace math {
 
