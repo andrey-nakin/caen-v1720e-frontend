@@ -53,45 +53,45 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 						auto const sa = math::MakeStatAccum(std::begin(dc),
 								std::end(dc));
 
-						if (files.end() == files.find(channelNo)) {
-							std::stringstream s;
-							s << "channel." << channelNo << ".txt";
-							std::string name = s.str();
-							files[channelNo] = std::unique_ptr < std::ofstream
-									> (new std::ofstream(name));
-							*files[channelNo] << "diff" << std::endl;
-						}
+//						if (files.end() == files.find(channelNo)) {
+//							std::stringstream s;
+//							s << "channel." << channelNo << ".txt";
+//							std::string name = s.str();
+//							files[channelNo] = std::unique_ptr < std::ofstream
+//									> (new std::ofstream(name));
+//							*files[channelNo] << "diff" << std::endl;
+//						}
 
 						auto const t = sa.GetStdScaled
 								< util::TWaveFormRawData::value_type
 								> (threshold);
 
-						{
-							auto& s = *files[channelNo];
-							std::for_each(std::begin(dc), std::end(dc),
-									[&s, t](int16_t d) {
-										s << d << '\t' << t << '\n';
-									});
-						}
+//						{
+//							auto& s = *files[channelNo];
+//							std::for_each(std::begin(dc), std::end(dc),
+//									[&s, t](int16_t d) {
+//										s << d << '\t' << t << '\n';
+//									});
+//						}
 
 						auto const hasPeak =
 								rising ?
 										sa.GetMaxValue() >= t :
 										sa.GetMinValue() <= -t;
 
-						static int cnt = 0;
-						if (channelNo == 1 && cnt++ < 10) {
-							std::stringstream s;
-							s << "waveform." << channelNo << "."
-									<< v1720Info->info().eventCounter << '.'
-									<< (hasPeak ? "yes" : "no") << ".txt";
-							std::ofstream f(s.str());
-
-							std::for_each(wf, wf + numOfSamples,
-									[&f](decltype(*wf) s) {
-										f << s << '\n';
-									});
-						}
+//						static int cnt = 0;
+//						if (channelNo == 1 && cnt++ < 10) {
+//							std::stringstream s;
+//							s << "waveform." << channelNo << "."
+//									<< v1720Info->info().eventCounter << '.'
+//									<< (hasPeak ? "yes" : "no") << ".txt";
+//							std::ofstream f(s.str());
+//
+//							std::for_each(wf, wf + numOfSamples,
+//									[&f](decltype(*wf) s) {
+//										f << s << '\n';
+//									});
+//						}
 
 						if (hasPeak) {
 							auto &ph = GetPositionHist(feIndex, channelNo,
@@ -100,12 +100,15 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 									caen::v1720::NUM_OF_SAMPLE_VALUES);
 
 							auto pf = math::MakePeakFinder(rising, wf,
-									wf + numOfSamples, frontLength, t, peakLength);
+									wf + numOfSamples, frontLength, t,
+									peakLength);
 							while (pf.HasNext()) {
 								auto const i = pf.GetNext();
-								ah.AddBinContent(std::distance(wf, i));
-								ah.AddBinContent(
-										std::abs(*i - sa.GetRoughMean()));
+								auto const position = std::distance(wf, i);
+								auto const amplitude = *i;
+
+								ph.AddBinContent(position);
+								ah.AddBinContent(amplitude);
 							}
 						}
 					}
