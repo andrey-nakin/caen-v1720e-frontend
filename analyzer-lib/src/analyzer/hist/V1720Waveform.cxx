@@ -37,13 +37,13 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 					if (numOfSamples > 0) {
 						// retrieve waveform
 						auto const wf = wfRaw->waveForm();
+						auto const feIndex = frontendIndex(
+								v1720Info->info().frontendIndex);
 
 						{
 							// draw raw waveform
-							auto &h = GetWaveformHist(
-									frontendIndex(
-											v1720Info->info().frontendIndex),
-									channelNo, numOfSamples);
+							auto &h = GetWaveformHist(feIndex, channelNo,
+									numOfSamples);
 							SetData(h, wf, wf + numOfSamples);
 						}
 
@@ -85,6 +85,12 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 									[&f](decltype(*wf) s) {
 										f << s << '\n';
 									});
+						}
+
+						if (hasPeak) {
+							auto &ph = GetPositionHist(feIndex, channelNo,
+									numOfSamples);
+
 						}
 
 					}

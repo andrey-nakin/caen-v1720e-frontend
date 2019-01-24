@@ -35,6 +35,18 @@ AbstractWaveform::HistType& AbstractWaveform::GetWaveformHist(INT const feIndex,
 
 }
 
+AbstractWaveform::HistType& AbstractWaveform::GetPositionHist(INT const feIndex,
+		unsigned const channelNo, unsigned const waveformLength) {
+
+	auto &h = FindCreatePositionHist(feIndex, channelNo, waveformLength);
+	if (!histInitialized[feIndex][channelNo]) {
+		h.SetBins(waveformLength, 0, waveformLength - 1);
+		histInitialized[feIndex][channelNo] = true;
+	}
+	return h;
+
+}
+
 //void AbstractWaveform::createHistograms(INT const feIndex) {
 //	auto const waveformLength = loadWaveformLength(feIndex);
 //	if (waveformLength == 0) {
@@ -66,17 +78,35 @@ void AbstractWaveform::BeginRun(int /*transition*/, int /*run*/, int /*time*/) {
 
 }
 
-AbstractWaveform::HistType* AbstractWaveform::CreateHistogram(INT const feIndex,
-		unsigned const channelNo, unsigned const waveformLength) {
+AbstractWaveform::HistType* AbstractWaveform::CreateWaveformHistogram(
+		INT const feIndex, unsigned const channelNo,
+		unsigned const waveformLength) {
 
-	auto const name = ConstructName(feIndex, channelNo);
-	auto const title = ConstructTitle(feIndex, channelNo);
+	auto const name = ConstructName(feIndex, channelNo, "WF");
+	auto const title = ConstructTitle(feIndex, channelNo, "Waveform");
 
-	auto const h = new TH1D(name.c_str(), title.c_str(), waveformLength, 0,
+	auto const h = new TH1I(name.c_str(), title.c_str(), waveformLength, 0,
 			waveformLength * nsPerSample);
 	h->SetXTitle("Time, ns");
 	h->SetYTitle("ADC Value");
 	h->SetStats(kFALSE);
+	push_back(h);
+
+	return h;
+
+}
+
+AbstractWaveform::HistType* AbstractWaveform::CreatePositionHistogram(
+		INT const feIndex, unsigned const channelNo,
+		unsigned const waveformLength) {
+
+	auto const name = ConstructName(feIndex, channelNo, "PO");
+	auto const title = ConstructTitle(feIndex, channelNo, "Position");
+
+	auto const h = new TH1I(name.c_str(), title.c_str(), waveformLength, 0,
+			waveformLength - 1);
+	h->SetXTitle("Channel");
+	h->SetYTitle("Count");
 	push_back(h);
 
 	return h;
@@ -92,8 +122,26 @@ AbstractWaveform::HistType& AbstractWaveform::FindCreateWaveformHist(
 	if (m.end() != j) {
 		return *j->second;
 	} else {
-		auto const h = CreateHistogram(feIndex, channelNo, waveformLength);
+		auto const h = CreateWaveformHistogram(feIndex, channelNo,
+				waveformLength);
 		wfHistograms[feIndex][channelNo] = h;
+		return *h;
+	}
+
+}
+
+AbstractWaveform::HistType& AbstractWaveform::FindCreatePositionHist(
+		INT const feIndex, unsigned const channelNo,
+		unsigned const waveformLength) {
+
+	auto const& m = posHistograms[feIndex];
+	auto const& j = m.find(channelNo);
+	if (m.end() != j) {
+		return *j->second;
+	} else {
+		auto const h = CreatePositionHistogram(feIndex, channelNo,
+				waveformLength);
+		posHistograms[feIndex][channelNo] = h;
 		return *h;
 	}
 
@@ -107,10 +155,10 @@ void AbstractWaveform::ResetHistogram(HistType& h,
 }
 
 std::string AbstractWaveform::ConstructName(INT const feIndex,
-		unsigned const channelNo) {
+		unsigned const channelNo, const char* const name) {
 
 	std::stringstream s;
-	s << "WF" << displayName;
+	s << name << displayName;
 	if (feIndex >= 0) {
 		s << std::setfill('0') << std::setw(2) << feIndex;
 	}
@@ -120,10 +168,10 @@ std::string AbstractWaveform::ConstructName(INT const feIndex,
 }
 
 std::string AbstractWaveform::ConstructTitle(INT const feIndex,
-		unsigned const channelNo) {
+		unsigned const channelNo, const char* const title) {
 
 	std::stringstream s;
-	s << "Waveform " << displayName;
+	s << title << ' ' << displayName;
 	if (feIndex >= 0) {
 		s << " #" << feIndex;
 	}
