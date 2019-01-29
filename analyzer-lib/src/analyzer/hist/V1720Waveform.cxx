@@ -138,12 +138,9 @@ util::TWaveFormRawData::difference_type V1720Waveform::FindEdgeDistance(
 			auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
 					> (TWaveFormRawData::bankName(triggerChannel));
 			if (wfRaw) {
-				auto const numOfSamples = wfRaw->numOfSamples();
-				if (numOfSamples > 0) {
-					return math::FindEdgeDistance(v1720Info->triggerRising(),
-							v1720Info->triggerThreshold(), wfRaw->begin(),
-							wfRaw->end());
-				}
+				return math::FindEdgeDistance(v1720Info->triggerRising(),
+						v1720Info->triggerThreshold(), wfRaw->begin(),
+						wfRaw->end());
 			}
 		}
 	}
