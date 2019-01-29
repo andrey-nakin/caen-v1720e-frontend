@@ -74,7 +74,7 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 							while (pf.HasNext()) {
 								auto const i = pf.GetNext();
 								auto const position = std::distance(
-										wfRaw->begin(), i);
+										wfRaw->begin(), i) - edgePosition;
 								decltype(wfSa.GetRoughMean()) const ampAdjusted =
 										rising ?
 												*i - wfSa.GetRoughMean() :
@@ -82,7 +82,7 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 								auto const amplitude = std::min(ampAdjusted,
 										caen::v1720::MAX_SAMPLE_VALUE);
 
-								ph.AddBinContent(position - edgePosition);
+								ph.AddBinContent(position < 0 ? 0 : position);
 								ah.AddBinContent(amplitude);
 							}
 						}
