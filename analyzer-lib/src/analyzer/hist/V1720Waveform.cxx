@@ -40,6 +40,8 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 						auto const wf = wfRaw->waveForm();
 						auto const feIndex = frontendIndex(
 								v1720Info->info().frontendIndex);
+						auto const wfSa = math::MakeStatAccum(wf,
+								wf + numOfSamples);
 
 						{
 							// draw raw waveform
@@ -50,7 +52,7 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
 						auto const dc = math::MakeDiffContainer<int16_t>(wf,
 								wf + numOfSamples, frontLength);
-						auto const sa = math::MakeStatAccum(std::begin(dc),
+						auto const dcSa = math::MakeStatAccum(std::begin(dc),
 								std::end(dc));
 
 //						if (files.end() == files.find(channelNo)) {
@@ -62,7 +64,7 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 //							*files[channelNo] << "diff" << std::endl;
 //						}
 
-						auto const t = sa.GetStdScaled
+						auto const t = dcSa.GetStdScaled
 								< util::TWaveFormRawData::value_type
 								> (threshold);
 
@@ -76,8 +78,8 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
 						auto const hasPeak =
 								rising ?
-										sa.GetMaxValue() >= t :
-										sa.GetMinValue() <= -t;
+										dcSa.GetMaxValue() >= t :
+										dcSa.GetMinValue() <= -t;
 
 //						static int cnt = 0;
 //						if (channelNo == 1 && cnt++ < 10) {
@@ -105,7 +107,11 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 							while (pf.HasNext()) {
 								auto const i = pf.GetNext();
 								auto const position = std::distance(wf, i);
-								auto const amplitude = std::min(*i,
+								decltype(wfSa.GetRoughMean()) const ampAdjusted =
+										rising ?
+												*i - wfSa.GetRoughMean() :
+												wfSa.GetRoughMean() - *i;
+								auto const amplitude = std::min(ampAdjusted,
 										caen::v1720::MAX_SAMPLE_VALUE);
 
 								ph.AddBinContent(position);
