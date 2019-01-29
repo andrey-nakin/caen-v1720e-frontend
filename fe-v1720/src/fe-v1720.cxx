@@ -36,6 +36,9 @@ static std::vector<uint16_t> dcOffsets;
 static std::unique_ptr<caen::Device> device;
 static std::recursive_mutex mDevice;
 static std::atomic_bool acquisitionIsOn(false);
+static uint8_t triggerChannel;
+static uint16_t triggerThreshold;
+static bool triggerRaisingPolarity;
 
 }
 
@@ -170,8 +173,8 @@ static void configure(caen::Handle& hDevice) {
 	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet, settings::channelDcOffset,
 			boardInfo.Channels, defaults::channel::dcOffset, true);
 
-	auto const triggerChannel = odb::getValueUInt8(hDB, hSet,
-			settings::triggerChannel, defaults::triggerChannel, true);
+	auto const triggerChannel = glob::triggerChannel = odb::getValueUInt8(hDB,
+			hSet, settings::triggerChannel, defaults::triggerChannel, true);
 	hDevice.hCommand("setting channel self trigger",
 			[triggerChannel](int handle) {return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel));});
 	if (triggerChannel >= boardInfo.Channels) {
@@ -197,14 +200,16 @@ static void configure(caen::Handle& hDevice) {
 	hDevice.hCommand("setting channel enable mask",
 			[channelMask](int handle) {return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask);});
 
-	auto const triggerThreshold = odb::getValueUInt16(hDB, hSet,
-			settings::triggerThreshold, defaults::triggerThreshold, true);
+	auto const triggerThreshold = glob::triggerThreshold = odb::getValueUInt16(
+			hDB, hSet, settings::triggerThreshold, defaults::triggerThreshold,
+			true);
 	hDevice.hCommand("setting channel trigger threshold",
 			[triggerChannel, triggerThreshold](int handle) {return CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold);});
 
-	auto const triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
-			settings::triggerRaisingPolarity, defaults::triggerRaisingPolarity,
-			true);
+	auto const triggerRaisingPolarity = glob::triggerRaisingPolarity =
+			odb::getValueBool(hDB, hSet, settings::triggerRaisingPolarity,
+					defaults::triggerRaisingPolarity,
+					true);
 	hDevice.hCommand("setting trigger polarity",
 			[triggerChannel, triggerRaisingPolarity](int handle) {return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge);});
 
@@ -405,6 +410,10 @@ static int parseEvent(char * const pevent,
 		info->timeStampHi = eventInfo.Pattern;
 		info->frontendIndex = util::FrontEndUtils::frontendIndex<
 				decltype(info->frontendIndex)>();
+		info->triggerChannel = glob::triggerChannel;
+		info->triggerThreshold = glob::triggerThreshold;
+		info->triggerRising = glob::triggerRaisingPolarity ? 1 : 0;
+		info->reserved = 0;
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 

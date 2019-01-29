@@ -5,6 +5,7 @@
 #include <memory>
 #include <fstream>
 #include <VirtualOdb.h>
+#include <util/V1720InfoRawData.hxx>
 #include "AbstractWaveform.hxx"
 
 namespace analyzer {
@@ -34,6 +35,8 @@ private:
 		return v == static_cast<decltype(v)>(-1) ? -1 : static_cast<INT>(v);
 
 	}
+
+	int FindEdgeDistance(TDataContainer&, util::V1720InfoRawData const*);
 
 	std::map<channel_type, std::vector<int32_t>> buffers;
 	std::map<unsigned, std::unique_ptr<std::ofstream>> files;

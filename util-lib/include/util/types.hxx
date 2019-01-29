@@ -31,6 +31,10 @@ typedef struct
 		uint32_t timeStampLo;
 		uint32_t timeStampHi;
 		uint32_t frontendIndex;
+		uint32_t triggerChannel;
+		uint32_t triggerThreshold;
+		uint32_t triggerRising;
+		uint32_t reserved;
 
 	} InfoBank;
 

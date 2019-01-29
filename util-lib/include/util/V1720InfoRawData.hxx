@@ -17,6 +17,15 @@ public:
 
 	bool channelIncluded(uint8_t channelNo) const;
 
+	bool hasTriggerSettings() const;
+	uint8_t triggerChannel() const;
+	uint16_t triggerThreshold() const;
+	bool triggerRising() const;
+
+private:
+
+	InfoBank infoBank;
+
 };
 
 }

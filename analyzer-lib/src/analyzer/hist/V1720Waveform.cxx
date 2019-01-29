@@ -2,11 +2,11 @@
 #include <caen/v1720.hxx>
 #include <midas/odb.hxx>
 #include <fe-v1720.hxx>
-#include <util/V1720InfoRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
 #include <math/DiffContainer.hxx>
 #include <math/StatAccum.hxx>
 #include <math/PeakFinder.hxx>
+#include <math/EdgeFinder.hxx>
 #include "analyzer/hist/V1720Waveform.hxx"
 
 namespace analyzer {
@@ -28,6 +28,9 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 	auto const v1720Info = dataContainer.GetEventData < V1720InfoRawData
 			> (V1720InfoRawData::bankName());
 	if (v1720Info) {
+		auto const feIndex = frontendIndex(v1720Info->info().frontendIndex);
+		auto const edgePosition = FindEdgeDistance(dataContainer, v1720Info);
+
 		for (unsigned channelNo = 0; channelNo < caen::v1720::NUM_OF_CHANNELS;
 				channelNo++) {
 			if (v1720Info->channelIncluded(channelNo)) {
@@ -38,8 +41,6 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 					if (numOfSamples > 0) {
 						// retrieve waveform
 						auto const wf = wfRaw->waveForm();
-						auto const feIndex = frontendIndex(
-								v1720Info->info().frontendIndex);
 						auto const wfSa = math::MakeStatAccum(wf,
 								wf + numOfSamples);
 
@@ -114,7 +115,7 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 								auto const amplitude = std::min(ampAdjusted,
 										caen::v1720::MAX_SAMPLE_VALUE);
 
-								ph.AddBinContent(position);
+								ph.AddBinContent(position - edgePosition);
 								ah.AddBinContent(amplitude);
 							}
 						}
@@ -123,6 +124,33 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 			}
 		}
 	}
+
+}
+
+int V1720Waveform::FindEdgeDistance(TDataContainer &dataContainer,
+		util::V1720InfoRawData const*v1720Info) {
+
+	using util::TWaveFormRawData;
+
+	if (v1720Info->hasTriggerSettings()) {
+		auto const triggerChannel = v1720Info->triggerChannel();
+
+		if (v1720Info->channelIncluded(triggerChannel)) {
+			auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
+					> (TWaveFormRawData::bankName(triggerChannel));
+			if (wfRaw) {
+				auto const numOfSamples = wfRaw->numOfSamples();
+				if (numOfSamples > 0) {
+					auto const wf = wfRaw->waveForm();
+					return math::FindEdgeDistance(v1720Info->triggerRising(),
+							v1720Info->triggerThreshold(), wf,
+							wf + numOfSamples);
+				}
+			}
+		}
+	}
+
+	return 0;
 
 }
 
