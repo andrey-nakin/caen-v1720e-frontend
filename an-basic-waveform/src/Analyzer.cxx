@@ -19,6 +19,7 @@ public:
 	std::unique_ptr<TAnaManager> anaManager;
 
 	Analyzer() {
+		SetOnlineName("an-basic-waveform");
 		// DisableAutoMainWindow();
 		UseBatchMode();
 	}
@@ -29,6 +30,7 @@ public:
 		std::cout << "Using THttpServer in read/write mode" << std::endl;
 
 		SetTHttpServerReadWrite();
+		GetTHttpServer()->SetCors("*");
 #endif
 
 	}
