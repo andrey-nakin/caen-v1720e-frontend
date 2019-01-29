@@ -38,7 +38,6 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 				if (wfRaw) {
 					auto const numOfSamples = wfRaw->numOfSamples();
 					if (numOfSamples > 0) {
-						// retrieve waveform
 						auto const wfSa = math::MakeStatAccum(wfRaw->begin(),
 								wfRaw->end());
 
@@ -54,45 +53,14 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 						auto const dcSa = math::MakeStatAccum(std::begin(dc),
 								std::end(dc));
 
-//						if (files.end() == files.find(channelNo)) {
-//							std::stringstream s;
-//							s << "channel." << channelNo << ".txt";
-//							std::string name = s.str();
-//							files[channelNo] = std::unique_ptr < std::ofstream
-//									> (new std::ofstream(name));
-//							*files[channelNo] << "diff" << std::endl;
-//						}
-
 						auto const t = dcSa.GetStdScaled
 								< util::TWaveFormRawData::value_type
 								> (threshold);
-
-//						{
-//							auto& s = *files[channelNo];
-//							std::for_each(std::begin(dc), std::end(dc),
-//									[&s, t](int16_t d) {
-//										s << d << '\t' << t << '\n';
-//									});
-//						}
 
 						auto const hasPeak =
 								rising ?
 										dcSa.GetMaxValue() >= t :
 										dcSa.GetMinValue() <= -t;
-
-//						static int cnt = 0;
-//						if (channelNo == 1 && cnt++ < 10) {
-//							std::stringstream s;
-//							s << "waveform." << channelNo << "."
-//									<< v1720Info->info().eventCounter << '.'
-//									<< (hasPeak ? "yes" : "no") << ".txt";
-//							std::ofstream f(s.str());
-//
-//							std::for_each(wf, wf + numOfSamples,
-//									[&f](decltype(*wf) s) {
-//										f << s << '\n';
-//									});
-//						}
 
 						if (hasPeak) {
 							auto &ph = GetPositionHist(feIndex, channelNo,
