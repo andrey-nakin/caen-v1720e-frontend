@@ -34,7 +34,7 @@ typedef struct
 		uint32_t triggerChannel;
 		uint32_t triggerThreshold;
 		uint32_t triggerRising;
-		uint32_t reserved;
+		uint32_t triggerMode;
 
 	} InfoBank;
 

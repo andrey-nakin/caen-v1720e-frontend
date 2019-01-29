@@ -34,7 +34,7 @@ bool V1720InfoRawData::channelIncluded(uint8_t const channelNo) const {
 
 bool V1720InfoRawData::hasTriggerSettings() const {
 
-	return GetSize() >= 9;
+	return GetSize() >= 10;
 
 }
 
@@ -53,6 +53,12 @@ uint16_t V1720InfoRawData::triggerThreshold() const {
 bool V1720InfoRawData::triggerRising() const {
 
 	return info().triggerRising == 0 ? false : true;
+
+}
+
+uint32_t V1720InfoRawData::triggerMode() const {
+
+	return info().triggerMode;
 
 }
 

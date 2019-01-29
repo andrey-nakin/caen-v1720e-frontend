@@ -100,7 +100,7 @@ util::TWaveFormRawData::difference_type V1720Waveform::FindEdgeDistance(
 
 	using util::TWaveFormRawData;
 
-	if (v1720Info->hasTriggerSettings()) {
+	if (v1720Info->hasTriggerSettings() && v1720Info->triggerMode() == 0) {
 		auto const triggerChannel = v1720Info->triggerChannel();
 
 		if (v1720Info->channelIncluded(triggerChannel)) {

@@ -413,7 +413,7 @@ static int parseEvent(char * const pevent,
 		info->triggerChannel = glob::triggerChannel;
 		info->triggerThreshold = glob::triggerThreshold;
 		info->triggerRising = glob::triggerRaisingPolarity ? 1 : 0;
-		info->reserved = 0;
+		info->triggerMode = 0;
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 

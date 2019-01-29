@@ -21,6 +21,7 @@ public:
 	uint8_t triggerChannel() const;
 	uint16_t triggerThreshold() const;
 	bool triggerRising() const;
+	uint32_t triggerMode() const;
 
 private:
 
