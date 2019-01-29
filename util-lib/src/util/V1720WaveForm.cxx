@@ -9,9 +9,8 @@ V1720WaveForm::V1720WaveForm(TWaveFormRawData const& rawData,
 
 	Float_t const multiplier = 2.0f / 4095.0f;
 	Float_t const offset = (65535.0f - dcOffset) / 65536.0f * (-2.0f);
-	std::transform(rawData.waveForm(),
-			rawData.waveForm() + rawData.numOfSamples(),
-			std::back_insert_iterator < std::vector < Float_t >> (voltages),
+	std::transform(rawData.begin(), rawData.end(),
+			std::back_insert_iterator<std::vector<Float_t>>(voltages),
 			[multiplier, offset](uint16_t s) {
 				return multiplier * s + offset;
 			});

@@ -11,6 +11,8 @@ class TWaveFormRawData: public TGenericData {
 public:
 
 	typedef uint16_t value_type;
+	typedef value_type const* const_iterator_type;
+	using difference_type = typename std::iterator_traits<const_iterator_type>::difference_type;
 
 	TWaveFormRawData(int bklen, int bktype, const char* name, void *pdata);
 
@@ -22,9 +24,15 @@ public:
 
 	}
 
-	value_type const* waveForm() const {
+	const_iterator_type begin() const {
 
 		return GetData16();
+
+	}
+
+	const_iterator_type end() const {
+
+		return begin() + numOfSamples();
 
 	}
 

@@ -2,7 +2,6 @@
 #include <caen/v1720.hxx>
 #include <midas/odb.hxx>
 #include <fe-v1720.hxx>
-#include <util/TWaveFormRawData.hxx>
 #include <math/DiffContainer.hxx>
 #include <math/StatAccum.hxx>
 #include <math/PeakFinder.hxx>
@@ -40,19 +39,18 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 					auto const numOfSamples = wfRaw->numOfSamples();
 					if (numOfSamples > 0) {
 						// retrieve waveform
-						auto const wf = wfRaw->waveForm();
-						auto const wfSa = math::MakeStatAccum(wf,
-								wf + numOfSamples);
+						auto const wfSa = math::MakeStatAccum(wfRaw->begin(),
+								wfRaw->end());
 
 						{
 							// draw raw waveform
 							auto &h = GetWaveformHist(feIndex, channelNo,
 									numOfSamples);
-							SetData(h, wf, wf + numOfSamples);
+							SetData(h, wfRaw->begin(), wfRaw->end());
 						}
 
-						auto const dc = math::MakeDiffContainer<int16_t>(wf,
-								wf + numOfSamples, frontLength);
+						auto const dc = math::MakeDiffContainer<int16_t>(
+								wfRaw->begin(), wfRaw->end(), frontLength);
 						auto const dcSa = math::MakeStatAccum(std::begin(dc),
 								std::end(dc));
 
@@ -102,12 +100,13 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 							auto &ah = GetAmplitudeHist(feIndex, channelNo,
 									caen::v1720::NUM_OF_SAMPLE_VALUES);
 
-							auto pf = math::MakePeakFinder(rising, wf,
-									wf + numOfSamples, frontLength, t,
-									peakLength);
+							auto pf = math::MakePeakFinder(rising,
+									wfRaw->begin(), wfRaw->end(), frontLength,
+									t, peakLength);
 							while (pf.HasNext()) {
 								auto const i = pf.GetNext();
-								auto const position = std::distance(wf, i);
+								auto const position = std::distance(
+										wfRaw->begin(), i);
 								decltype(wfSa.GetRoughMean()) const ampAdjusted =
 										rising ?
 												*i - wfSa.GetRoughMean() :
@@ -127,8 +126,8 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
 }
 
-int V1720Waveform::FindEdgeDistance(TDataContainer &dataContainer,
-		util::V1720InfoRawData const*v1720Info) {
+util::TWaveFormRawData::difference_type V1720Waveform::FindEdgeDistance(
+		TDataContainer &dataContainer, util::V1720InfoRawData const*v1720Info) {
 
 	using util::TWaveFormRawData;
 
@@ -141,10 +140,9 @@ int V1720Waveform::FindEdgeDistance(TDataContainer &dataContainer,
 			if (wfRaw) {
 				auto const numOfSamples = wfRaw->numOfSamples();
 				if (numOfSamples > 0) {
-					auto const wf = wfRaw->waveForm();
 					return math::FindEdgeDistance(v1720Info->triggerRising(),
-							v1720Info->triggerThreshold(), wf,
-							wf + numOfSamples);
+							v1720Info->triggerThreshold(), wfRaw->begin(),
+							wfRaw->end());
 				}
 			}
 		}
