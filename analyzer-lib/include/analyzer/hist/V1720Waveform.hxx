@@ -37,6 +37,11 @@ private:
 
 	}
 
+	void AnalyzeWaveform(INT feIndex, uint8_t channelNo,
+			std::size_t numOfSamples,
+			util::TWaveFormRawData::const_iterator_type wfBegin,
+			util::TWaveFormRawData::const_iterator_type wfEnd);
+
 	util::TWaveFormRawData::difference_type FindEdgeDistance(TDataContainer&,
 			util::V1720InfoRawData const*);
 

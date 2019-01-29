@@ -30,7 +30,7 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 		auto const feIndex = frontendIndex(v1720Info->info().frontendIndex);
 		auto const edgePosition = FindEdgeDistance(dataContainer, v1720Info);
 
-		for (unsigned channelNo = 0; channelNo < caen::v1720::NUM_OF_CHANNELS;
+		for (uint8_t channelNo = 0; channelNo < caen::v1720::NUM_OF_CHANNELS;
 				channelNo++) {
 			if (v1720Info->channelIncluded(channelNo)) {
 				auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
@@ -38,57 +38,61 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 				if (wfRaw) {
 					auto const numOfSamples = wfRaw->numOfSamples();
 					if (numOfSamples > 0) {
-						auto const wfSa = math::MakeStatAccum(wfRaw->begin(),
-								wfRaw->end());
+						// draw raw waveform
+						auto &h = GetWaveformHist(feIndex, channelNo,
+								numOfSamples);
+						SetData(h, wfRaw->begin(), wfRaw->end());
 
-						{
-							// draw raw waveform
-							auto &h = GetWaveformHist(feIndex, channelNo,
-									numOfSamples);
-							SetData(h, wfRaw->begin(), wfRaw->end());
-						}
+						auto const wfBegin = std::next(wfRaw->begin(),
+								edgePosition);
+						auto const wfEnd = wfRaw->end();
 
-						auto const dc = math::MakeDiffContainer<int16_t>(
-								wfRaw->begin(), wfRaw->end(), frontLength);
-						auto const dcSa = math::MakeStatAccum(std::begin(dc),
-								std::end(dc));
-
-						auto const t = dcSa.GetStdScaled
-								< util::TWaveFormRawData::value_type
-								> (threshold);
-
-						auto const hasPeak =
-								rising ?
-										dcSa.GetMaxValue() >= t :
-										dcSa.GetMinValue() <= -t;
-
-						if (hasPeak) {
-							auto &ph = GetPositionHist(feIndex, channelNo,
-									numOfSamples);
-							auto &ah = GetAmplitudeHist(feIndex, channelNo,
-									caen::v1720::NUM_OF_SAMPLE_VALUES);
-
-							auto pf = math::MakePeakFinder(rising,
-									wfRaw->begin(), wfRaw->end(), frontLength,
-									t, peakLength);
-							while (pf.HasNext()) {
-								auto const i = pf.GetNext();
-								auto const position = std::distance(
-										wfRaw->begin(), i) - edgePosition;
-								decltype(wfSa.GetRoughMean()) const ampAdjusted =
-										rising ?
-												*i - wfSa.GetRoughMean() :
-												wfSa.GetRoughMean() - *i;
-								auto const amplitude = std::min(ampAdjusted,
-										caen::v1720::MAX_SAMPLE_VALUE);
-
-								ph.AddBinContent(position < 0 ? 0 : position);
-								ah.AddBinContent(amplitude);
-							}
+						if (wfBegin < wfEnd) {
+							AnalyzeWaveform(feIndex, channelNo, numOfSamples,
+									wfBegin, wfEnd);
 						}
 					}
 				}
 			}
+		}
+	}
+
+}
+
+void V1720Waveform::AnalyzeWaveform(INT const feIndex, uint8_t const channelNo,
+		std::size_t const numOfSamples,
+		util::TWaveFormRawData::const_iterator_type const wfBegin,
+		util::TWaveFormRawData::const_iterator_type const wfEnd) {
+
+	auto const wfSa = math::MakeStatAccum(wfBegin, wfEnd);
+	auto const dc = math::MakeDiffContainer<int16_t>(wfBegin, wfEnd,
+			frontLength);
+	auto const dcSa = math::MakeStatAccum(std::begin(dc), std::end(dc));
+
+	auto const t = dcSa.GetStdScaled < util::TWaveFormRawData::value_type
+			> (threshold);
+
+	auto const hasPeak =
+			rising ? dcSa.GetMaxValue() >= t : dcSa.GetMinValue() <= -t;
+
+	if (hasPeak) {
+		auto &ph = GetPositionHist(feIndex, channelNo, numOfSamples);
+		auto &ah = GetAmplitudeHist(feIndex, channelNo,
+				caen::v1720::NUM_OF_SAMPLE_VALUES);
+
+		auto pf = math::MakePeakFinder(rising, wfBegin, wfEnd, frontLength, t,
+				peakLength);
+		while (pf.HasNext()) {
+			auto const i = pf.GetNext();
+			auto const position = std::distance(wfBegin, i);
+			decltype(wfSa.GetRoughMean()) const ampAdjusted =
+					rising ?
+							*i - wfSa.GetRoughMean() : wfSa.GetRoughMean() - *i;
+			auto const amplitude = std::min(ampAdjusted,
+					caen::v1720::MAX_SAMPLE_VALUE);
+
+			ph.AddBinContent(position);
+			ah.AddBinContent(amplitude);
 		}
 	}
 
