@@ -7,6 +7,8 @@ V1720InfoRawData::V1720InfoRawData(int const bklen, int const bktype,
 		const char* const name, void * const pdata) :
 		TGenericData(bklen, bktype, name, pdata) {
 
+	std::memset(&infoBank, 0, sizeof(infoBank));
+	infoBank.frontendIndex = static_cast<decltype(infoBank.frontendIndex)>(-1);
 	std::memcpy(&infoBank, GetData32(),
 			std::min(sizeof(infoBank), GetSize() * sizeof(GetData32()[0])));
 
