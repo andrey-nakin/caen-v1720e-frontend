@@ -2,6 +2,7 @@
 #include <caen/v1720.hxx>
 #include <midas/odb.hxx>
 #include <fe-v1720.hxx>
+#include <util/TriggerInfoRawData.hxx>
 #include <math/DiffContainer.hxx>
 #include <math/StatAccum.hxx>
 #include <math/PeakFinder.hxx>
@@ -99,16 +100,21 @@ util::TWaveFormRawData::difference_type V1720Waveform::FindEdgeDistance(
 		TDataContainer &dataContainer, util::V1720InfoRawData const*v1720Info) {
 
 	using util::TWaveFormRawData;
+	using util::TriggerInfoRawData;
 
-	if (v1720Info->hasTriggerSettings() && v1720Info->triggerMode() == 0) {
-		auto const triggerChannel = v1720Info->triggerChannel();
+	auto const triggerInfo = dataContainer.GetEventData < TriggerInfoRawData
+			> (TriggerInfoRawData::bankName());
+
+	if (triggerInfo && v1720Info->hasTriggerSettings()
+			&& v1720Info->triggerMode() == 0) {
+		auto const triggerChannel = triggerInfo->triggerChannel();
 
 		if (v1720Info->channelIncluded(triggerChannel)) {
 			auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
 					> (TWaveFormRawData::bankName(triggerChannel));
 			if (wfRaw) {
-				return math::FindEdgeDistance(v1720Info->triggerRising(),
-						v1720Info->triggerThreshold(), wfRaw->begin(),
+				return math::FindEdgeDistance(triggerInfo->triggerRising(),
+						triggerInfo->triggerThreshold(), wfRaw->begin(),
 						wfRaw->end());
 			}
 		}

@@ -18,9 +18,7 @@ public:
 	bool channelIncluded(uint8_t channelNo) const;
 
 	bool hasTriggerSettings() const;
-	uint8_t triggerChannel() const;
-	uint16_t triggerThreshold() const;
-	bool triggerRising() const;
+	uint32_t preTriggerLength() const;
 	uint32_t triggerMode() const;
 
 private:

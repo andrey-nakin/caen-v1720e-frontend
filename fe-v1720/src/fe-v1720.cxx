@@ -15,6 +15,7 @@
 #include <midas/odb.hxx>
 #include <util/types.hxx>
 #include <util/V1720InfoRawData.hxx>
+#include <util/TriggerInfoRawData.hxx>
 #include <util/TDcOffsetRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
 #include <util/FrontEndUtils.hxx>
@@ -39,6 +40,7 @@ static std::atomic_bool acquisitionIsOn(false);
 static uint8_t triggerChannel;
 static uint16_t triggerThreshold;
 static bool triggerRaisingPolarity;
+static uint32_t preTriggerLength;
 
 }
 
@@ -226,8 +228,9 @@ static void configure(caen::Handle& hDevice) {
 				regData & ~caen::v1720::REG_BIT_TRIGGER_OVERLAP);
 	}
 
-	auto const preTriggerLength = odb::getValueUInt32(hDB, hSet,
-			settings::preTriggerLength, defaults::preTriggerLength, true);
+	auto const preTriggerLength = glob::preTriggerLength = odb::getValueUInt32(
+			hDB, hSet, settings::preTriggerLength, defaults::preTriggerLength,
+			true);
 	if (preTriggerLength > recordLength) {
 		throw midas::Exception(FE_ERR_ODB,
 				std::string("Invalid value of pre_trigger_length parameter: ")
@@ -410,11 +413,22 @@ static int parseEvent(char * const pevent,
 		info->timeStampHi = eventInfo.Pattern;
 		info->frontendIndex = util::FrontEndUtils::frontendIndex<
 				decltype(info->frontendIndex)>();
-		info->triggerChannel = glob::triggerChannel;
-		info->triggerThreshold = glob::triggerThreshold;
-		info->triggerRising = glob::triggerRaisingPolarity ? 1 : 0;
+		info->preTriggerLength = glob::preTriggerLength;
 		info->triggerMode = 0;
 		bk_close(pevent, pdata + sizeof(*info));
+	}
+
+	{
+		// store trigger information
+		uint8_t* pdata;
+		bk_create(pevent, util::TriggerInfoRawData::bankName(), TID_WORD,
+				(void**) &pdata);
+		util::TriggerBank* bank = (util::TriggerBank*) pdata;
+		bank->triggerChannel = glob::triggerChannel;
+		bank->triggerThreshold = glob::triggerThreshold;
+		bank->triggerRising = glob::triggerRaisingPolarity ? 1 : 0;
+		bank->reserved = 0;
+		bk_close(pevent, pdata + sizeof(*bank));
 	}
 
 	{

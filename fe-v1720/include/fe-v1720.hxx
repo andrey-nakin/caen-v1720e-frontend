@@ -22,6 +22,7 @@ constexpr std::size_t calculateEventSize(unsigned const numOfActiveChannels,
 
 	return calcEventSize(
 			calcBankSize(sizeof(util::InfoBank)) // information bank
+					+ calcBankSize(sizeof(util::TriggerBank)) // trigger info bank
 					+ calcBankSize(
 							sizeof(uint16_t) * caen::v1720::NUM_OF_CHANNELS) // DC offset bank
 					+ numOfActiveChannels
