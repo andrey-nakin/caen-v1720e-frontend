@@ -64,23 +64,24 @@ void V1720Waveform::AnalyzeWaveform(
 		util::TWaveFormRawData::const_iterator_type const wfBegin,
 		util::TWaveFormRawData::const_iterator_type const wfEnd) {
 
-	auto const feIndex = frontendIndex(v1720Info->info().frontendIndex);
-	auto const wfStat = math::MakeStatAccum(wfBegin, wfEnd);
 	auto const wfDiff = math::MakeDiffContainer<int16_t>(wfBegin, wfEnd,
 			frontLength);
 	auto const diffStat = math::MakeStatAccum(std::begin(wfDiff),
 			std::end(wfDiff));
-
 	auto const t = diffStat.GetStdScaled < util::TWaveFormRawData::value_type
 			> (threshold);
-
 	auto const hasPeak =
 			rising ? diffStat.GetMaxValue() >= t : diffStat.GetMinValue() <= -t;
 
 	if (hasPeak) {
-		auto &ph = GetPositionHist(feIndex, channelNo, numOfSamples,
+		auto const wfStat = math::MakeStatAccum(wfBegin, wfEnd);
+		auto const zeroLevel = wfStat.GetRoughMean();
+		auto const feIndex = frontendIndex(v1720Info->info().frontendIndex);
+		auto const preTriggerLength =
 				v1720Info->hasTriggerSettings() ?
-						v1720Info->preTriggerLength() : 0);
+						v1720Info->preTriggerLength() : 0;
+		auto &ph = GetPositionHist(feIndex, channelNo, numOfSamples,
+				preTriggerLength);
 		auto &ah = GetAmplitudeHist(feIndex, channelNo,
 				caen::v1720::NUM_OF_SAMPLE_VALUES);
 
@@ -88,14 +89,16 @@ void V1720Waveform::AnalyzeWaveform(
 				peakLength);
 		while (pf.HasNext()) {
 			auto const i = pf.GetNext();
-			auto const position = std::distance(wfBegin, i);
-			auto const zeroLevel = wfStat.GetRoughMean();
+			auto const position = std::distance(wfBegin, i) - edgePosition
+					+ preTriggerLength;
+			if (position >= 0) {
+				ph.AddBinContent(position);
+			}
+
 			decltype(zeroLevel) const ampAdjusted =
 					rising ? *i - zeroLevel : zeroLevel - *i;
 			auto const amplitude = std::min(ampAdjusted,
 					caen::v1720::MAX_SAMPLE_VALUE);
-
-			ph.AddBinContent(position);
 			ah.AddBinContent(amplitude);
 		}
 	}
@@ -113,7 +116,7 @@ util::TWaveFormRawData::difference_type V1720Waveform::FindEdgeDistance(
 
 	if (triggerInfo && v1720Info->hasTriggerSettings()
 			&& v1720Info->triggerMode() == 0) {
-		auto const triggerChannel = triggerInfo->triggerChannel();
+		auto const triggerChannel = 0; //triggerInfo->triggerChannel();
 
 		if (v1720Info->channelIncluded(triggerChannel)) {
 			auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData

@@ -108,8 +108,8 @@ AbstractWaveform::HistType* AbstractWaveform::CreatePositionHistogram(
 	auto const title = ConstructTitle(feIndex, channelNo, "Position");
 
 	auto const h = new HistType(name.c_str(), title.c_str(),
-			waveformLength + preTriggerLength, -preTriggerLength,
-			waveformLength);
+			waveformLength + preTriggerLength,
+			-static_cast<double>(preTriggerLength), waveformLength);
 	h->SetXTitle("Channel");
 	h->SetYTitle("Count");
 	push_back(h);
