@@ -36,9 +36,11 @@ AbstractWaveform::HistType& AbstractWaveform::GetWaveformHist(INT const feIndex,
 }
 
 AbstractWaveform::HistType& AbstractWaveform::GetPositionHist(INT const feIndex,
-		unsigned const channelNo, unsigned const waveformLength) {
+		unsigned const channelNo, unsigned const waveformLength,
+		unsigned const preTriggerLength) {
 
-	return FindCreatePositionHist(feIndex, channelNo, waveformLength);
+	return FindCreatePositionHist(feIndex, channelNo, waveformLength,
+			preTriggerLength);
 
 }
 
@@ -100,12 +102,13 @@ AbstractWaveform::HistType* AbstractWaveform::CreateWaveformHistogram(
 
 AbstractWaveform::HistType* AbstractWaveform::CreatePositionHistogram(
 		INT const feIndex, unsigned const channelNo,
-		unsigned const waveformLength) {
+		unsigned const waveformLength, unsigned const preTriggerLength) {
 
 	auto const name = ConstructName(feIndex, channelNo, "PO");
 	auto const title = ConstructTitle(feIndex, channelNo, "Position");
 
-	auto const h = new HistType(name.c_str(), title.c_str(), waveformLength, 0,
+	auto const h = new HistType(name.c_str(), title.c_str(),
+			waveformLength + preTriggerLength, -preTriggerLength,
 			waveformLength);
 	h->SetXTitle("Channel");
 	h->SetYTitle("Count");
@@ -150,7 +153,7 @@ AbstractWaveform::HistType& AbstractWaveform::FindCreateWaveformHist(
 
 AbstractWaveform::HistType& AbstractWaveform::FindCreatePositionHist(
 		INT const feIndex, unsigned const channelNo,
-		unsigned const waveformLength) {
+		unsigned const waveformLength, unsigned const preTriggerLength) {
 
 	auto const& m = posHistograms[feIndex];
 	auto const& j = m.find(channelNo);
@@ -158,7 +161,7 @@ AbstractWaveform::HistType& AbstractWaveform::FindCreatePositionHist(
 		return *j->second;
 	} else {
 		auto const h = CreatePositionHistogram(feIndex, channelNo,
-				waveformLength);
+				waveformLength, preTriggerLength);
 		posHistograms[feIndex][channelNo] = h;
 		return *h;
 	}

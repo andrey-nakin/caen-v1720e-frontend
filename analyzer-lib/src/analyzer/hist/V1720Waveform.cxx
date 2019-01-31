@@ -39,13 +39,16 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 				if (wfRaw) {
 					auto const numOfSamples = wfRaw->numOfSamples();
 					if (numOfSamples > 0) {
+						auto const wfBegin = wfRaw->begin();
+						auto const wfEnd = wfRaw->end();
+
 						// draw raw waveform
 						auto &h = GetWaveformHist(feIndex, channelNo,
 								numOfSamples);
-						SetData(h, wfRaw->begin(), wfRaw->end());
+						SetData(h, wfBegin, wfEnd);
 
-						AnalyzeWaveform(feIndex, channelNo, numOfSamples,
-								edgePosition, wfRaw);
+						AnalyzeWaveform(v1720Info, channelNo, numOfSamples,
+								edgePosition, wfBegin, wfEnd);
 					}
 				}
 			}
@@ -54,14 +57,17 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
 }
 
-void V1720Waveform::AnalyzeWaveform(INT const feIndex, uint8_t const channelNo,
+void V1720Waveform::AnalyzeWaveform(
+		util::V1720InfoRawData const* const v1720Info, uint8_t const channelNo,
 		std::size_t const numOfSamples,
 		util::TWaveFormRawData::difference_type const edgePosition,
-		util::TWaveFormRawData const* const wfRaw) {
+		util::TWaveFormRawData::const_iterator_type const wfBegin,
+		util::TWaveFormRawData::const_iterator_type const wfEnd) {
 
-	auto const wfStat = math::MakeStatAccum(wfRaw->begin(), wfRaw->end());
-	auto const wfDiff = math::MakeDiffContainer<int16_t>(wfRaw->begin(),
-			wfRaw->end(), frontLength);
+	auto const feIndex = frontendIndex(v1720Info->info().frontendIndex);
+	auto const wfStat = math::MakeStatAccum(wfBegin, wfEnd);
+	auto const wfDiff = math::MakeDiffContainer<int16_t>(wfBegin, wfEnd,
+			frontLength);
 	auto const diffStat = math::MakeStatAccum(std::begin(wfDiff),
 			std::end(wfDiff));
 
@@ -70,11 +76,11 @@ void V1720Waveform::AnalyzeWaveform(INT const feIndex, uint8_t const channelNo,
 
 	auto const hasPeak =
 			rising ? diffStat.GetMaxValue() >= t : diffStat.GetMinValue() <= -t;
-	auto const wfBegin = std::next(wfRaw->begin(), edgePosition);
-	auto const wfEnd = wfRaw->end();
 
-	if (hasPeak && wfBegin < wfEnd) {
-		auto &ph = GetPositionHist(feIndex, channelNo, numOfSamples);
+	if (hasPeak) {
+		auto &ph = GetPositionHist(feIndex, channelNo, numOfSamples,
+				v1720Info->hasTriggerSettings() ?
+						v1720Info->preTriggerLength() : 0);
 		auto &ah = GetAmplitudeHist(feIndex, channelNo,
 				caen::v1720::NUM_OF_SAMPLE_VALUES);
 

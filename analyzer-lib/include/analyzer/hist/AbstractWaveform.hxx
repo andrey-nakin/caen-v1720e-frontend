@@ -55,7 +55,7 @@ protected:
 	HistType& GetWaveformHist(INT feIndex, unsigned channelNo,
 			unsigned waveformLength);
 	HistType& GetPositionHist(INT feIndex, unsigned channelNo,
-			unsigned waveformLength);
+			unsigned waveformLength, unsigned preTriggerLength);
 	HistType& GetAmplitudeHist(INT feIndex, unsigned channelNo,
 			unsigned maxValue);
 
@@ -83,14 +83,14 @@ private:
 	HistType* CreateWaveformHistogram(INT feIndex, unsigned channelNo,
 			unsigned waveformLength);
 	HistType* CreatePositionHistogram(INT feIndex, unsigned channelNo,
-			unsigned waveformLength);
+			unsigned waveformLength, unsigned preTriggerLength);
 	HistType* CreateAmplitudeHistogram(INT feIndex, unsigned channelNo,
 			unsigned maxValue);
 
 	HistType& FindCreateWaveformHist(INT feIndex, unsigned channelNo,
 			unsigned waveformLength);
 	HistType& FindCreatePositionHist(INT feIndex, unsigned channelNo,
-			unsigned waveformLength);
+			unsigned waveformLength, unsigned preTriggerLength);
 	HistType& FindCreateAmplitudeHist(INT feIndex, unsigned channelNo,
 			unsigned maxValue);
 	virtual void ResetHistogram(HistType& h, unsigned waveformLength);
