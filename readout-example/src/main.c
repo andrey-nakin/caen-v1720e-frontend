@@ -30,6 +30,7 @@ int const conetNode = 0;
 uint32_t const vmeBaseAddr = 0;
 uint32_t const channelMask = 0xff;
 uint32_t const triggerChannel = 0;
+uint16_t const triggerThreshold = 1000;
 uint32_t const recordLength = 1024 * 1;	//	num of samples
 uint32_t const postTrigger = 1024 * 1 - 64;	//	num of samples
 uint8_t const IRQlevel = 1;
@@ -135,7 +136,7 @@ int main(int argc, char* argv[]) {
 			(1 << triggerChannel));
 	CHECK(ret, "setting channel self trigger");
 
-	ret = CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, 1000);
+	ret = CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold);
 	CHECK(ret, "setting channel trigger threshold");
 
 	ret = CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel,
