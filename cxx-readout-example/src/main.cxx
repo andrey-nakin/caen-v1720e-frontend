@@ -207,42 +207,29 @@ int main(int argc, char* argv[]) {
 				for (j = 0; j < boardInfo.Channels; j++) {
 					if ((1 << j) & eventInfo.ChannelMask) {
 						uint32_t const numOfSamples = evt->ChSize[j];
-						uint16_t const *samples = evt->DataChannel[j];
-						uint16_t minSample = 0, maxSample = 0;
-						uint32_t minPos, maxPos = 0;
+						auto const begin = evt->DataChannel[j];
+						auto const end = begin + numOfSamples;
+						auto const minSample = std::min_element(begin, end);
+						auto const maxSample = std::max_element(begin, end);
 
 						if (numOfSamples > 0) {
-							minSample = maxSample = samples[0];
-
-							for (k = numOfSamples - 1; k > 0; k--) {
-								uint16_t const s = samples[k];
-								if (minSample > s) {
-									minSample = s;
-									minPos = k;
-								}
-								if (maxSample < s) {
-									maxSample = s;
-									maxPos = k;
-								}
-							}
-
 							if (j == 0 && !waveformWritten) {
 								// write waveform on channel #0 to a text file
 
-								for (k = 0; k < numOfSamples; k++) {
-									file << samples[k] << '\n';
-								}
+								std::for_each(begin, end, [&file](uint16_t s) {
+									file << s << std::endl;
+								});
 
 								waveformWritten = true;
 							}
-
 						}
 
 						if (verbose) {
 							std::cout << "Channel " << j << ", # samples="
-									<< numOfSamples << ", min = " << minSample
-									<< " at " << minPos << ", max = "
-									<< maxSample << " at " << maxPos
+									<< numOfSamples << ", min = " << *minSample
+									<< " at " << std::distance(begin, minSample)
+									<< ", max = " << *maxSample << " at "
+									<< std::distance(begin, maxSample)
 									<< std::endl;
 						}
 					}
