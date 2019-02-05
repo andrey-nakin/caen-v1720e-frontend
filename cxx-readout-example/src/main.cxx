@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <algorithm>
 #include <fstream>
+#include <chrono>
+#include <thread>
 #include <CAENDigitizer.h>
 #include <caen/device.hxx>
 
@@ -31,8 +33,6 @@ uint32_t const REG_CHANNEL_CONFIG = 0x8000;
 uint32_t const REG_POST_TRIGGER = 0x8114;
 
 uint32_t const REG_BIT_TRIGGER_OVERLAP = 0x0001 << 1;
-
-unsigned maxNumOfEvents = 0;
 
 int main(int argc, char* argv[]) {
 	CAEN_DGTZ_ErrorCode ret;
@@ -178,11 +178,12 @@ int main(int argc, char* argv[]) {
 		CHECK(ret, "starting acquisition");
 
 		for (eventCounter = 0; eventCounter < maxEvent;) {
-			uint32_t const dataSize = device.getBuffer().readData();
-			uint32_t const numEvents = device.getBuffer().getNumEvents();
-			maxNumOfEvents = std::max(maxNumOfEvents, numEvents);
+			if (device.hasNextEvent()) {
+				eventCounter++;
 
-			if (numEvents > 0) {
+				CAEN_DGTZ_EventInfo_t eventInfo;
+				auto const evt = device.nextEvent(eventInfo);
+
 				now = time(NULL);
 				if (now > last) {
 					verbose = 1;
@@ -191,71 +192,63 @@ int main(int argc, char* argv[]) {
 					verbose = 0;
 				}
 
-				for (i = 0; i < numEvents; i++, eventCounter++) {
-					CAEN_DGTZ_EventInfo_t eventInfo;
-					auto const evtptr = device.getBuffer().getEventInfo(i,
-							eventInfo);
+				if (verbose) {
+					std::cout << "Event #=" << eventInfo.EventCounter
+							<< ", size=" << eventInfo.EventSize << ", channels="
+							<< eventInfo.ChannelMask << ", time="
+							<< (eventInfo.TriggerTimeTag & ~0x80000000)
+							<< std::endl;
+				}
 
-					if (verbose) {
-						std::cout << "Event #=" << eventInfo.EventCounter
-								<< ", size=" << eventInfo.EventSize
-								<< ", channels=" << eventInfo.ChannelMask
-								<< ", time="
-								<< (eventInfo.TriggerTimeTag & ~0x80000000)
-								<< ", max # of events=" << maxNumOfEvents
-								<< std::endl;
-					}
+				//*************************************
+				// Event Elaboration
+				//*************************************
 
-					auto const evt = device.getEvent().evt(evtptr);
+				for (j = 0; j < boardInfo.Channels; j++) {
+					if ((1 << j) & eventInfo.ChannelMask) {
+						uint32_t const numOfSamples = evt->ChSize[j];
+						uint16_t const *samples = evt->DataChannel[j];
+						uint16_t minSample = 0, maxSample = 0;
+						uint32_t minPos, maxPos = 0;
 
-					//*************************************
-					// Event Elaboration
-					//*************************************
+						if (numOfSamples > 0) {
+							minSample = maxSample = samples[0];
 
-					for (j = 0; j < boardInfo.Channels; j++) {
-						if ((1 << j) & eventInfo.ChannelMask) {
-							uint32_t const numOfSamples = evt->ChSize[j];
-							uint16_t const *samples = evt->DataChannel[j];
-							uint16_t minSample = 0, maxSample = 0;
-							uint32_t minPos, maxPos = 0;
-
-							if (numOfSamples > 0) {
-								minSample = maxSample = samples[0];
-
-								for (k = numOfSamples - 1; k > 0; k--) {
-									uint16_t const s = samples[k];
-									if (minSample > s) {
-										minSample = s;
-										minPos = k;
-									}
-									if (maxSample < s) {
-										maxSample = s;
-										maxPos = k;
-									}
+							for (k = numOfSamples - 1; k > 0; k--) {
+								uint16_t const s = samples[k];
+								if (minSample > s) {
+									minSample = s;
+									minPos = k;
 								}
-
-								if (j == 0 && !waveformWritten) {
-									// write waveform on channel #0 to a text file
-
-									for (k = 0; k < numOfSamples; k++) {
-										file << samples[k] << '\n';
-									}
-
-									waveformWritten = true;
+								if (maxSample < s) {
+									maxSample = s;
+									maxPos = k;
 								}
-
 							}
 
-							if (verbose) {
-								std::cout << "Channel " << j << ", # samples="
-										<< numOfSamples << ", min = "
-										<< minSample << " at " << minPos
-										<< ", max = " << maxSample << " at "
-										<< maxPos << std::endl;
+							if (j == 0 && !waveformWritten) {
+								// write waveform on channel #0 to a text file
+
+								for (k = 0; k < numOfSamples; k++) {
+									file << samples[k] << '\n';
+								}
+
+								waveformWritten = true;
 							}
+
+						}
+
+						if (verbose) {
+							std::cout << "Channel " << j << ", # samples="
+									<< numOfSamples << ", min = " << minSample
+									<< " at " << minPos << ", max = "
+									<< maxSample << " at " << maxPos
+									<< std::endl;
 						}
 					}
 				}
+			} else {
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			}
 		}
 
