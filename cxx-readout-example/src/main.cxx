@@ -179,8 +179,12 @@ int main(int argc, char* argv[]) {
 		ret = CAEN_DGTZ_SWStartAcquisition(device.getHandle());
 		CHECK(ret, "starting acquisition");
 
+		uint32_t maxNumOfEvents = 0;
+
 		for (eventCounter = 0; eventCounter < maxEvent;) {
 			if (device.hasNextEvent()) {
+				maxNumOfEvents = std::max(maxNumOfEvents,
+						device.getBuffer().getNumEvents());
 				eventCounter++;
 
 				CAEN_DGTZ_EventInfo_t eventInfo;
@@ -199,6 +203,7 @@ int main(int argc, char* argv[]) {
 							<< ", size=" << eventInfo.EventSize << ", channels="
 							<< eventInfo.ChannelMask << ", time="
 							<< (eventInfo.TriggerTimeTag & ~0x80000000)
+							<< ", maxNumOfEvents=" << maxNumOfEvents
 							<< std::endl;
 				}
 
@@ -237,7 +242,8 @@ int main(int argc, char* argv[]) {
 					}
 				}
 			} else {
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				ss_sleep(50);
+				//std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			}
 		}
 
