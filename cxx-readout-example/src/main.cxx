@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <time.h>
 #include <CAENDigitizer.h>
+#include <caen/device.hxx>
 
 #define ERREXIT() \
 		if (handle) {	\

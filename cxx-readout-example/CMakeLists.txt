@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(CxxReadoutExample VERSION 1.0.0 LANGUAGES C DESCRIPTION "CAEN V1720e Readout Example Application")
+project(CxxReadoutExample VERSION 1.0.0 LANGUAGES CXX DESCRIPTION "CAEN V1720e Readout Example Application")
+set (CMAKE_CXX_STANDARD 14)
 
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cxx)
 
