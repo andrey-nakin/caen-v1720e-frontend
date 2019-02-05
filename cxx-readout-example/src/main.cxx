@@ -6,6 +6,7 @@
 #include <chrono>
 #include <thread>
 #include <CAENDigitizer.h>
+#include <midas.h>
 #include <caen/device.hxx>
 
 #define ERREXIT() \
@@ -45,6 +46,8 @@ int main(int argc, char* argv[]) {
 	int verbose = 0;
 	uint32_t regData;
 	bool waveformWritten = false;
+
+	cm_msg(0, __FILE__, __LINE__, "main", "test %d", 123);
 
 	if (argc > 1) {
 		maxEvent = atoi(argv[1]);
