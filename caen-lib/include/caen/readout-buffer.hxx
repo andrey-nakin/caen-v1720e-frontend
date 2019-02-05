@@ -22,6 +22,12 @@ public:
 	ReadoutBuffer(ReadoutBuffer&&);
 	~ReadoutBuffer();
 
+	uint32_t getBufferSize() const {
+
+		return bufferSize;
+
+	}
+
 	uint32_t readData();
 
 	uint32_t getNumEvents();
