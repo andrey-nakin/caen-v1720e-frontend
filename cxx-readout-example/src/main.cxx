@@ -37,10 +37,9 @@ uint32_t const REG_BIT_TRIGGER_OVERLAP = 0x0001 << 1;
 int main(int argc, char* argv[]) {
 	CAEN_DGTZ_ErrorCode ret;
 	CAEN_DGTZ_BoardInfo_t boardInfo;
-	uint32_t i, j, k;
+	uint32_t i, j;
 	int majorNumber;
 	uint32_t eventCounter;
-	FILE *file;
 	uint32_t maxEvent = 100;
 	time_t now, last = 0;
 	int verbose = 0;
