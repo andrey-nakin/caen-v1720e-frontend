@@ -15,4 +15,8 @@ build
 *.log
 *.pdf
 *.synctex.gz
-
+doc/gneis-daq.bcf
+doc/gneis-daq.out
+doc/gneis-daq.run.xml
+doc/gneis-daq.toc
+doc/version.tex
