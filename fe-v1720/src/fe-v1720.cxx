@@ -264,7 +264,7 @@ INT frontend_init() {
 
 	midas::Exception::setProgramName(frontend_name);
 
-	return util::FrontEndUtils::command([]() {
+	util::FrontEndUtils::command([]() {
 
 		odb::getValueInt32(hDB, 0,
 				util::FrontEndUtils::settingsKeyName(equipment[0].name,
@@ -274,6 +274,8 @@ INT frontend_init() {
 		configure(hDevice);
 
 	});
+
+	return SUCCESS;
 
 }
 
