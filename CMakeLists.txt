@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(CaenV1720eFrontend VERSION 1.0.0 LANGUAGES CXX C DESCRIPTION "MIDAS Frontend for CAEN V1720E Digitizer")
+project(GneisDaq VERSION 1.0.0 LANGUAGES CXX C DESCRIPTION "GNEIS DAQ")
 
 option(BUILD_ANALYZERS "Enable example building" ON)
 option(BUILD_FRONTENDS "Enable example building" ON)
