@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(GneisDaq VERSION 1.0.0 LANGUAGES CXX C DESCRIPTION "GNEIS DAQ")
+project(GneisDaq VERSION 0.9.0 LANGUAGES CXX C DESCRIPTION "GNEIS DAQ")
+
+set(
+	GNEIS_DAQ_VERSION
+	${PROJECT_VERSION}
+)
 
 option(BUILD_ANALYZERS "Enable example building" ON)
 option(BUILD_FRONTENDS "Enable example building" ON)
