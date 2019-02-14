@@ -242,7 +242,8 @@ int main(int argc, char* argv[]) {
 					}
 				}
 			} else {
-				ss_sleep(50);
+				static int counter = 0;
+				ss_sleep(counter++ % 10 ? 10 : 50);
 				//std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			}
 		}
