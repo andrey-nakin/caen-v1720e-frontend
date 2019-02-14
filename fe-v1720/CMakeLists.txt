@@ -10,7 +10,7 @@ link_directories(${MIDASLIBDIR})
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cxx)
 file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/include/*.hxx)
 
-add_library(MidasMfe OBJECT IMPORTED GLOBAL)
+add_library(MidasMfe OBJECT IMPORTED LOCAL)
 set_property(TARGET MidasMfe PROPERTY IMPORTED_OBJECTS ${MIDASLIBDIR}/mfe.o)
 
 add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:MidasMfe> ${SOURCES})
