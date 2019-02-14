@@ -26,7 +26,7 @@
 \newcommand{\DIRECTORY}[1]{<<{\tt #1}>>}
 \newcommand{\FILE}[1]{<<{\tt #1}>>}
 \newcommand{\COMMAND}[1]{{\tt #1}}
-\newcommand{\PACKAGE}[1]{\tt #1}
+\newcommand{\PACKAGE}[1]{{\tt #1}}
 
 \title{\GD{}: набор программ по сбору и анализу данных для установки ГНЕЙС}
 \author{Накин~А.~В.}
@@ -245,11 +245,17 @@ openSUSE & \PACKAGE{googletest} \\
 
 \subsection{Установка библиотеки для сборки документации}
 
-Для openSUSE рекомендуется установить пакет \PACKAGE{tex-live}. Кириллические шрифты устанавливаются следующей командой:
+Для openSUSE рекомендуется установить пакет \PACKAGE{texlive}:
 
-{\tt 
-sudo zypper in texlive-babel-bulgarian texlive-babel-bulgarian-doc texlive-babel-serbian texlive-babel-serbianc texlive-babel-serbianc-doc texlive-babel-serbian-doc texlive-babel-ukraineb texlive-babel-ukraineb-doc texlive-cbfonts texlive-cbfonts-doc texlive-cbfonts-fonts texlive-cmcyr texlive-cmcyr-doc texlive-cmcyr-fonts texlive-collection-langcyrillic texlive-cyrplain texlive-diagnose texlive-diagnose-doc texlive-disser texlive-disser-doc texlive-eskd texlive-eskd-doc texlive-eskdx texlive-eskdx-doc texlive-gost texlive-gost-doc texlive-hyphen-bulgarian texlive-hyphen-mongolian texlive-hyphen-serbian texlive-hyphen-ukrainian texlive-lcyw texlive-lcyw-doc texlive-lh texlive-lhcyr texlive-lh-doc texlive-lshort-bulgarian texlive-lshort-mongol texlive-lshort-ukr texlive-mongolian-babel texlive-mongolian-babel-doc texlive-montex texlive-montex-doc texlive-montex-fonts texlive-mpman-ru texlive-pst-eucl-translation-bg texlive-serbian-apostrophe texlive-serbian-apostrophe-doc texlive-serbian-date-lat texlive-serbian-date-lat-doc texlive-serbian-def-cyr texlive-serbian-def-cyr-doc texlive-serbian-lig texlive-serbian-lig-doc texlive-texlive-ru texlive-texlive-sr
-}
+\medskip
+\COMMAND{sudo zypper install texlive}
+\medskip
+
+Кириллические шрифты устанавливаются следующей командой:
+
+\medskip
+\COMMAND{sudo zypper install texlive-babel-bulgarian texlive-babel-bulgarian-doc texlive-babel-serbian texlive-babel-serbianc texlive-babel-serbianc-doc texlive-babel-serbian-doc texlive-babel-ukraineb texlive-babel-ukraineb-doc texlive-cbfonts texlive-cbfonts-doc texlive-cbfonts-fonts texlive-cmcyr texlive-cmcyr-doc texlive-cmcyr-fonts texlive-collection-langcyrillic texlive-cyrplain texlive-diagnose texlive-diagnose-doc texlive-disser texlive-disser-doc texlive-eskd texlive-eskd-doc texlive-eskdx texlive-eskdx-doc texlive-gost texlive-gost-doc texlive-hyphen-bulgarian texlive-hyphen-mongolian texlive-hyphen-serbian texlive-hyphen-ukrainian texlive-lcyw texlive-lcyw-doc texlive-lh texlive-lhcyr texlive-lh-doc texlive-lshort-bulgarian texlive-lshort-mongol texlive-lshort-ukr texlive-mongolian-babel texlive-mongolian-babel-doc texlive-montex texlive-montex-doc texlive-montex-fonts texlive-mpman-ru texlive-pst-eucl-translation-bg texlive-serbian-apostrophe texlive-serbian-apostrophe-doc texlive-serbian-date-lat texlive-serbian-date-lat-doc texlive-serbian-def-cyr texlive-serbian-def-cyr-doc texlive-serbian-lig texlive-serbian-lig-doc texlive-texlive-ru texlive-texlive-sr}
+\medskip
 
 \section{Установка \ROOT{}}
 
