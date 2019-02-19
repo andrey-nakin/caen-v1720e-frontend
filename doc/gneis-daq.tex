@@ -27,6 +27,7 @@
 \newcommand{\FILE}[1]{<<{\tt #1}>>}
 \newcommand{\COMMAND}[1]{{\tt #1}}
 \newcommand{\PACKAGE}[1]{{\tt #1}}
+\newcommand{\ENV}[1]{{\tt #1}}
 \input{version.tex}
 
 \title{\GD{}: набор программ по сбору и анализу данных для установки ГНЕЙС. \\
@@ -422,7 +423,7 @@ source $ROOTSYS/bin/thisroot.sh
 
 \section{Установка \ROOTJS{}}
 
-Если предполагается работа в многопользовательском режиме (стр.~\pageref{sec_multiuser}), то рекомендуется установить \ROOTJS{} в каталога \DIRECTORY{/opt/jsroot}, в противном случае рекомендуемый каталог~--- \DIRECTORY{\~{}/packages/jsroot}. В дальнейших примерах предполагается первый вариант установки. Если установочный каталог отличается от \DIRECTORY{/opt/jsroot}, скорректируйте команды соответствующим образом.
+Если предполагается работа в многопользовательском режиме (стр.~\pageref{sec_multiuser}), то рекомендуется установить \ROOTJS{} в каталог \DIRECTORY{/opt/jsroot}, в противном случае рекомендуемый каталог~--- \DIRECTORY{\~{}/packages/jsroot}. В дальнейших примерах предполагается первый вариант установки. Если же \ROOTJS{} устанавливается в домашний каталог, то скорректируйте названия директорий соответствующим образом и опустите команду \APP{sudo}.
 
 \begin{enumerate}
 \item Перейдите в каталог \DIRECTORY{/opt}:
@@ -431,23 +432,16 @@ source $ROOTSYS/bin/thisroot.sh
 cd /opt
 \end{lstlisting}
 
-\item Создайте подкаталог \DIRECTORY{jsroot} и перейдите в него:
-
-\begin{lstlisting}[language=bash]
-sudo mkdir jsroot
-cd jsroot
-\end{lstlisting}
-
 \item Скачайте репозиторий с исходными кодами \ROOTJS{}:
 
 \begin{lstlisting}[language=bash]
-sudo git clone \ 
-  https://github.com/root-project/jsroot.git .
+sudo git clone https://github.com/root-project/jsroot.git
 \end{lstlisting}
 
 \item Перейдите в основную ветвь репозитория:
 
 \begin{lstlisting}[language=bash]
+cd jsroot
 sudo git checkout master
 \end{lstlisting}
 
@@ -483,6 +477,95 @@ sudo git pull origin master
 \end{lstlisting}
 
 \end{enumerate}
+
+\section{Установка \MIDAS{} и \ROOTANA{}}
+
+Данный раздел --- упрощённое изложение официальной инструкции по сборке \MIDAS{} \cite{MidasWikiInstall}. Оно не освещает все нюансы и возможные проблемы, с которыми можно столкнуться в процессе установки. В этом случае рекомендуем обратиться к официальной инструкции.
+
+Если предполагается работа в многопользовательском режиме (стр.~\pageref{sec_multiuser}), то рекомендуется установить \MIDAS{} в каталог \DIRECTORY{/opt/midas}, в противном случае рекомендуемый каталог~--- \DIRECTORY{\~{}/packages/midas}. В дальнейших примерах предполагается первый вариант установки. Если же \MIDAS{} устанавливается в домашний каталог, то скорректируйте названия директорий соответствующим образом и  опустите команду \APP{sudo}.
+
+\begin{enumerate}
+\item Перейдите в каталог \DIRECTORY{/opt}:
+
+\begin{lstlisting}[language=bash]
+cd /opt
+\end{lstlisting}
+
+\item Скачайте репозиторий с исходными кодами \MIDAS{} и библиотеки \PACKAGE{mxml}:
+
+\begin{lstlisting}[language=bash]
+sudo git clone https://bitbucket.org/tmidas/midas
+sudo git clone https://bitbucket.org/tmidas/mxml
+sudo git clone https://bitbucket.org/tmidas/rootana
+\end{lstlisting}
+
+\item Перейдите в основную ветвь репозитория и запустите сборку \MIDAS{}:
+
+\begin{lstlisting}[language=bash]
+cd midas
+sudo git checkout master
+sudo make
+\end{lstlisting}
+
+\item Запустите сборку \ROOTANA{}:
+
+\begin{lstlisting}[language=bash]
+cd ../rootana
+sudo git checkout master
+sudo make
+\end{lstlisting}
+
+\item Настройте переменные окружения. Для этого добавьте следующие строки в файл \FILE{\~{}/.profile}:
+
+\begin{lstlisting}[language=bash]
+export MIDASSYS=/opt/midas
+export PATH=$MIDASSYS/linux/bin:$PATH
+export ROOTANASYS=/opt/rootana
+\end{lstlisting}
+
+\item Настройте переменные окружения \ENV{MIDAS\_EXPTAB} и \ENV{MIDAS\_EXPT\_NAME}, необходимые для работы \MIDAS{}. Например, если эксперимент называется {\tt superexp}, то добавьте следующие строки в файл \FILE{\~{}/.profile}:
+
+\begin{lstlisting}[language=bash]
+export MIDAS_EXPTAB=$HOME/online/exptab
+export MIDAS_EXPT_NAME=superexp
+\end{lstlisting}
+
+Перед началом работы с \MIDAS{} рекомендуется ознакомиться с описанием этих переменных и правилами их назначения в \cite{MidasWikiInstall}.
+
+\end{enumerate}
+
+Для того, чтобы изменения вступили в силу, завершите сеанс работы в ОС Linux и начните новый.
+
+Если \MIDAS{} был установлен ранее и необходимо обновить его версию, то выполните следующие команды:
+
+\begin{enumerate}
+\item Перейдите в каталог \DIRECTORY{/opt/midas}:
+
+\begin{lstlisting}[language=bash]
+cd /opt/midas
+\end{lstlisting}
+
+\item Перейдите в основную ветвь репозитория:
+
+\begin{lstlisting}[language=bash]
+sudo git checkout master
+\end{lstlisting}
+
+\item Обновите исходные коды:
+
+\begin{lstlisting}[language=bash]
+sudo git pull origin master
+\end{lstlisting}
+
+\item Пересоберите приложения и библиотеки \MIDAS{}:
+
+\begin{lstlisting}[language=bash]
+sudo make
+\end{lstlisting}
+
+\end{enumerate}
+
+Аналогичным образом производится обновление библиотеки \ROOTANA{}.
 
 \chapter{Фронтенд для \DEVICE{}}
 
