@@ -491,7 +491,7 @@ sudo git pull origin master
 cd /opt
 \end{lstlisting}
 
-\item Скачайте репозиторий с исходными кодами \MIDAS{} и библиотеки \PACKAGE{mxml}:
+\item Скачайте репозитории с исходными кодами \MIDAS{} и библиотек:
 
 \begin{lstlisting}[language=bash]
 sudo git clone https://bitbucket.org/tmidas/midas
@@ -566,6 +566,70 @@ sudo make
 \end{enumerate}
 
 Аналогичным образом производится обновление библиотеки \ROOTANA{}.
+
+\section{Установка \GD{}}
+
+\begin{enumerate}
+\item Создайте в домашнем каталоге директорию \DIRECTORY{opt} (если она не была создана ранее) и перейдите в неё:
+
+\begin{lstlisting}[language=bash]
+cd
+mkdir opt
+cd opt
+\end{lstlisting}
+
+\item Скачайте репозиторий с исходными кодами \GD{}:
+
+\begin{lstlisting}[language=bash]
+git clone https://github.com/andrey-nakin/gneis-daq
+\end{lstlisting}
+
+\item Перейдите в подкаталог \DIRECTORY{gneis-daq}, создайте в нём подкаталог \DIRECTORY{obj} и перейдите в него:
+
+\begin{lstlisting}[language=bash]
+cd gneis-daq
+mkdir obj
+cd obj
+\end{lstlisting}
+
+\item Запустите сборку \GD{}:
+
+\begin{lstlisting}[language=bash]
+cmake ..
+make
+\end{lstlisting}
+
+\item Установите выполнимые файлы \GD{} в системные каталоги{}:
+
+\begin{lstlisting}[language=bash]
+sudo make install
+\end{lstlisting}
+
+\end{enumerate}
+
+Если \GD{} был установлен ранее и необходимо обновить его версию, то выполните следующие команды:
+
+\begin{enumerate}
+\item Перейдите в каталог \GD{}:
+
+\begin{lstlisting}[language=bash]
+cd ~/opt/gneis-daq
+\end{lstlisting}
+
+\item Обновите исходные коды:
+
+\begin{lstlisting}[language=bash]
+git pull origin master
+\end{lstlisting}
+
+\item Пересоберите и установите приложения:
+
+\begin{lstlisting}[language=bash]
+make
+sudo make install
+\end{lstlisting}
+
+\end{enumerate}
 
 \chapter{Фронтенд для \DEVICE{}}
 
