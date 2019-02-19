@@ -95,7 +95,7 @@ int readEvent(char *pevent, int off);
 
 EQUIPMENT equipment[] = { { EQUIP_NAME "%02d", { EVID, (1 << EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
-EQ_POLLED, /* equipment type */
+EQ_MULTITHREAD, /* equipment type */
 0, /* event source */
 "MIDAS", /* format */
 TRUE, /* enabled */
