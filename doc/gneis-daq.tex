@@ -317,13 +317,15 @@ cd obj
 Если \ROOT{} будет использоваться несколькими пользователями ПК (стр.~\pageref{sec_multiuser}), установим его в каталог \DIRECTORY{/opt/root-6.14.06}. Для этого выполните  следующую команду:
 
 \begin{lstlisting}[language=bash]
-cmake -DCMAKE_INSTALL_PREFIX=/opt/root-6.14.06 ..
+cmake -Dxml=ON -Dhttp=ON \
+  -DCMAKE_INSTALL_PREFIX=/opt/root-6.14.06 ..
 \end{lstlisting}
 
 Если же использование \ROOT{} другими пользователями не предполагается, выполните следующую команду:
 
 \begin{lstlisting}[language=bash]
-cmake -DCMAKE_INSTALL_PREFIX=~/packages/root-6.14.06 ..
+cmake -Dxml=ON -Dhttp=ON \
+  -DCMAKE_INSTALL_PREFIX=~/packages/root-6.14.06 ..
 \end{lstlisting}
 
 \item Если все необходимые библиотеки установлены и версия компилятора C++ достаточно <<свежая>>, команда завершится следующим сообщением в консоли:
@@ -417,6 +419,70 @@ source $ROOTSYS/bin/thisroot.sh
 \end{lstlisting}
 
 Для того, чтобы изменения вступили в силу, завершите сеанс работы в ОС Linux и начните новый.
+
+\section{Установка \ROOTJS{}}
+
+Если предполагается работа в многопользовательском режиме (стр.~\pageref{sec_multiuser}), то рекомендуется установить \ROOTJS{} в каталога \DIRECTORY{/opt/jsroot}, в противном случае рекомендуемый каталог~--- \DIRECTORY{\~{}/packages/jsroot}. В дальнейших примерах предполагается первый вариант установки. Если установочный каталог отличается от \DIRECTORY{/opt/jsroot}, скорректируйте команды соответствующим образом.
+
+\begin{enumerate}
+\item Перейдите в каталог \DIRECTORY{/opt}:
+
+\begin{lstlisting}[language=bash]
+cd /opt
+\end{lstlisting}
+
+\item Создайте подкаталог \DIRECTORY{jsroot} и перейдите в него:
+
+\begin{lstlisting}[language=bash]
+sudo mkdir jsroot
+cd jsroot
+\end{lstlisting}
+
+\item Скачайте репозиторий с исходными кодами \ROOTJS{}:
+
+\begin{lstlisting}[language=bash]
+sudo git clone \ 
+  https://github.com/root-project/jsroot.git .
+\end{lstlisting}
+
+\item Перейдите в основную ветвь репозитория:
+
+\begin{lstlisting}[language=bash]
+sudo git checkout master
+\end{lstlisting}
+
+\item Настройте переменные окружения. Для этого добавьте следующие строки в файл \FILE{\~{}/.profile}:
+
+\begin{lstlisting}[language=bash]
+export JSROOTSYS=/opt/jsroot
+\end{lstlisting}
+
+\end{enumerate}
+
+Для того, чтобы изменения вступили в силу, завершите сеанс работы в ОС Linux и начните новый.
+
+Если \ROOTJS{} был установлен ранее и необходимо обновить его версию, то выполните следующие команды:
+
+\begin{enumerate}
+\item Перейдите в каталог \DIRECTORY{/opt/jsroot}:
+
+\begin{lstlisting}[language=bash]
+cd /opt/jsroot
+\end{lstlisting}
+
+\item Перейдите в основную ветвь репозитория:
+
+\begin{lstlisting}[language=bash]
+sudo git checkout master
+\end{lstlisting}
+
+\item Обновите исходные коды:
+
+\begin{lstlisting}[language=bash]
+sudo git pull origin master
+\end{lstlisting}
+
+\end{enumerate}
 
 \chapter{Фронтенд для \DEVICE{}}
 
