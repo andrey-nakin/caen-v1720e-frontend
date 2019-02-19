@@ -21,6 +21,8 @@ add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${PRIVATE_HEADERS})
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME caen)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
+target_link_libraries(${PROJECT_NAME} MidasUtilLib)
+target_link_libraries(${PROJECT_NAME} UtilLib)
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>

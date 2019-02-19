@@ -22,14 +22,14 @@
 #include <caen/handle.hxx>
 #include <caen/error-holder.hxx>
 #include <caen/exception.hxx>
-#include <caen/v1720.hxx>
+#include <caen/v1724.hxx>
 #include <caen/device.hxx>
 #include <caen/fe-commons.hxx>
 
-#include "fe-v1720.hxx"
+#include "fe-v1724.hxx"
 #include "defaults.hxx"
 
-using namespace fe::v1720;
+using namespace fe::v1724;
 
 namespace glob {
 
@@ -103,9 +103,9 @@ static void configure(caen::Handle& hDevice) {
 	hDevice.hCommand("getting digitizer info",
 			[&boardInfo](int handle) {return CAEN_DGTZ_GetInfo(handle, &boardInfo);});
 
-	if (boardInfo.Model != CAEN_DGTZ_V1720) {
+	if (boardInfo.Model != CAEN_DGTZ_V1724) {
 		throw caen::Exception(CAEN_DGTZ_GenericError,
-				"The device is not CAEN V1720");
+				"The device is not CAEN V1724");
 	}
 
 	int majorNumber;
@@ -128,10 +128,10 @@ static void configure(caen::Handle& hDevice) {
 
 	auto const recordLength = odb::getValueUInt32(hDB, hSet,
 			settings::waveformLength, defaults::recordLength, true);
-	if (recordLength > caen::v1720::MAX_RECORD_LENGTH) {
+	if (recordLength > caen::v1724::MAX_RECORD_LENGTH) {
 		throw midas::Exception(FE_ERR_ODB,
 				std::string("Value of waveform_length parameter exceeds ")
-						+ std::to_string(caen::v1720::MAX_RECORD_LENGTH));
+						+ std::to_string(caen::v1724::MAX_RECORD_LENGTH));
 	}
 
 	auto const enabledChannels = odb::getValueBoolV(hDB, hSet,
@@ -186,11 +186,11 @@ static void configure(caen::Handle& hDevice) {
 	hDevice.hCommand("setting acquisition mode",
 			[](int handle) {return CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED);});
 
-	auto const regData = hDevice.readRegister(caen::v1720::REG_CHANNEL_CONFIG);
-	if (regData & caen::v1720::REG_BIT_TRIGGER_OVERLAP) {
+	auto const regData = hDevice.readRegister(caen::v1724::REG_CHANNEL_CONFIG);
+	if (regData & caen::v1724::REG_BIT_TRIGGER_OVERLAP) {
 		// disable trigger overlap
-		hDevice.writeRegister(caen::v1720::REG_CHANNEL_CONFIG,
-				regData & ~caen::v1720::REG_BIT_TRIGGER_OVERLAP);
+		hDevice.writeRegister(caen::v1724::REG_CHANNEL_CONFIG,
+				regData & ~caen::v1724::REG_BIT_TRIGGER_OVERLAP);
 	}
 
 	auto const preTriggerLength = glob::preTriggerLength = odb::getValueUInt32(
@@ -204,7 +204,7 @@ static void configure(caen::Handle& hDevice) {
 						+ std::to_string(recordLength) + " samples)");
 	}
 
-	hDevice.writeRegister(caen::v1720::REG_POST_TRIGGER,
+	hDevice.writeRegister(caen::v1724::REG_POST_TRIGGER,
 			(recordLength - preTriggerLength) / 4);
 
 }

@@ -1,5 +1,5 @@
-#ifndef	__fe_v1720_defaults_cxx__
-#define	__fe_v1720_defaults_cxx__
+#ifndef	__fe_v1724_defaults_cxx__
+#define	__fe_v1724_defaults_cxx__
 
 #include <cstdint>
 #include <string>
@@ -21,4 +21,4 @@ constexpr uint16_t dcOffset = 0x8000;
 
 }
 
-#endif	//	__fe_v1720_defaults_cxx__
+#endif	//	__fe_v1724_defaults_cxx__

@@ -7,6 +7,7 @@ Collection of data-acquisition applications for [GNEIS](http://accelconf.web.cer
 ## Content
 
 * `fe-v1720`: MIDAS front-end application for [CAEN V1720E](https://www.caen.it/products/v1720/) digitizer.
+* `fe-v1724`: MIDAS front-end application for [CAEN V1724](https://www.caen.it/products/v1724/) digitizer.
 * `fe-sinus`: MIDAS front-end application that generates sinusoidal signal for testing purposes.
 * `an-basic-waveform`: MIDAS basic wave form analyzer application.
 * `caen-lib`: library with light-weight wrappers around CAEN digitizer API.

@@ -12,13 +12,14 @@ option(BUILD_EXAMPLES "Enable example building" ON)
 option(BUILD_TESTS "Enable unit test building" OFF)
 option(BUILD_DOCS "Enable documentation building" OFF)
 
-add_subdirectory(caen-lib)
 add_subdirectory(midas-util-lib)
+add_subdirectory(caen-lib)
 add_subdirectory(util-lib)
 add_subdirectory(math-lib)
 
 if(BUILD_FRONTENDS)
   add_subdirectory(fe-v1720)
+  add_subdirectory(fe-v1724)
 endif()
 
 if(BUILD_ANALYZERS)
