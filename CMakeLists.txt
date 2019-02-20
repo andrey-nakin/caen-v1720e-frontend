@@ -9,6 +9,7 @@ set(
 option(BUILD_ANALYZERS "Enable example building" ON)
 option(BUILD_FRONTENDS "Enable example building" ON)
 option(BUILD_EXAMPLES "Enable example building" ON)
+option(BUILD_UTILS "Enable utility building" ON)
 option(BUILD_TESTS "Enable unit test building" OFF)
 option(BUILD_DOCS "Enable documentation building" OFF)
 
@@ -25,6 +26,10 @@ endif()
 if(BUILD_ANALYZERS)
   add_subdirectory(analyzer-lib)
   add_subdirectory(an-basic-waveform)
+endif()
+
+if(BUILD_UTILS)
+  add_subdirectory(gd-convert)
 endif()
 
 if(BUILD_EXAMPLES)
