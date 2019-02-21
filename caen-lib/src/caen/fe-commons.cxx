@@ -1,5 +1,3 @@
-#include <cctype>
-#include <algorithm>
 #include "caen/fe-commons.hxx"
 #include "caen/digitizer.hxx"
 
