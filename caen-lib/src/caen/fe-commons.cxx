@@ -1,3 +1,5 @@
+#include <cctype>
+#include <algorithm>
 #include "caen/fe-commons.hxx"
 #include "caen/digitizer.hxx"
 
@@ -182,6 +184,14 @@ caen::Handle connect() {
 
 }
 
+static std::string to_lower(std::string const& s) {
+
+	std::string res = s;
+	std::transform(res.begin(), res.end(), res.begin(), ::tolower);
+	return res;
+
+}
+
 void configure(caen::Handle& hDevice, HNDLE const hSet) {
 
 	// disable trigger overlap
@@ -189,10 +199,11 @@ void configure(caen::Handle& hDevice, HNDLE const hSet) {
 			caen::regbit::config::TRIGGER_OVERLAP, false);
 
 	// set front panel IO level
-//	auto const triggerRaisingPolarity odb::getValueCharV(hDB, hSet, settings::frontPanelIOLevel,
-//					defaults::triggerRaisingPolarity, true);
+	auto const fpIOLevel = odb::getValueString(hDB, hSet,
+			settings::frontPanelIOLevel, defaults::frontPanelIOLevel, true, 32);
 	hDevice.setBit(CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD,
-			caen::regbit::fpioctl::IO_LEVEL, true);	//	TODO
+			caen::regbit::fpioctl::IO_LEVEL,
+			to_lower(fpIOLevel) == IOLevel::ttl);
 
 }
 

@@ -45,11 +45,19 @@ extern std::atomic_bool acquisitionIsOn;
 
 }
 
+namespace IOLevel {
+
+constexpr char nim[] = "nim";
+constexpr char ttl[] = "ttl";
+
+}
+
 namespace defaults {
 
 constexpr int32_t linkNum = 0;
 constexpr int32_t conetNode = 0;
 constexpr uint32_t vmeBaseAddr = 0;
+constexpr auto frontPanelIOLevel = IOLevel::nim;
 
 namespace channel {
 

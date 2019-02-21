@@ -9,6 +9,8 @@
 
 namespace odb {
 
+constexpr std::size_t ODB_MAX_STRING_LENGTH = 256;
+
 template<typename T, DWORD type>
 T getValue(HNDLE const hDB, HNDLE const hKeyRoot, std::string const& keyName,
 		T value, bool const create) {
@@ -52,7 +54,7 @@ bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
 
 std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, std::string const& value, bool const create,
-		std::size_t const size = 256);
+		std::size_t const size = ODB_MAX_STRING_LENGTH);
 
 std::vector<bool> getValueBoolV(HNDLE hDB, HNDLE hKeyRoot,
 		std::string const& keyName, std::size_t numValues, bool defValue,

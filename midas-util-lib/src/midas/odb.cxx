@@ -34,21 +34,23 @@ bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
 }
 
 std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
-		std::string const& keyName, std::string const& value, bool const create,
-		std::size_t const size) {
+		std::string const& keyName, std::string const& initValue, bool const create,
+		std::size_t const aSize) {
 
-	std::vector<char> str(size);
-	INT bufSize = size;
-	::strlcpy(&str[0], value.c_str(), size);
-	INT const status = db_get_value(hDB, hKeyRoot, keyName.c_str(), &str[0],
-			&bufSize, TID_STRING, create ? TRUE : FALSE);
+	char value[ODB_MAX_STRING_LENGTH];
+	value[0] = 0;
+	int size = std::min(sizeof(value), aSize);
+	::strlcpy(value, initValue.c_str(), size);
+
+	INT const status = db_get_value(hDB, hKeyRoot, keyName.c_str(), &value,
+			&size, TID_STRING, create ? TRUE : FALSE);
 
 	if (DB_SUCCESS != status) {
 		throw midas::Exception(status,
 				std::string("Error reading ODB key ") + keyName);
 	}
 
-	return &str[0];
+	return value;
 
 }
 
