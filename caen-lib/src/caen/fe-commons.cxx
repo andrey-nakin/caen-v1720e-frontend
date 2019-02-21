@@ -1,6 +1,9 @@
 #include "caen/fe-commons.hxx"
+#include "caen/digitizer.hxx"
 
 INT frontend_init() {
+
+	using namespace fe::commons;
 
 	cm_msg(MDEBUG, frontend_name, "frontend_init");
 
@@ -10,10 +13,10 @@ INT frontend_init() {
 
 		odb::getValueInt32(hDB, 0,
 				util::FrontEndUtils::settingsKeyName(equipment[0].name,
-						"link_num"), fe::commons::defaults::linkNum, true);
+						"link_num"), defaults::linkNum, true);
 
-		caen::Handle hDevice = fe::commons::connect();
-		fe::commons::configureDevice(hDevice);
+		caen::Handle hDevice = connect();
+		configureDevice(hDevice);
 
 	});
 
@@ -176,6 +179,20 @@ caen::Handle connect() {
 			settings::vmeBaseAddr, defaults::vmeBaseAddr, true);
 
 	return caen::Handle(linkNum, conetNode, vmeBaseAddr);
+
+}
+
+void configure(caen::Handle& hDevice, HNDLE const hSet) {
+
+	// disable trigger overlap
+	hDevice.setBit(CAEN_DGTZ_BROAD_CH_CTRL_ADD,
+			caen::regbit::config::TRIGGER_OVERLAP, false);
+
+	// set front panel IO level
+//	auto const triggerRaisingPolarity odb::getValueCharV(hDB, hSet, settings::frontPanelIOLevel,
+//					defaults::triggerRaisingPolarity, true);
+	hDevice.setBit(CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD,
+			caen::regbit::fpioctl::IO_LEVEL, true);	//	TODO
 
 }
 

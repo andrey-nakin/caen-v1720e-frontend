@@ -28,6 +28,7 @@ public:
 
 	uint32_t readRegister(uint32_t reg);
 	void writeRegister(uint32_t reg, uint32_t regData);
+	void setBit(uint32_t reg, uint8_t bitNo, bool bitValue);
 
 	template<class Function>
 	void hCommand(std::string const& msg, Function action) {

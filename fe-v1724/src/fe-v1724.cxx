@@ -99,6 +99,8 @@ static void configure(caen::Handle& hDevice) {
 
 	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
 
+	fe::commons::configure(hDevice, hSet);
+
 	auto& boardInfo = fe::commons::glob::boardInfo;
 	hDevice.hCommand("getting digitizer info",
 			[&boardInfo](int handle) {return CAEN_DGTZ_GetInfo(handle, &boardInfo);});
@@ -215,7 +217,7 @@ namespace commons {
 
 void configureDevice(caen::Handle& hDevice) {
 
-	configure(hDevice);
+	::configure(hDevice);
 
 }
 

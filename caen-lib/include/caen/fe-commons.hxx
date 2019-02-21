@@ -64,10 +64,12 @@ namespace settings {
 constexpr char linkNum[] = "link_num";
 constexpr char conetNode[] = "conet_node";
 constexpr char vmeBaseAddr[] = "vme_base_addr";
+constexpr char frontPanelIOLevel[] = "front_panel_io_level";
 
 }
 
 caen::Handle connect();
+void configure(caen::Handle& hDevice, HNDLE hSet);
 void startAcquisition(caen::Device& device);
 void stopAcquisition(caen::Device& device);
 

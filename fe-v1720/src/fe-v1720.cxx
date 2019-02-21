@@ -99,6 +99,8 @@ static void configure(caen::Handle& hDevice) {
 
 	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
 
+	fe::commons::configure(hDevice, hSet);
+
 	auto& boardInfo = fe::commons::glob::boardInfo;
 	hDevice.hCommand("getting digitizer info",
 			[&boardInfo](int handle) {return CAEN_DGTZ_GetInfo(handle, &boardInfo);});
@@ -186,13 +188,6 @@ static void configure(caen::Handle& hDevice) {
 	hDevice.hCommand("setting acquisition mode",
 			[](int handle) {return CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED);});
 
-	auto const regData = hDevice.readRegister(caen::v1720::REG_CHANNEL_CONFIG);
-	if (regData & caen::v1720::REG_BIT_TRIGGER_OVERLAP) {
-		// disable trigger overlap
-		hDevice.writeRegister(caen::v1720::REG_CHANNEL_CONFIG,
-				regData & ~caen::v1720::REG_BIT_TRIGGER_OVERLAP);
-	}
-
 	auto const preTriggerLength = glob::preTriggerLength = odb::getValueUInt32(
 			hDB, hSet, settings::preTriggerLength, defaults::preTriggerLength,
 			true);
@@ -215,7 +210,7 @@ namespace commons {
 
 void configureDevice(caen::Handle& hDevice) {
 
-	configure(hDevice);
+	::configure(hDevice);
 
 }
 

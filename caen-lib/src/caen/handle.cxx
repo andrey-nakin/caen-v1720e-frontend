@@ -65,5 +65,24 @@ void Handle::writeRegister(uint32_t const reg, uint32_t const regData) {
 
 }
 
+void Handle::setBit(uint32_t const reg, uint8_t const bitNo,
+		bool const bitValue) {
+
+	uint32_t const rv = readRegister(reg);
+	uint32_t const bitMask = 0x1 << bitNo;
+	bool const isClear = 0 == (rv & bitMask);
+
+	if (bitValue) {
+		if (isClear) {
+			writeRegister(reg, rv | bitMask);
+		}
+	} else {
+		if (!isClear) {
+			writeRegister(reg, rv & ~bitMask);
+		}
+	}
+
+}
+
 }
 
