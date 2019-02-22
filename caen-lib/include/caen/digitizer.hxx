@@ -2,8 +2,16 @@
 #define	__CAEN_DIGITIZER_HXX__
 
 #include <cstdint>
+#include <CAENDigitizer.h>
 
 namespace caen {
+
+namespace reg {
+
+constexpr uint32_t FRONT_PANEL_IO_CTRL_ADD = CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD;
+constexpr uint32_t BROAD_CH_CTRL_ADD = CAEN_DGTZ_BROAD_CH_CTRL_ADD;
+
+}
 
 namespace regbit {
 

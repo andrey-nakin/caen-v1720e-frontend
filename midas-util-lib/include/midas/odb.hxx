@@ -52,9 +52,13 @@ std::vector<T> getValueV(HNDLE const hDB, HNDLE const hKeyRoot,
 bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, bool const value, bool const create);
 
-std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
-		std::string const& keyName, std::string const& value, bool const create,
-		std::size_t const size = ODB_MAX_STRING_LENGTH);
+std::string getValueString(HNDLE hDB, HNDLE hKeyRoot,
+		std::string const& keyName, std::string const& value, bool create,
+		std::size_t size = ODB_MAX_STRING_LENGTH);
+
+std::string getValueString(HNDLE hDB, HNDLE hKeyRoot,
+		std::string const& keyName, std::vector<std::string> const& validValues,
+		std::size_t size = ODB_MAX_STRING_LENGTH);
 
 std::vector<bool> getValueBoolV(HNDLE hDB, HNDLE hKeyRoot,
 		std::string const& keyName, std::size_t numValues, bool defValue,

@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <sstream>
+#include <algorithm>
 #include <midas/odb.hxx>
 
 namespace odb {
@@ -34,8 +35,8 @@ bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
 }
 
 std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
-		std::string const& keyName, std::string const& initValue, bool const create,
-		std::size_t const aSize) {
+		std::string const& keyName, std::string const& initValue,
+		bool const create, std::size_t const aSize) {
 
 	char value[ODB_MAX_STRING_LENGTH];
 	value[0] = 0;
@@ -51,6 +52,64 @@ std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
 	}
 
 	return value;
+
+}
+
+static std::string get_value(HNDLE const hDB, HNDLE const hDir,
+		std::string const& name, std::size_t const defSize) {
+
+	char value[ODB_MAX_STRING_LENGTH];
+	value[0] = 0;
+	int size = defSize;
+	int status = db_get_value(hDB, hDir, name.c_str(), &value, &size,
+			TID_STRING, FALSE);
+	if (status != DB_SUCCESS) {
+		return "";
+	}
+	return value;
+
+}
+
+static void set_value(HNDLE const hDB, HNDLE const hDir,
+		std::string const& name, std::string const & set,
+		std::string const & def, std::size_t const size) {
+
+	std::string const s = set + " (one of:" + def + ")";
+	db_set_value(hDB, hDir, name.c_str(), s.c_str(), size, 1, TID_STRING);
+
+}
+
+static std::string check_add(std::string const& v, const std::string& val,
+		std::string const& str, std::string* def) {
+
+	(*def) += std::string(" ") + str;
+	if (!v.empty()) {
+		return v; // keep returning the first selection
+	}
+	if (val.find(str) == 0) {
+		return str; // if no selection yet, return the new selection
+	}
+	return v;
+
+}
+
+std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
+		std::string const& keyName, std::vector<std::string> const& validValues,
+		std::size_t const size) {
+
+	auto const val = get_value(hDB, hKeyRoot, keyName, size);
+
+	std::string def;
+	std::string s;
+	std::for_each(validValues.begin(), validValues.end(),
+			[&s, val, &def](std::string const& v) {
+				s = check_add(s, val, v, &def);
+			});
+	if (s.empty()) {
+		s = validValues.empty() ? "" : validValues[0];
+	}
+	set_value(hDB, hKeyRoot, keyName, s, def, size);
+	return s;
 
 }
 
