@@ -163,6 +163,7 @@ CAEN_DGTZ_BoardInfo_t boardInfo;
 std::unique_ptr<caen::Device> device;
 std::recursive_mutex mDevice;
 std::atomic_bool acquisitionIsOn(false);
+uint32_t preTriggerLength;
 
 }
 
@@ -197,18 +198,38 @@ void configure(caen::Handle& hDevice, HNDLE const hSet) {
 				});
 	}
 
+	// post-trigger configuration
+	{
+		auto const recordLength = odb::getValueUInt32(hDB, hSet,
+				settings::waveformLength, defaults::recordLength, true);
+		auto const preTriggerLength = glob::preTriggerLength =
+				odb::getValueUInt32(hDB, hSet, settings::preTriggerLength,
+						defaults::preTriggerLength, true);
+		if (preTriggerLength > recordLength) {
+			throw midas::Exception(FE_ERR_ODB,
+					std::string(
+							"Invalid value of pre_trigger_length parameter: ")
+							+ std::to_string(preTriggerLength)
+							+ " is greater than wave form length ("
+							+ std::to_string(recordLength) + " samples)");
+		}
+
+		hDevice.writeRegister(caen::reg::POST_TRIG_ADD,
+				(recordLength - preTriggerLength) / 4);
+	}
+
 	// disable trigger overlap
 	hDevice.setBit(caen::reg::BROAD_CH_CTRL_ADD,
 			caen::regbit::config::TRIGGER_OVERLAP, false);
 
 	// set front panel IO level
 	{
-		static std::vector<std::string> const IO_LEVELS = { IOLevel::nim,
-				IOLevel::ttl };
+		static std::vector<std::string> const IO_LEVELS = { iolevel::nim,
+				iolevel::ttl };
 		auto const v = odb::getValueString(hDB, hSet,
 				settings::frontPanelIOLevel, IO_LEVELS);
 		hDevice.setBit(caen::reg::FRONT_PANEL_IO_CTRL_ADD,
-				caen::regbit::fpioctl::IO_LEVEL, v == IOLevel::ttl);
+				caen::regbit::fpioctl::IO_LEVEL, v == iolevel::ttl);
 	}
 
 }

@@ -42,10 +42,11 @@ extern CAEN_DGTZ_BoardInfo_t boardInfo;
 extern std::unique_ptr<caen::Device> device;
 extern std::recursive_mutex mDevice;
 extern std::atomic_bool acquisitionIsOn;
+extern uint32_t preTriggerLength;
 
 }
 
-namespace IOLevel {
+namespace iolevel {
 
 constexpr char nim[] = "nim";
 constexpr char ttl[] = "ttl";
@@ -57,12 +58,18 @@ namespace defaults {
 constexpr int32_t linkNum = 0;
 constexpr int32_t conetNode = 0;
 constexpr uint32_t vmeBaseAddr = 0;
+constexpr uint32_t preTriggerLength = 64;
 constexpr bool extTrigger = false;
-constexpr auto frontPanelIOLevel = IOLevel::nim;
+constexpr auto frontPanelIOLevel = iolevel::nim;
+constexpr uint32_t recordLength = 1024;
+constexpr uint8_t triggerChannel = 0;
+constexpr uint16_t triggerThreshold = 1000;
+constexpr bool triggerRaisingPolarity = false;
 
 namespace channel {
 
 constexpr bool enabled = true;
+constexpr uint16_t dcOffset = 0x8000;
 
 }
 
@@ -74,7 +81,14 @@ constexpr char linkNum[] = "link_num";
 constexpr char conetNode[] = "conet_node";
 constexpr char vmeBaseAddr[] = "vme_base_addr";
 constexpr char extTrigger[] = "external_trigger";
+constexpr char waveformLength[] = "waveform_length";
+constexpr char preTriggerLength[] = "pre_trigger_length";
 constexpr char frontPanelIOLevel[] = "front_panel_io_level";
+constexpr char enabledChannels[] = "channel_enabled";
+constexpr char channelDcOffset[] = "channel_dc_offset";
+constexpr char triggerChannel[] = "trigger_channel";
+constexpr char triggerThreshold[] = "trigger_threshold";
+constexpr char triggerRaisingPolarity[] = "trigger_raising_polarity";
 
 }
 

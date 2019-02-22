@@ -25,9 +25,9 @@
 #include <caen/v1720.hxx>
 #include <caen/device.hxx>
 #include <caen/fe-commons.hxx>
+#include <caen/digitizer.hxx>
 
 #include "fe-v1720.hxx"
-#include "defaults.hxx"
 
 using namespace fe::v1720;
 
@@ -37,7 +37,6 @@ static std::vector<uint16_t> dcOffsets;
 static uint8_t triggerChannel;
 static uint16_t triggerThreshold;
 static bool triggerRaisingPolarity;
-static uint32_t preTriggerLength;
 
 }
 
@@ -129,7 +128,8 @@ static void configure(caen::Handle& hDevice) {
 			[](int handle) {return CAEN_DGTZ_SetRunSynchronizationMode(handle, CAEN_DGTZ_RUN_SYNC_Disabled);});
 
 	auto const recordLength = odb::getValueUInt32(hDB, hSet,
-			settings::waveformLength, defaults::recordLength, true);
+			fe::commons::settings::waveformLength,
+			fe::commons::defaults::recordLength, true);
 	if (recordLength > caen::v1720::MAX_RECORD_LENGTH) {
 		throw midas::Exception(FE_ERR_ODB,
 				std::string("Value of waveform_length parameter exceeds ")
@@ -137,14 +137,16 @@ static void configure(caen::Handle& hDevice) {
 	}
 
 	auto const enabledChannels = odb::getValueBoolV(hDB, hSet,
-			settings::enabledChannels, boardInfo.Channels,
+			fe::commons::settings::enabledChannels, boardInfo.Channels,
 			fe::commons::defaults::channel::enabled, true);
 
-	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet, settings::channelDcOffset,
-			boardInfo.Channels, defaults::channel::dcOffset, true);
+	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet,
+			fe::commons::settings::channelDcOffset, boardInfo.Channels,
+			fe::commons::defaults::channel::dcOffset, true);
 
 	auto const triggerChannel = glob::triggerChannel = odb::getValueUInt8(hDB,
-			hSet, settings::triggerChannel, defaults::triggerChannel, true);
+			hSet, fe::commons::settings::triggerChannel,
+			fe::commons::defaults::triggerChannel, true);
 	hDevice.hCommand("setting channel self trigger",
 			[triggerChannel](int handle) {return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel));});
 	if (triggerChannel >= boardInfo.Channels) {
@@ -171,14 +173,15 @@ static void configure(caen::Handle& hDevice) {
 			[channelMask](int handle) {return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask);});
 
 	auto const triggerThreshold = glob::triggerThreshold = odb::getValueUInt16(
-			hDB, hSet, settings::triggerThreshold, defaults::triggerThreshold,
-			true);
+			hDB, hSet, fe::commons::settings::triggerThreshold,
+			fe::commons::defaults::triggerThreshold, true);
 	hDevice.hCommand("setting channel trigger threshold",
 			[triggerChannel, triggerThreshold](int handle) {return CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold);});
 
 	auto const triggerRaisingPolarity = glob::triggerRaisingPolarity =
-			odb::getValueBool(hDB, hSet, settings::triggerRaisingPolarity,
-					defaults::triggerRaisingPolarity, true);
+			odb::getValueBool(hDB, hSet,
+					fe::commons::settings::triggerRaisingPolarity,
+					fe::commons::defaults::triggerRaisingPolarity, true);
 	hDevice.hCommand("setting trigger polarity",
 			[triggerChannel, triggerRaisingPolarity](int handle) {return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge);});
 
@@ -187,20 +190,6 @@ static void configure(caen::Handle& hDevice) {
 
 	hDevice.hCommand("setting acquisition mode",
 			[](int handle) {return CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED);});
-
-	auto const preTriggerLength = glob::preTriggerLength = odb::getValueUInt32(
-			hDB, hSet, settings::preTriggerLength, defaults::preTriggerLength,
-			true);
-	if (preTriggerLength > recordLength) {
-		throw midas::Exception(FE_ERR_ODB,
-				std::string("Invalid value of pre_trigger_length parameter: ")
-						+ std::to_string(preTriggerLength)
-						+ " is greater than wave form length ("
-						+ std::to_string(recordLength) + " samples)");
-	}
-
-	hDevice.writeRegister(caen::v1720::REG_POST_TRIGGER,
-			(recordLength - preTriggerLength) / 4);
 
 }
 
@@ -264,7 +253,7 @@ static int parseEvent(char * const pevent,
 		info->timeStampHi = eventInfo.Pattern;
 		info->frontendIndex = util::FrontEndUtils::frontendIndex<
 				decltype(info->frontendIndex)>();
-		info->preTriggerLength = glob::preTriggerLength;
+		info->preTriggerLength = fe::commons::glob::preTriggerLength;
 		info->triggerMode = 0;
 		bk_close(pevent, pdata + sizeof(*info));
 	}

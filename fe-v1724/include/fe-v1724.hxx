@@ -38,18 +38,6 @@ constexpr int EVID = 1;
 constexpr uint32_t MAX_EVENT_SIZE = calculateEventSize(
 		caen::v1724::NUM_OF_CHANNELS, caen::v1724::MAX_RECORD_LENGTH);
 
-namespace settings {
-
-constexpr char waveformLength[] = "waveform_length";
-constexpr char enabledChannels[] = "channel_enabled";
-constexpr char channelDcOffset[] = "channel_dc_offset";
-constexpr char triggerChannel[] = "trigger_channel";
-constexpr char triggerThreshold[] = "trigger_threshold";
-constexpr char triggerRaisingPolarity[] = "trigger_raising_polarity";
-constexpr char preTriggerLength[] = "pre_trigger_length";
-
-}
-
 }
 
 }

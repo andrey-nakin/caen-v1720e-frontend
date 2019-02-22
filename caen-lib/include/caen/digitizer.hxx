@@ -10,6 +10,7 @@ namespace reg {
 
 constexpr uint32_t FRONT_PANEL_IO_CTRL_ADD = CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD;
 constexpr uint32_t BROAD_CH_CTRL_ADD = CAEN_DGTZ_BROAD_CH_CTRL_ADD;
+constexpr uint32_t POST_TRIG_ADD = CAEN_DGTZ_POST_TRIG_ADD;
 
 }
 
