@@ -1,11 +1,3 @@
-#include <iostream>
-#include <cstdint>
-#include <string>
-#include <cstddef>
-#include <stdlib.h>
-#include <sstream>
-#include <mutex>
-#include <atomic>
 #include <midas.h>
 #include <msystem.h>
 
@@ -13,13 +5,10 @@
 #include <util/types.hxx>
 #include <util/V1720InfoRawData.hxx>
 #include <util/FrontEndUtils.hxx>
-#include <caen/handle.hxx>
-#include <caen/error-holder.hxx>
 #include <caen/exception.hxx>
 #include <caen/v1724.hxx>
 #include <caen/device.hxx>
 #include <caen/fe-commons.hxx>
-#include <caen/digitizer.hxx>
 
 #include "fe-v1724.hxx"
 

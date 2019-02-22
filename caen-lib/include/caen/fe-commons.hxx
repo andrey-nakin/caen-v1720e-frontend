@@ -49,7 +49,7 @@ extern std::recursive_mutex mDevice;
 extern std::atomic_bool acquisitionIsOn;
 extern uint32_t preTriggerLength;
 extern std::vector<uint16_t> dcOffsets;
-extern uint8_t triggerChannel;
+extern int8_t triggerChannel;
 extern uint16_t triggerThreshold;
 extern bool triggerRaisingPolarity;
 
