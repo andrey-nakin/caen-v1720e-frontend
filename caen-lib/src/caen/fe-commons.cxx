@@ -184,6 +184,19 @@ caen::Handle connect() {
 
 void configure(caen::Handle& hDevice, HNDLE const hSet) {
 
+	// external trigger
+	{
+		auto const v = odb::getValueBool(hDB, hSet, settings::extTrigger,
+				defaults::extTrigger, true);
+		hDevice.hCommand("setting ext trigger input mode",
+				[v](int handle) {
+					return CAEN_DGTZ_SetExtTriggerInputMode(
+							handle,
+							v ? CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT : CAEN_DGTZ_TRGMODE_DISABLED
+					);
+				});
+	}
+
 	// disable trigger overlap
 	hDevice.setBit(caen::reg::BROAD_CH_CTRL_ADD,
 			caen::regbit::config::TRIGGER_OVERLAP, false);

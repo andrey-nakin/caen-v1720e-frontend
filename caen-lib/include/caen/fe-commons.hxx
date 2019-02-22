@@ -57,6 +57,7 @@ namespace defaults {
 constexpr int32_t linkNum = 0;
 constexpr int32_t conetNode = 0;
 constexpr uint32_t vmeBaseAddr = 0;
+constexpr bool extTrigger = false;
 constexpr auto frontPanelIOLevel = IOLevel::nim;
 
 namespace channel {
@@ -72,6 +73,7 @@ namespace settings {
 constexpr char linkNum[] = "link_num";
 constexpr char conetNode[] = "conet_node";
 constexpr char vmeBaseAddr[] = "vme_base_addr";
+constexpr char extTrigger[] = "external_trigger";
 constexpr char frontPanelIOLevel[] = "front_panel_io_level";
 
 }
