@@ -31,11 +31,11 @@
 \input{version.tex}
 
 \title{\GD{}: набор программ по сбору и анализу данных для установки ГНЕЙС. \\
-Версия: \GDVER \\
-Ревизия документа: 0.1 (февраль 2019)}
+Версия: \GDVER
+}
 
 \author{Накин~А.~В.}
-\date{}
+\date{Ревизия документа: 0.1\\Февраль 2019}
 
 \begin{document}
 
@@ -566,6 +566,83 @@ sudo make
 \end{enumerate}
 
 Аналогичным образом производится обновление библиотеки \ROOTANA{}.
+
+\section{Установка ПО для устройств CAEN}
+
+Для связи с дигитайзерами компании CAEN необходимо скачать с официального сайта \cite{CaenHome} следующие компоненты:
+
+\begin{itemize}
+
+\item <<CAENVMELib Library>> -- библиотека для работы с VME устройствами.
+
+\item <<CAENComm Library>> --- библиотека, реализующая связь с устройствами по оптоволокну.
+
+\item <<CAENDigitizer Library>> --- библиотека по управлению дигитайзерами.
+
+\end{itemize}
+
+На странице каждого из компонентов необходимо выбрать раздел <<Downloads>> и скачать версию для Linux в формате TGZ. Для скачивания может потребоваться регистрация на сайте.
+
+После скачивания приступите к установке:
+
+\begin{enumerate}
+
+\item Создайте в домашнем каталоге подкаталог \DIRECTORY{\~{}/opt/caen} и перейдите в него:
+
+\begin{lstlisting}[language=bash]
+cd
+mkdir -p opt/caen
+cd opt/caen
+\end{lstlisting}
+
+\item Скопируйте архивы с библиотеками CAEN в каталог \DIRECTORY{\~{}/opt/caen}.
+
+\item Распакуйте архивы (здесь и далее номера версий в именах файлов и каталогов условные и могут отличаться):
+
+\begin{lstlisting}[language=bash]
+tar -xzf CAENVMELib-2.50.tgz
+tar -xzf CAENComm-1.2-build20140211.tgz
+tar -xzf CAENDigitizer_2.12.0_20181015.tgz
+\end{lstlisting}
+
+\item После распаковки в каталоге \DIRECTORY{\~{}/opt/caen} должны появиться следующие подкаталоги:
+
+\begin{lstlisting}[language=bash]
+CAENVMELib-2.50
+CAENComm-1.2
+CAENDigitizer_2.12.0
+\end{lstlisting}
+
+\item Перейдите в каталог \DIRECTORY{CAENVMELib-2.50/lib} и запустите установку:
+
+\begin{lstlisting}[language=bash]
+cd CAENVMELib-2.50/lib
+sudo ./install_x64
+\end{lstlisting}
+
+Здесь и далее: если у вас 32-битная версия Linux, то для установки используйте команды без суфикса {\tt 64}:
+
+\begin{lstlisting}[language=bash]
+sudo ./install
+\end{lstlisting}
+
+\item Перейдите в каталог \DIRECTORY{CAENComm-1.2/lib} и запустите установку:
+
+\begin{lstlisting}[language=bash]
+cd ~/opt/caen
+cd CAENComm-1.2/lib
+sudo ./install_x64
+\end{lstlisting}
+
+\item Перейдите в каталог \DIRECTORY{CAENDigitizer\_2.12.0} и запустите установку:
+
+\begin{lstlisting}[language=bash]
+cd ~/opt/caen
+cd CAENDigitizer_2.12.0
+sudo ./install_64
+\end{lstlisting}
+
+\end{enumerate}
 
 \section{Установка \GD{}}
 
