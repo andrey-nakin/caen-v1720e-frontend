@@ -229,39 +229,48 @@
 
 Если же ПК используется исключительно в целях одного эксперимента, или же если не предполагается использование компонентов ПО другими пользователями, то рекомендуется следовать соглашениям, принятым в \MIDAS{}, и производить установку в каталог \DIRECTORY{\~{}/packages}. Здесь и далее символ \DIRECTORY{\~{}} обозначает домашний каталог пользователя.
 
-\section{Установка стандартных библиотек}
+\section{Установка стандартных пакетов}
 
-\subsection{Установка библиотеки GTest}
+Перед началом установки ПО необходимо установить необходимые пакеты из стандарных репозиториев ОС Linux.
 
-Данная библиотека входит в репозитории современных версий Linux. Название соответствующего пакета отличается в зависимости от версии. В таблице~\ref{tab-gtest-package} приведены названия для некоторых версий Linux:
+\subsection{Установка пакетов в openSUSE}
 
-\begin{table}[h]
-\centering
-\begin{tabular}{ll}
-\hline\hline
-ОС & Название пакета \\
-\hline
+Установите пакеты следующей командой:
 
-openSUSE & \PACKAGE{googletest} \\
+\begin{lstlisting}[language=bash]
+sudo zypper install git bash cmake gcc-c++ gcc binutils \
+  openssl-devel libxml2-devel
+\end{lstlisting}
 
-\hline\hline
-\end{tabular}
-\label{tab-gtest-package}
-\end{table}
+Для сборки документации, входящей в состав \GD{}, необходимо установить следующие пакеты:
 
-\subsection{Установка библиотеки для сборки документации}
-
-Для openSUSE рекомендуется установить пакет \PACKAGE{texlive}:
-
-\medskip
-\COMMAND{sudo zypper install texlive}
-\medskip
-
-Кириллические шрифты устанавливаются следующей командой:
-
-\medskip
-\COMMAND{sudo zypper install texlive-babel-bulgarian texlive-babel-bulgarian-doc texlive-babel-serbian texlive-babel-serbianc texlive-babel-serbianc-doc texlive-babel-serbian-doc texlive-babel-ukraineb texlive-babel-ukraineb-doc texlive-cbfonts texlive-cbfonts-doc texlive-cbfonts-fonts texlive-cmcyr texlive-cmcyr-doc texlive-cmcyr-fonts texlive-collection-langcyrillic texlive-cyrplain texlive-diagnose texlive-diagnose-doc texlive-disser texlive-disser-doc texlive-eskd texlive-eskd-doc texlive-eskdx texlive-eskdx-doc texlive-gost texlive-gost-doc texlive-hyphen-bulgarian texlive-hyphen-mongolian texlive-hyphen-serbian texlive-hyphen-ukrainian texlive-lcyw texlive-lcyw-doc texlive-lh texlive-lhcyr texlive-lh-doc texlive-lshort-bulgarian texlive-lshort-mongol texlive-lshort-ukr texlive-mongolian-babel texlive-mongolian-babel-doc texlive-montex texlive-montex-doc texlive-montex-fonts texlive-mpman-ru texlive-pst-eucl-translation-bg texlive-serbian-apostrophe texlive-serbian-apostrophe-doc texlive-serbian-date-lat texlive-serbian-date-lat-doc texlive-serbian-def-cyr texlive-serbian-def-cyr-doc texlive-serbian-lig texlive-serbian-lig-doc texlive-texlive-ru texlive-texlive-sr}
-\medskip
+\begin{lstlisting}[language=bash]
+sudo zypper install texlive texlive-babel-bulgarian \
+  texlive-babel-bulgarian-doc texlive-babel-serbian \
+  texlive-babel-serbianc texlive-babel-serbianc-doc \
+  texlive-babel-serbian-doc texlive-babel-ukraineb \
+  texlive-babel-ukraineb-doc texlive-cbfonts \
+  texlive-cbfonts-doc texlive-cbfonts-fonts texlive-cmcyr \
+  texlive-cmcyr-doc texlive-cmcyr-fonts \
+  texlive-collection-langcyrillic texlive-cyrplain \
+  texlive-diagnose texlive-diagnose-doc texlive-disser \
+  texlive-disser-doc texlive-eskd texlive-eskd-doc \
+  texlive-eskdx texlive-eskdx-doc texlive-gost \
+  texlive-gost-doc texlive-hyphen-bulgarian \
+  texlive-hyphen-mongolian texlive-hyphen-serbian \
+  texlive-hyphen-ukrainian texlive-lcyw texlive-lcyw-doc \
+  texlive-lh texlive-lhcyr texlive-lh-doc \
+  texlive-lshort-bulgarian texlive-lshort-mongol \
+  texlive-lshort-ukr texlive-mongolian-babel \
+  texlive-mongolian-babel-doc texlive-montex \
+  texlive-montex-doc texlive-montex-fonts texlive-mpman-ru \
+  texlive-pst-eucl-translation-bg texlive-serbian-apostrophe \
+  texlive-serbian-apostrophe-doc texlive-serbian-date-lat \
+  texlive-serbian-date-lat-doc texlive-serbian-def-cyr \
+  texlive-serbian-def-cyr-doc texlive-serbian-\
+  lig texlive-serbian-lig-doc texlive-texlive-ru \
+  texlive-texlive-sr
+\end{lstlisting}
 
 \section{Установка \ROOT{}}
 
@@ -504,6 +513,7 @@ sudo git clone https://bitbucket.org/tmidas/rootana
 \begin{lstlisting}[language=bash]
 cd midas
 sudo git checkout master
+sudo git pull origin master
 sudo make
 \end{lstlisting}
 
@@ -512,7 +522,9 @@ sudo make
 \begin{lstlisting}[language=bash]
 cd ../rootana
 sudo git checkout master
-sudo make
+sudo git pull origin master
+sudo PATH=$ROOTSYS/bin:$PATH \
+  LD_LIBRARY_PATH=$ROOTSYS/lib:$LD_LIBRARY_PATH make
 \end{lstlisting}
 
 \item Настройте переменные окружения. Для этого добавьте следующие строки в файл \FILE{\~{}/.profile}:
