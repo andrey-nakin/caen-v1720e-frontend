@@ -3,8 +3,6 @@
 #include <string>
 #include <cstddef>
 #include <stdlib.h>
-#include <cstring>
-#include <memory>
 #include <sstream>
 #include <mutex>
 #include <atomic>
@@ -14,9 +12,6 @@
 #include <midas/odb.hxx>
 #include <util/types.hxx>
 #include <util/V1720InfoRawData.hxx>
-#include <util/TriggerInfoRawData.hxx>
-#include <util/TDcOffsetRawData.hxx>
-#include <util/TWaveFormRawData.hxx>
 #include <util/FrontEndUtils.hxx>
 #include <caen/handle.hxx>
 #include <caen/error-holder.hxx>
@@ -173,46 +168,9 @@ static int parseEvent(char * const pevent,
 		bk_close(pevent, pdata + sizeof(*info));
 	}
 
-	{
-		// store trigger information
-		uint8_t* pdata;
-		bk_create(pevent, util::TriggerInfoRawData::bankName(), TID_WORD,
-				(void**) &pdata);
-		util::TriggerBank* bank = (util::TriggerBank*) pdata;
-		bank->triggerChannel = fe::commons::glob::triggerChannel;
-		bank->triggerThreshold = fe::commons::glob::triggerThreshold;
-		bank->triggerRising = fe::commons::glob::triggerRaisingPolarity ? 1 : 0;
-		bank->reserved = 0;
-		bk_close(pevent, pdata + sizeof(*bank));
-	}
-
-	{
-		// store channel DC offset
-		uint16_t* pdata;
-		bk_create(pevent, util::TDcOffsetRawData::BANK_NAME, TID_WORD,
-				(void**) &pdata);
-		for (auto const& dcOffset : fe::commons::glob::dcOffsets) {
-			*pdata++ = dcOffset;
-		}
-		bk_close(pevent, pdata);
-	}
-
-	// store wave forms
-	for (std::size_t i = 0; i < fe::commons::glob::boardInfo.Channels; i++) {
-		if (eventInfo.ChannelMask & (0x0001 << i)) {
-			auto const numOfSamples = event.ChSize[i];
-			if (numOfSamples > 0) {
-				uint16_t const * const samples = event.DataChannel[i];
-				auto const dataSize = numOfSamples * sizeof(samples[0]);
-
-				uint8_t* pdata;
-				bk_create(pevent, util::TWaveFormRawData::bankName(i), TID_WORD,
-						(void**) &pdata);
-				std::memcpy(pdata, samples, dataSize);
-				bk_close(pevent, pdata + dataSize);
-			}
-		}
-	}
+	fe::commons::storeTriggerBank(pevent);
+	fe::commons::storeDcOffsetBank(pevent);
+	fe::commons::storeWaveformBanks(pevent, eventInfo, event);
 
 	return bk_size(pevent);
 

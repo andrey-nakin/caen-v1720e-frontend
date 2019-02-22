@@ -107,6 +107,10 @@ void configure(caen::Handle& hDevice, HNDLE hSet,
 void startAcquisition(caen::Device& device);
 void stopAcquisition(caen::Device& device);
 
+void storeTriggerBank(char* pevent);
+void storeDcOffsetBank(char* pevent);
+void storeWaveformBanks(char* pevent, CAEN_DGTZ_EventInfo_t const& eventInfo, CAEN_DGTZ_UINT16_EVENT_t const& event);
+
 void configureDevice(caen::Handle& hDevice);
 
 }

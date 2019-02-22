@@ -1,3 +1,8 @@
+#include <memory>
+#include <cstring>
+#include <util/TriggerInfoRawData.hxx>
+#include <util/TDcOffsetRawData.hxx>
+#include <util/TWaveFormRawData.hxx>
 #include "caen/fe-commons.hxx"
 #include "caen/digitizer.hxx"
 
@@ -329,6 +334,54 @@ void stopAcquisition(caen::Device& device) {
 
 	glob::acquisitionIsOn.store(false);
 	device.stopAcquisition();
+
+}
+
+void storeTriggerBank(char* const pevent) {
+
+	uint8_t* pdata;
+	bk_create(pevent, util::TriggerInfoRawData::bankName(), TID_WORD,
+			(void**) &pdata);
+	util::TriggerBank* bank = (util::TriggerBank*) pdata;
+	bank->triggerChannel = glob::triggerChannel;
+	bank->triggerThreshold = glob::triggerThreshold;
+	bank->triggerRising = glob::triggerRaisingPolarity ? 1 : 0;
+	bank->reserved = 0;
+	bk_close(pevent, pdata + sizeof(*bank));
+
+}
+
+void storeDcOffsetBank(char* const pevent) {
+
+	uint16_t* pdata;
+	bk_create(pevent, util::TDcOffsetRawData::BANK_NAME, TID_WORD,
+			(void**) &pdata);
+	for (auto const& dcOffset : glob::dcOffsets) {
+		*pdata++ = dcOffset;
+	}
+	bk_close(pevent, pdata);
+
+}
+
+void storeWaveformBanks(char* const pevent,
+		CAEN_DGTZ_EventInfo_t const& eventInfo,
+		CAEN_DGTZ_UINT16_EVENT_t const& event) {
+
+	for (std::size_t i = 0; i < glob::boardInfo.Channels; i++) {
+		if (eventInfo.ChannelMask & (0x0001 << i)) {
+			auto const numOfSamples = event.ChSize[i];
+			if (numOfSamples > 0) {
+				uint16_t const * const samples = event.DataChannel[i];
+				auto const dataSize = numOfSamples * sizeof(samples[0]);
+
+				uint8_t* pdata;
+				bk_create(pevent, util::TWaveFormRawData::bankName(i), TID_WORD,
+						(void**) &pdata);
+				std::memcpy(pdata, samples, dataSize);
+				bk_close(pevent, pdata + dataSize);
+			}
+		}
+	}
 
 }
 
