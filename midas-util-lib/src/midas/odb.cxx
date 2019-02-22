@@ -79,10 +79,10 @@ static void set_value(HNDLE const hDB, HNDLE const hDir,
 
 }
 
-static std::string check_add(std::string const& v, const std::string& val,
-		std::string const& str, std::string* def) {
+static std::string check_add(std::string const& v, std::string const & val,
+		std::string const& str, std::string& def) {
 
-	(*def) += std::string(" ") + str;
+	def += std::string(" ") + str;
 	if (!v.empty()) {
 		return v; // keep returning the first selection
 	}
@@ -103,7 +103,7 @@ std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
 	std::string s;
 	std::for_each(validValues.begin(), validValues.end(),
 			[&s, val, &def](std::string const& v) {
-				s = check_add(s, val, v, &def);
+				s = check_add(s, val, v, def);
 			});
 	if (s.empty()) {
 		s = validValues.empty() ? "" : validValues[0];
