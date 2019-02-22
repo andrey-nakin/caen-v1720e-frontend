@@ -74,7 +74,8 @@ int readEvent(char *pevent, int off);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
-EQUIPMENT equipment[] = { { EQUIP_NAME "%02d", { EVID, (1 << EVID), /* event ID, trigger mask */
+EQUIPMENT equipment[] = { { EQUIP_NAME "%02d", { fe::commons::EVID, (1
+		<< fe::commons::EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
 EQ_MULTITHREAD, /* equipment type */
 0, /* event source */
@@ -96,10 +97,6 @@ RO_RUNNING, /* Read when running */
 
 static void configure(caen::Handle& hDevice) {
 
-	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
-
-	fe::commons::configure(hDevice, hSet, caen::v1720::V1720Details());
-
 	auto& boardInfo = fe::commons::glob::boardInfo;
 	hDevice.hCommand("getting digitizer info",
 			[&boardInfo](int handle) {return CAEN_DGTZ_GetInfo(handle, &boardInfo);});
@@ -116,16 +113,8 @@ static void configure(caen::Handle& hDevice) {
 				"This digitizer has a DPP firmware");
 	}
 
-	hDevice.hCommand("resetting digitizer", CAEN_DGTZ_Reset);
-
-	hDevice.hCommand("setting IO level",
-			[](int handle) {return CAEN_DGTZ_SetIOLevel(handle, CAEN_DGTZ_IOLevel_NIM);});
-
-	hDevice.hCommand("setting external trigger input mode",
-			[](int handle) {return CAEN_DGTZ_SetExtTriggerInputMode(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY);});
-
-	hDevice.hCommand("setting run sync mode",
-			[](int handle) {return CAEN_DGTZ_SetRunSynchronizationMode(handle, CAEN_DGTZ_RUN_SYNC_Disabled);});
+	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
+	fe::commons::configure(hDevice, hSet, caen::v1720::V1720Details());
 
 	auto const recordLength = odb::getValueUInt32(hDB, hSet,
 			fe::commons::settings::waveformLength,
@@ -184,12 +173,6 @@ static void configure(caen::Handle& hDevice) {
 					fe::commons::defaults::triggerRaisingPolarity, true);
 	hDevice.hCommand("setting trigger polarity",
 			[triggerChannel, triggerRaisingPolarity](int handle) {return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge);});
-
-	hDevice.hCommand("setting max num events",
-			[](int handle) {return CAEN_DGTZ_SetMaxNumEventsBLT(handle, MAX_NUM_OF_EVENTS);});
-
-	hDevice.hCommand("setting acquisition mode",
-			[](int handle) {return CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED);});
 
 }
 

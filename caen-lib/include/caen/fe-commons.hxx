@@ -37,6 +37,9 @@ namespace fe {
 
 namespace commons {
 
+constexpr uint32_t MAX_NUM_OF_EVENTS = 100;
+constexpr int EVID = 1;
+
 namespace glob {
 
 extern CAEN_DGTZ_BoardInfo_t boardInfo;
@@ -94,7 +97,8 @@ constexpr char triggerRaisingPolarity[] = "trigger_raising_polarity";
 }
 
 caen::Handle connect();
-void configure(caen::Handle& hDevice, HNDLE hSet, caen::DigitizerDetails const&);
+void configure(caen::Handle& hDevice, HNDLE hSet,
+		caen::DigitizerDetails const&);
 void startAcquisition(caen::Device& device);
 void stopAcquisition(caen::Device& device);
 

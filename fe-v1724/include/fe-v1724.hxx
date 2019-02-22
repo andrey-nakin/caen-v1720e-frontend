@@ -31,10 +31,6 @@ constexpr std::size_t calculateEventSize(unsigned const numOfActiveChannels,
 
 }
 
-constexpr uint32_t MAX_NUM_OF_EVENTS = 100;
-
-constexpr int EVID = 1;
-
 constexpr uint32_t MAX_EVENT_SIZE = calculateEventSize(
 		caen::v1724::NUM_OF_CHANNELS, caen::v1724::MAX_RECORD_LENGTH);
 

@@ -186,6 +186,13 @@ caen::Handle connect() {
 void configure(caen::Handle& hDevice, HNDLE const hSet,
 		caen::DigitizerDetails const& dig) {
 
+	hDevice.hCommand("resetting digitizer", CAEN_DGTZ_Reset);
+
+	hDevice.hCommand("setting run sync mode",
+			[](int handle) {
+				return CAEN_DGTZ_SetRunSynchronizationMode(handle, CAEN_DGTZ_RUN_SYNC_Disabled);
+			});
+
 	// external trigger
 	{
 		auto const v = odb::getValueBool(hDB, hSet, settings::extTrigger,
@@ -232,6 +239,14 @@ void configure(caen::Handle& hDevice, HNDLE const hSet,
 		hDevice.setBit(caen::reg::FRONT_PANEL_IO_CTRL_ADD,
 				caen::regbit::fpioctl::IO_LEVEL, v == iolevel::ttl);
 	}
+
+	hDevice.hCommand("setting max num events", [](int handle) {
+		return CAEN_DGTZ_SetMaxNumEventsBLT(handle, MAX_NUM_OF_EVENTS);
+	});
+
+	hDevice.hCommand("setting acquisition mode", [](int handle) {
+		return CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED);
+	});
 
 }
 
