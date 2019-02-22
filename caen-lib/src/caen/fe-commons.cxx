@@ -183,7 +183,8 @@ caen::Handle connect() {
 
 }
 
-void configure(caen::Handle& hDevice, HNDLE const hSet) {
+void configure(caen::Handle& hDevice, HNDLE const hSet,
+		caen::DigitizerDetails const& dig) {
 
 	// external trigger
 	{

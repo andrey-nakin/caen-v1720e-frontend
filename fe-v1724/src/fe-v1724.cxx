@@ -98,7 +98,7 @@ static void configure(caen::Handle& hDevice) {
 
 	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
 
-	fe::commons::configure(hDevice, hSet);
+	fe::commons::configure(hDevice, hSet, caen::v1724::V1724Details());
 
 	auto& boardInfo = fe::commons::glob::boardInfo;
 	hDevice.hCommand("getting digitizer info",

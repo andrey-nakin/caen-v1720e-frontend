@@ -2,6 +2,7 @@
 #define	__CAEN_V1720_HXX__
 
 #include <cstdint>
+#include "digitizer.hxx"
 
 namespace caen {
 
@@ -25,6 +26,17 @@ constexpr T nsPerSample() {
 	return 4;
 
 }
+
+class V1720Details: public DigitizerDetails {
+public:
+
+	uint32_t maxRecordLength() const override {
+
+		return MAX_RECORD_LENGTH;
+
+	}
+
+};
 
 }
 

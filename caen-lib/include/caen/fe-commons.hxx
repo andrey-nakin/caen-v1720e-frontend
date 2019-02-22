@@ -8,6 +8,7 @@
 #include <CAENDigitizer.h>
 #include <midas/odb.hxx>
 #include <caen/device.hxx>
+#include <caen/digitizer.hxx>
 #include <util/FrontEndUtils.hxx>
 
 #ifndef NEED_NO_EXTERN_C
@@ -93,7 +94,7 @@ constexpr char triggerRaisingPolarity[] = "trigger_raising_polarity";
 }
 
 caen::Handle connect();
-void configure(caen::Handle& hDevice, HNDLE hSet);
+void configure(caen::Handle& hDevice, HNDLE hSet, caen::DigitizerDetails const&);
 void startAcquisition(caen::Device& device);
 void stopAcquisition(caen::Device& device);
 
