@@ -4,6 +4,7 @@
 #include <memory>
 #include <mutex>
 #include <atomic>
+#include <vector>
 #include <midas.h>
 #include <CAENDigitizer.h>
 #include <midas/odb.hxx>
@@ -47,6 +48,10 @@ extern std::unique_ptr<caen::Device> device;
 extern std::recursive_mutex mDevice;
 extern std::atomic_bool acquisitionIsOn;
 extern uint32_t preTriggerLength;
+extern std::vector<uint16_t> dcOffsets;
+extern uint8_t triggerChannel;
+extern uint16_t triggerThreshold;
+extern bool triggerRaisingPolarity;
 
 }
 

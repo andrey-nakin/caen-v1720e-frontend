@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cstdint>
-#include <vector>
 #include <string>
 #include <cstddef>
 #include <stdlib.h>
@@ -30,15 +29,6 @@
 #include "fe-v1724.hxx"
 
 using namespace fe::v1724;
-
-namespace glob {
-
-static std::vector<uint16_t> dcOffsets;
-static uint8_t triggerChannel;
-static uint16_t triggerThreshold;
-static bool triggerRaisingPolarity;
-
-}
 
 #ifndef NEED_NO_EXTERN_C
 extern "C" {
@@ -116,64 +106,6 @@ static void configure(caen::Handle& hDevice) {
 	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
 	fe::commons::configure(hDevice, hSet, caen::v1724::V1724Details());
 
-	auto const recordLength = odb::getValueUInt32(hDB, hSet,
-			fe::commons::settings::waveformLength,
-			fe::commons::defaults::recordLength, true);
-	if (recordLength > caen::v1724::MAX_RECORD_LENGTH) {
-		throw midas::Exception(FE_ERR_ODB,
-				std::string("Value of waveform_length parameter exceeds ")
-						+ std::to_string(caen::v1724::MAX_RECORD_LENGTH));
-	}
-
-	auto const enabledChannels = odb::getValueBoolV(hDB, hSet,
-			fe::commons::settings::enabledChannels, boardInfo.Channels,
-			fe::commons::defaults::channel::enabled, true);
-
-	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet,
-			fe::commons::settings::channelDcOffset, boardInfo.Channels,
-			fe::commons::defaults::channel::dcOffset, true);
-
-	auto const triggerChannel = glob::triggerChannel = odb::getValueUInt8(hDB,
-			hSet, fe::commons::settings::triggerChannel,
-			fe::commons::defaults::triggerChannel, true);
-	hDevice.hCommand("setting channel self trigger",
-			[triggerChannel](int handle) {return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel));});
-	if (triggerChannel >= boardInfo.Channels) {
-		throw midas::Exception(FE_ERR_ODB,
-				std::string("Invalid trigger channel: ")
-						+ std::to_string(triggerChannel));
-	}
-
-	uint32_t channelMask = 0x0001 << triggerChannel;
-	for (std::size_t i = 0; i != enabledChannels.size(); i++) {
-		if (enabledChannels[i]) {
-			channelMask |= 0x0001 << i;
-		}
-
-		hDevice.hCommand("setting record length",
-				[recordLength, i](int handle) {return CAEN_DGTZ_SetRecordLength(handle, recordLength, i);});
-
-		auto const& dcOffset = glob::dcOffsets[i];
-		hDevice.hCommand("setting channel DC offset",
-				[dcOffset, i](int handle) {return CAEN_DGTZ_SetChannelDCOffset(handle, i, dcOffset);});
-	}
-
-	hDevice.hCommand("setting channel enable mask",
-			[channelMask](int handle) {return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask);});
-
-	auto const triggerThreshold = glob::triggerThreshold = odb::getValueUInt16(
-			hDB, hSet, fe::commons::settings::triggerThreshold,
-			fe::commons::defaults::triggerThreshold, true);
-	hDevice.hCommand("setting channel trigger threshold",
-			[triggerChannel, triggerThreshold](int handle) {return CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold);});
-
-	auto const triggerRaisingPolarity = glob::triggerRaisingPolarity =
-			odb::getValueBool(hDB, hSet,
-					fe::commons::settings::triggerRaisingPolarity,
-					fe::commons::defaults::triggerRaisingPolarity, true);
-	hDevice.hCommand("setting trigger polarity",
-			[triggerChannel, triggerRaisingPolarity](int handle) {return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge);});
-
 }
 
 namespace fe {
@@ -247,9 +179,9 @@ static int parseEvent(char * const pevent,
 		bk_create(pevent, util::TriggerInfoRawData::bankName(), TID_WORD,
 				(void**) &pdata);
 		util::TriggerBank* bank = (util::TriggerBank*) pdata;
-		bank->triggerChannel = glob::triggerChannel;
-		bank->triggerThreshold = glob::triggerThreshold;
-		bank->triggerRising = glob::triggerRaisingPolarity ? 1 : 0;
+		bank->triggerChannel = fe::commons::glob::triggerChannel;
+		bank->triggerThreshold = fe::commons::glob::triggerThreshold;
+		bank->triggerRising = fe::commons::glob::triggerRaisingPolarity ? 1 : 0;
 		bank->reserved = 0;
 		bk_close(pevent, pdata + sizeof(*bank));
 	}
@@ -259,7 +191,7 @@ static int parseEvent(char * const pevent,
 		uint16_t* pdata;
 		bk_create(pevent, util::TDcOffsetRawData::BANK_NAME, TID_WORD,
 				(void**) &pdata);
-		for (auto const& dcOffset : glob::dcOffsets) {
+		for (auto const& dcOffset : fe::commons::glob::dcOffsets) {
 			*pdata++ = dcOffset;
 		}
 		bk_close(pevent, pdata);

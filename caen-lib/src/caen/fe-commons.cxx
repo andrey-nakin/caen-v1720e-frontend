@@ -164,6 +164,10 @@ std::unique_ptr<caen::Device> device;
 std::recursive_mutex mDevice;
 std::atomic_bool acquisitionIsOn(false);
 uint32_t preTriggerLength;
+std::vector<uint16_t> dcOffsets;
+uint8_t triggerChannel;
+uint16_t triggerThreshold;
+bool triggerRaisingPolarity;
 
 }
 
@@ -186,11 +190,75 @@ caen::Handle connect() {
 void configure(caen::Handle& hDevice, HNDLE const hSet,
 		caen::DigitizerDetails const& dig) {
 
+	auto& boardInfo = glob::boardInfo;
+	hDevice.hCommand("getting digitizer info", [&boardInfo](int handle) {
+		return CAEN_DGTZ_GetInfo(handle, &boardInfo);
+	});
+
 	hDevice.hCommand("resetting digitizer", CAEN_DGTZ_Reset);
 
 	hDevice.hCommand("setting run sync mode",
 			[](int handle) {
 				return CAEN_DGTZ_SetRunSynchronizationMode(handle, CAEN_DGTZ_RUN_SYNC_Disabled);
+			});
+
+	auto const recordLength = odb::getValueUInt32(hDB, hSet,
+			settings::waveformLength, defaults::recordLength, true);
+	if (recordLength > dig.maxRecordLength()) {
+		throw midas::Exception(FE_ERR_ODB,
+				std::string("Value of waveform_length parameter exceeds ")
+						+ std::to_string(dig.maxRecordLength()));
+	}
+
+	auto const enabledChannels = odb::getValueBoolV(hDB, hSet,
+			settings::enabledChannels, boardInfo.Channels,
+			defaults::channel::enabled, true);
+
+	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet, settings::channelDcOffset,
+			boardInfo.Channels, defaults::channel::dcOffset, true);
+
+	auto const triggerChannel = glob::triggerChannel = odb::getValueUInt8(hDB,
+			hSet, settings::triggerChannel, defaults::triggerChannel, true);
+	hDevice.hCommand("setting channel self trigger",
+			[triggerChannel](int handle) {return CAEN_DGTZ_SetChannelSelfTrigger(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY, (1 << triggerChannel));});
+	if (triggerChannel >= boardInfo.Channels) {
+		throw midas::Exception(FE_ERR_ODB,
+				std::string("Invalid trigger channel: ")
+						+ std::to_string(triggerChannel));
+	}
+
+	uint32_t channelMask = 0x0001 << triggerChannel;
+	for (std::size_t i = 0; i != enabledChannels.size(); i++) {
+		if (enabledChannels[i]) {
+			channelMask |= 0x0001 << i;
+		}
+
+		hDevice.hCommand("setting record length",
+				[recordLength, i](int handle) {return CAEN_DGTZ_SetRecordLength(handle, recordLength, i);});
+
+		auto const& dcOffset = glob::dcOffsets[i];
+		hDevice.hCommand("setting channel DC offset",
+				[dcOffset, i](int handle) {return CAEN_DGTZ_SetChannelDCOffset(handle, i, dcOffset);});
+	}
+
+	hDevice.hCommand("setting channel enable mask", [channelMask](int handle) {
+		return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask);
+	});
+
+	auto const triggerThreshold = glob::triggerThreshold = odb::getValueUInt16(
+			hDB, hSet, settings::triggerThreshold, defaults::triggerThreshold,
+			true);
+	hDevice.hCommand("setting channel trigger threshold",
+			[triggerChannel, triggerThreshold](int handle) {
+				return CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold);
+			});
+
+	auto const triggerRaisingPolarity = glob::triggerRaisingPolarity =
+			odb::getValueBool(hDB, hSet, settings::triggerRaisingPolarity,
+					defaults::triggerRaisingPolarity, true);
+	hDevice.hCommand("setting trigger polarity",
+			[triggerChannel, triggerRaisingPolarity](int handle) {
+				return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge);
 			});
 
 	// external trigger
