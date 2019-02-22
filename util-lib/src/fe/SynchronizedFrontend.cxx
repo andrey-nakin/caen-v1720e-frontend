@@ -60,6 +60,13 @@ int SynchronizedFrontend::doPoll() {
 
 }
 
+int SynchronizedFrontend::doReadEvent(char* const pevent, int const off) {
+
+	std::lock_guard<decltype(mutex)> lock(mutex);
+	return doReadEventSynchronized(pevent, off);
+
+}
+
 void SynchronizedFrontend::doInitSynchronized() {
 
 	// null implementation
@@ -105,6 +112,13 @@ void SynchronizedFrontend::doLoopSynchronized() {
 }
 
 int SynchronizedFrontend::doPollSynchronized() {
+
+	return 0;
+
+}
+
+int SynchronizedFrontend::doReadEventSynchronized(char* /* pevent */,
+		int /* off */) {
 
 	return 0;
 

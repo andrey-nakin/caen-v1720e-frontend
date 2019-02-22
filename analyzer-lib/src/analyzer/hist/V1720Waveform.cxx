@@ -14,7 +14,8 @@ namespace analyzer {
 namespace hist {
 
 V1720Waveform::V1720Waveform(VirtualOdb* const anOdb) :
-		AbstractWaveform(anOdb, fe::v1720::equipName, fe::v1720::displayName,
+		AbstractWaveform(anOdb, fe::caen::v1720::equipName,
+				fe::caen::v1720::displayName,
 				caen::v1720::nsPerSample<ns_per_sample_type>()), minFront(14), frontLength(
 				3), peakLength(16), threshold(7.0), rising(false) {
 

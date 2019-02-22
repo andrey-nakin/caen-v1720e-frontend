@@ -1,7 +1,19 @@
-#ifndef	UTIL_LIB_FE_Frontend_hxx
-#define	UTIL_LIB_FE_Frontend_hxx
+#pragma once
 
 #include <midas.h>
+
+#ifndef NEED_NO_EXTERN_C
+extern "C" {
+#endif
+
+extern const char *frontend_name;
+extern EQUIPMENT equipment[];
+extern HNDLE hDB;
+extern INT max_event_size;
+
+#ifndef NEED_NO_EXTERN_C
+}
+#endif
 
 namespace fe {
 
@@ -23,9 +35,12 @@ public:
 	virtual INT pauseRun(INT run_number, char* error);
 	virtual INT resumeRun(INT run_number, char* error);
 	virtual INT frontendLoop();
-	virtual INT pollEvent(INT source, INT count, BOOL test);
 	virtual INT interruptConfigure(INT cmd, INT source, PTYPE adr);
+	virtual INT pollEvent(INT source, INT count, BOOL test);
+	virtual INT readEvent(char* pevent, int off);
 	//
+
+private:
 
 	// Overridables
 	virtual void doInit();
@@ -35,13 +50,10 @@ public:
 	virtual void doPauseRun(INT run_number, char* error);
 	virtual void doResumeRun(INT run_number, char* error);
 	virtual void doLoop();
-	virtual int doPoll();
 	virtual void doNoData();
+	virtual int doPoll();
+	virtual int doReadEvent(char* pevent, int off);
+
+};
 
 }
-;
-
-}
-
-#endif	//	UTIL_LIB_FE_Frontend_hxx
-

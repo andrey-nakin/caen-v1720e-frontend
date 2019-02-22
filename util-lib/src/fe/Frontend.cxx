@@ -3,18 +3,6 @@
 #include <midas/exception.hxx>
 #include "util/FrontEndUtils.hxx"
 
-#ifndef NEED_NO_EXTERN_C
-extern "C" {
-#endif
-
-extern const char *frontend_name;
-extern EQUIPMENT equipment[];
-extern HNDLE hDB;
-
-#ifndef NEED_NO_EXTERN_C
-}
-#endif
-
 namespace fe {
 
 Frontend::Frontend() {
@@ -108,6 +96,14 @@ INT Frontend::pollEvent(INT const /* source */, INT const /* count */,
 
 }
 
+INT Frontend::readEvent(char* const pevent, int const off) {
+
+	return util::FrontEndUtils::commandR([this, pevent, off] {
+		return doReadEvent(pevent, off);
+	});
+
+}
+
 INT Frontend::interruptConfigure(INT /* cmd */, INT /* source */,
 		PTYPE /* adr */) {
 
@@ -158,6 +154,12 @@ void Frontend::doLoop() {
 }
 
 int Frontend::doPoll() {
+
+	return 0;
+
+}
+
+int Frontend::doReadEvent(char* /* pevent */, int /* off */) {
 
 	return 0;
 

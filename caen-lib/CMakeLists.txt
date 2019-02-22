@@ -5,7 +5,6 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(CaenLib VERSION 1.0.0 LANGUAGES CXX DESCRIPTION "CAEN Digitizer Library")
 set (CMAKE_CXX_STANDARD 14)
 include_directories($ENV{MIDASSYS}/include)
-include_directories($ENV{ROOTANASYS}/include)
 include_directories(${PROJECT_SOURCE_DIR}/include/)
 include_directories($ENV{MIDASSYS}/include)
 
@@ -24,7 +23,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME caen)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 target_link_libraries(${PROJECT_NAME} MidasUtilLib)
-target_link_libraries(${PROJECT_NAME} UtilLib)
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>

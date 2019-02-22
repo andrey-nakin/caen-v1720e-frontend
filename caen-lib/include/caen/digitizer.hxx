@@ -48,18 +48,6 @@ constexpr uint8_t IO_LEVEL = 0;
 
 }
 
-class DigitizerDetails {
-public:
-
-	DigitizerDetails();
-	DigitizerDetails(const DigitizerDetails&) = delete;
-	virtual ~DigitizerDetails();
-	DigitizerDetails& operator=(const DigitizerDetails&) = delete;
-
-	virtual uint32_t maxRecordLength() const = 0;
-
-};
-
 }
 
 #endif	//	__CAEN_DIGITIZER_HXX__

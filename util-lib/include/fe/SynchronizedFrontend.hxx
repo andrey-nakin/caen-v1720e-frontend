@@ -1,5 +1,4 @@
-#ifndef	UTIL_LIB_FE_SynchronizedFrontend_hxx
-#define	UTIL_LIB_FE_SynchronizedFrontend_hxx
+#pragma once
 
 #include <mutex>
 #include "Frontend.hxx"
@@ -7,7 +6,7 @@
 namespace fe {
 
 class SynchronizedFrontend: public Frontend {
-public:
+private:
 
 	void doInit() override;
 	void doExit() override;
@@ -17,6 +16,7 @@ public:
 	void doResumeRun(INT run_number, char* error) override;
 	void doLoop() override;
 	int doPoll() override;
+	int doReadEvent(char* pevent, int off) override;
 
 	// Overridables
 	virtual void doInitSynchronized();
@@ -27,6 +27,7 @@ public:
 	virtual void doResumeRunSynchronized(INT run_number, char* error);
 	virtual void doLoopSynchronized();
 	virtual int doPollSynchronized();
+	virtual int doReadEventSynchronized(char* pevent, int off);
 
 private:
 
@@ -35,6 +36,3 @@ private:
 };
 
 }
-
-#endif	//	UTIL_LIB_FE_SynchronizedFrontend_hxx
-
