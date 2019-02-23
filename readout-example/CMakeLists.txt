@@ -5,6 +5,8 @@ file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.c)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME readout-example)
+target_link_libraries(${PROJECT_NAME} CAENVME)
+target_link_libraries(${PROJECT_NAME} CAENComm)
 target_link_libraries(${PROJECT_NAME} CAENDigitizer)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

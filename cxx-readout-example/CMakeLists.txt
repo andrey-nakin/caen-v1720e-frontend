@@ -15,6 +15,8 @@ target_link_libraries(${PROJECT_NAME} pthread)
 target_link_libraries(${PROJECT_NAME} rt)
 target_link_libraries(${PROJECT_NAME} util)
 target_link_libraries(${PROJECT_NAME} midas)
+target_link_libraries(${PROJECT_NAME} CAENVME)
+target_link_libraries(${PROJECT_NAME} CAENComm)
 target_link_libraries(${PROJECT_NAME} CAENDigitizer)
 target_link_libraries(${PROJECT_NAME} CaenLib)
 

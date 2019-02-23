@@ -1,26 +1,12 @@
-#include <iostream>
-#include <cstdint>
-#include <vector>
-#include <string>
-#include <cstddef>
-#include <stdlib.h>
-#include <cstring>
-#include <memory>
-#include <sstream>
-#include <mutex>
-#include <atomic>
-#include <chrono>
-#include <ctime>
 #include <cmath>
-#include <midas.h>
-
-#include <midas/odb.hxx>
-#include <util/types.hxx>
-#include <util/V1720InfoRawData.hxx>
+#include <atomic>
+#include <fe/SynchronizedFrontend.hxx>
+#include <util/FrontEndUtils.hxx>
+#include <util/TriggerInfoRawData.hxx>
 #include <util/TDcOffsetRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
-#include <util/FrontEndUtils.hxx>
-
+#include <util/V1720InfoRawData.hxx>
+#include <midas/odb.hxx>
 #include "defaults.hxx"
 
 #define EQUIP_NAME "sinus"
@@ -28,30 +14,9 @@ constexpr int EVID = 1;
 constexpr auto PI = 3.1415926536;
 constexpr std::size_t NUM_OF_CHANNELS = 8;
 
-namespace glob {
-
-static uint32_t recordLength = 0;
-static midas_thread_t readoutThread;
-static std::atomic_bool acquisitionIsOn(false);
-static std::mutex readingMutex;
-static uint64_t runStartTime;
-static uint32_t eventCounter = 0;
-static uint32_t channelMask = 0x0000;
-static uint32_t dFrequency;
-
-static std::vector<bool> enabledChannels;
-static std::vector<uint16_t> dcOffsets;
-static std::vector<uint16_t> amplitudes;
-static std::vector<uint32_t> frequencies;
-static std::vector<int32_t> phases;
-
-}
-
 #ifndef NEED_NO_EXTERN_C
 extern "C" {
 #endif
-
-/*-- Globals -------------------------------------------------------*/
 
 /* The frontend name (client name) as seen by other MIDAS clients   */
 const char *frontend_name = "fe-" EQUIP_NAME;
@@ -72,8 +37,6 @@ INT max_event_size_frag = 4 * 1024 * 1024;
 /* buffer size to hold events */
 INT event_buffer_size = 10 * 1024 * 1024;
 
-/*-- Function declarations -----------------------------------------*/
-
 INT frontend_init();
 INT frontend_exit();
 INT begin_of_run(INT run_number, char *error);
@@ -91,14 +54,12 @@ extern HNDLE hDB;
 
 int readEvent(char *pevent, int off);
 
-/*-- Equipment list ------------------------------------------------*/
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
 EQUIPMENT equipment[] = { { EQUIP_NAME, { EVID, (1 << EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
-EQ_USER, /* equipment type */
+EQ_PERIODIC, /* equipment type */
 0, /* event source */
 "MIDAS", /* format */
 TRUE, /* enabled */
@@ -120,325 +81,275 @@ extern "C" {
 void set_rate_period(int ms);
 }
 
-int test_rb_wait_sleep = 1;
+class SinusFrontend: public fe::SynchronizedFrontend {
+public:
 
-#include "msystem.h"
+	SinusFrontend() :
+			acquisitionIsOn(false) {
+	}
 
-int test_rb_wait_count = 0;
-int test_rbh = 0;
+private:
 
-int test_thread(void * /* param */) {
-	int status;
-	EVENT_HEADER *pevent;
-	void *p;
-	EQUIPMENT* eq = &equipment[0];
+	std::atomic_bool acquisitionIsOn;
+	uint32_t recordLength = 0;
+	midas_thread_t readoutThread;
+	std::mutex readingMutex;
+	uint64_t runStartTime;
+	uint32_t eventCounter = 0;
+	uint32_t channelMask = 0x0000;
+	uint32_t dFrequency;
 
-	/* indicate activity to framework */
-	signal_readout_thread_active(test_rbh, 1);
+	std::vector<bool> enabledChannels;
+	std::vector<uint16_t> dcOffsets;
+	std::vector<uint16_t> amplitudes;
+	std::vector<uint32_t> frequencies;
+	std::vector<int32_t> phases;
 
-	while (!stop_all_threads) {
-		if (!glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
-			// no run, wait
-			ss_sleep(1);
-			continue;
-		}
+	void configure() {
 
-		/* obtain buffer space */
-		status = rb_get_wp(get_event_rbh(test_rbh), &p, 0);
-		if (stop_all_threads)
-			break;
-		if (status == DB_TIMEOUT) {
-			test_rb_wait_count++;
-			//printf("readout_thread: Ring buffer is full, waiting for space!\n");
-			if (test_rb_wait_sleep)
-				ss_sleep(test_rb_wait_sleep);
-			continue;
-		}
-		if (status != DB_SUCCESS) {
-			// catastrophic failure of ring buffer?
-			break;
-		}
+		auto const hSet = util::FrontEndUtils::settingsKey(EQUIP_NAME);
 
-		if (eq->info.period) {
-			ss_sleep(eq->info.period);
-		}
+		dFrequency = odb::getValueUInt32(hDB, hSet, "discrete_frequency",
+				defaults::dFrequency, true);
+		recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
+				defaults::recordLength, true);
 
-		if (1 /*readout_enabled()*/) {
+		enabledChannels = odb::getValueBoolV(hDB, hSet, "channel_enabled",
+				NUM_OF_CHANNELS, true, true);
+		dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
+				NUM_OF_CHANNELS, defaults::channel::dcOffset, true);
+		frequencies = odb::getValueUInt32V(hDB, hSet, "channel_frequency",
+				NUM_OF_CHANNELS, defaults::channel::frequency, true);
+		amplitudes = odb::getValueUInt16V(hDB, hSet, "channel_amplitude",
+				NUM_OF_CHANNELS, defaults::channel::amplitude, true);
+		phases = odb::getValueInt32V(hDB, hSet, "channel_phase",
+				NUM_OF_CHANNELS, defaults::channel::phase, true);
 
-			/* check for new event */
-			//source = poll_event(multithread_eq->info.source, multithread_eq->poll_count, FALSE);
-			if (1 /*source > 0*/) {
-
-				if (stop_all_threads)
-					break;
-
-				pevent = (EVENT_HEADER *) p;
-
-				/* compose MIDAS event header */
-				pevent->event_id = eq->info.event_id;
-				pevent->trigger_mask = eq->info.trigger_mask;
-				pevent->data_size = 0;
-				pevent->time_stamp = ss_time();
-				pevent->serial_number = eq->serial_number++;
-
-				/* call user readout routine */
-				pevent->data_size = eq->readout((char *) (pevent + 1), 0);
-
-				/* check event size */
-				if (pevent->data_size + sizeof(EVENT_HEADER)
-						> (DWORD) max_event_size) {
-					cm_msg(MERROR, "readout_thread",
-							"Event size %ld larger than maximum size %d",
-							(long) (pevent->data_size + sizeof(EVENT_HEADER)),
-							max_event_size);
-					assert (FALSE);
-				}
-
-				if (pevent->data_size > 0) {
-					/* put event into ring buffer */
-					rb_increment_wp(get_event_rbh(test_rbh),
-							sizeof(EVENT_HEADER) + pevent->data_size);
-				} else
-					eq->serial_number--;
+		channelMask = 0x0000;
+		for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
+			if (enabledChannels[i]) {
+				channelMask |= 0x0001 << i;
 			}
-
-		} else
-			// readout_enabled
-			ss_sleep(1);
-	}
-
-	signal_readout_thread_active(test_rbh, 0);
-
-	return 0;
-}
-
-INT poll_event(INT /* source */, INT count, BOOL test) {
-
-	if (test) {
-		ss_sleep(count);
-	}
-	return (0);
-
-}
-
-INT interrupt_configure(INT /* cmd */, INT /* source */, PTYPE /* adr */) {
-
-	return SUCCESS;
-
-}
-
-static void configure() {
-
-	auto const hSet = util::FrontEndUtils::settingsKey(EQUIP_NAME);
-
-	glob::dFrequency = odb::getValueUInt32(hDB, hSet, "discrete_frequency",
-			defaults::dFrequency, true);
-	glob::recordLength = odb::getValueUInt32(hDB, hSet, "waveform_length",
-			defaults::recordLength, true);
-
-	glob::enabledChannels = odb::getValueBoolV(hDB, hSet, "channel_enabled",
-			NUM_OF_CHANNELS, true, true);
-	glob::dcOffsets = odb::getValueUInt16V(hDB, hSet, "channel_dc_offset",
-			NUM_OF_CHANNELS, defaults::channel::dcOffset, true);
-	glob::frequencies = odb::getValueUInt32V(hDB, hSet, "channel_frequency",
-			NUM_OF_CHANNELS, defaults::channel::frequency, true);
-	glob::amplitudes = odb::getValueUInt16V(hDB, hSet, "channel_amplitude",
-			NUM_OF_CHANNELS, defaults::channel::amplitude, true);
-	glob::phases = odb::getValueInt32V(hDB, hSet, "channel_phase",
-			NUM_OF_CHANNELS, defaults::channel::phase, true);
-
-	glob::channelMask = 0x0000;
-	for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
-		if (glob::enabledChannels[i]) {
-			glob::channelMask |= 0x0001 << i;
 		}
+
 	}
 
-}
+	uint64_t nanoTime() {
 
-static uint64_t nanoTime() {
+		std::chrono::time_point < std::chrono::system_clock > now =
+				std::chrono::system_clock::now();
+		auto duration = now.time_since_epoch();
+		auto nanoseconds = std::chrono::duration_cast < std::chrono::nanoseconds
+				> (duration);
+		return nanoseconds.count();
 
-	std::chrono::time_point < std::chrono::system_clock > now =
-			std::chrono::system_clock::now();
-	auto duration = now.time_since_epoch();
-	auto nanoseconds = std::chrono::duration_cast < std::chrono::nanoseconds
-			> (duration);
-	return nanoseconds.count();
+	}
 
-}
+	void startAcquisition() {
 
-static void startAcquisition() {
+		runStartTime = nanoTime();
+		eventCounter = 0;
+		acquisitionIsOn.store(true);
 
-	glob::runStartTime = nanoTime();
-	glob::eventCounter = 0;
-	glob::acquisitionIsOn.store(true);
+	}
 
-}
+	void stopAcquisition() {
 
-static void stopAcquisition() {
+		acquisitionIsOn.store(false);
 
-	glob::acquisitionIsOn.store(false);
+		std::lock_guard < std::mutex > lock(readingMutex);
 
-	std::lock_guard < std::mutex > lock(glob::readingMutex);
+	}
 
-}
+	int buildEvent(char * const pevent) {
+
+		bk_init32(pevent);
+
+		{
+			// store general information
+			uint8_t* pdata;
+			bk_create(pevent, util::V1720InfoRawData::bankName(), TID_DWORD,
+					(void**) &pdata);
+			util::InfoBank* info = (util::InfoBank*) pdata;
+			info->boardId = 0;
+			info->channelMask = channelMask;
+			info->eventCounter = ++eventCounter;
+			auto const t = nanoTime();
+			info->timeStampLo = t & 0xffffffff;
+			info->timeStampHi = t >> 32;
+			info->timeStampHi = t >> 32;
+			info->frontendIndex = util::FrontEndUtils::frontendIndex<
+					decltype(info->frontendIndex)>();
+			bk_close(pevent, pdata + sizeof(*info));
+		}
+
+		{
+			// store channel DC offset
+			uint16_t* pdata;
+			bk_create(pevent, util::TDcOffsetRawData::BANK_NAME, TID_WORD,
+					(void**) &pdata);
+			for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
+				*pdata++ = dcOffsets[i];
+			}
+			bk_close(pevent, pdata);
+		}
+
+		// store wave forms
+		auto const t = nanoTime() - runStartTime;
+		for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
+			if (enabledChannels[i]) {
+				auto const dt = 1.0e9 / frequencies[i];
+
+				if (recordLength > 0) {
+					uint16_t* pdata;
+					bk_create(pevent, util::TWaveFormRawData::bankName(i),
+							TID_WORD, (void**) &pdata);
+
+					for (uint32_t j = 0; j < recordLength; j++) {
+						auto const ns = static_cast<int64_t>(j) * 1000000000
+								/ dFrequency + t - phases[i];
+						auto const v = std::sin(2.0 * PI * ns / dt)
+								* amplitudes[i] + 2048;
+						*pdata++ = v < 0.0 ? 0 :
+									v > 4095 ? 4095 : static_cast<uint16_t>(v);
+					}
+
+					bk_close(pevent, pdata);
+				}
+			}
+		}
+
+		return bk_size(pevent);
+
+	}
+
+protected:
+
+	void doInitSynchronized() override {
+
+		// create subtree
+		odb::getValueUInt32(hDB, 0,
+				util::FrontEndUtils::settingsKeyName(EQUIP_NAME,
+						"waveform_length"), defaults::recordLength, true);
+
+		configure();
+
+	}
+
+	void doExitSynchronized() override {
+
+		stopAcquisition();
+
+	}
+
+	void doBeginOfRunSynchronized(INT /* run_number */, char* /* error */)
+			override {
+
+		configure();
+		startAcquisition();
+
+	}
+
+	void doEndOfRunSynchronized(INT /* run_number */, char* /* error */)
+			override {
+
+		stopAcquisition();
+
+	}
+
+	void doPauseRunSynchronized(INT /* run_number */, char* /* error */)
+			override {
+
+		stopAcquisition();
+
+	}
+
+	void doResumeRunSynchronized(INT /* run_number */, char* /* error */)
+			override {
+
+		startAcquisition();
+	}
+
+	int doPollSynchronized() override {
+
+		return TRUE;
+
+	}
+
+	int doReadEventSynchronized(char* const pevent, int /* off */) override {
+
+		int result;
+
+		if (acquisitionIsOn.load(std::memory_order_relaxed)) {
+			result = buildEvent(pevent);
+		} else {
+			result = 0;
+		}
+
+		return result;
+
+	}
+
+};
+
+static SinusFrontend frontend;
 
 INT frontend_init() {
 
-	return util::FrontEndUtils::command([]() {
-
-		// create subtree
-			odb::getValueUInt32(hDB, 0,
-					util::FrontEndUtils::settingsKeyName(EQUIP_NAME,
-							"waveform_length"), defaults::recordLength, true);
-
-			create_event_rb(test_rbh);
-			glob::readoutThread = ss_thread_create(test_thread, 0);
-
-			configure();
-
-		});
+	return frontend.frontendInit();
 
 }
 
 INT frontend_exit() {
 
-	return util::FrontEndUtils::command([]() {
-
-		stopAcquisition();
-		ss_thread_kill(glob::readoutThread);
-
-	});
+	return frontend.frontendExit();
 
 }
 
-INT begin_of_run(INT /* run_number */, char * /* error */) {
+INT begin_of_run(INT const run_number, char* const error) {
 
-	return util::FrontEndUtils::command([]() {
-
-		configure();
-
-		startAcquisition();
-
-		test_rb_wait_count = 0;
-
-	});
+	return frontend.beginOfRun(run_number, error);
 
 }
 
-INT end_of_run(INT /* run_number */, char * /* error */) {
+INT end_of_run(INT const run_number, char* const error) {
 
-	return util::FrontEndUtils::command([]() {
-
-		stopAcquisition();
-
-	});
+	return frontend.endOfRun(run_number, error);
 
 }
 
-INT pause_run(INT /* run_number */, char * /*error */) {
+INT pause_run(INT const run_number, char* const error) {
 
-	return util::FrontEndUtils::command([]() {
-
-		stopAcquisition();
-
-	});
+	return frontend.pauseRun(run_number, error);
 
 }
 
-INT resume_run(INT /* run_number */, char * /*error */) {
+INT resume_run(INT const run_number, char* const error) {
 
-	return util::FrontEndUtils::command([]() {
-
-		startAcquisition();
-
-	});
+	return frontend.resumeRun(run_number, error);
 
 }
 
 INT frontend_loop() {
 
-	return SUCCESS;
+	return frontend.frontendLoop();
 
 }
 
-static int buildEvent(char * const pevent) {
+INT poll_event(INT const source, INT const count, BOOL const test) {
 
-	bk_init32(pevent);
-
-	{
-		// store general information
-		uint8_t* pdata;
-		bk_create(pevent, util::V1720InfoRawData::bankName(), TID_DWORD,
-				(void**) &pdata);
-		util::InfoBank* info = (util::InfoBank*) pdata;
-		info->boardId = 0;
-		info->channelMask = glob::channelMask;
-		info->eventCounter = ++glob::eventCounter;
-		auto const t = nanoTime();
-		info->timeStampLo = t & 0xffffffff;
-		info->timeStampHi = t >> 32;
-		info->timeStampHi = t >> 32;
-		info->frontendIndex = util::FrontEndUtils::frontendIndex<
-				decltype(info->frontendIndex)>();
-		bk_close(pevent, pdata + sizeof(*info));
-	}
-
-	{
-		// store channel DC offset
-		uint16_t* pdata;
-		bk_create(pevent, util::TDcOffsetRawData::BANK_NAME, TID_WORD,
-				(void**) &pdata);
-		for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
-			*pdata++ = glob::dcOffsets[i];
-		}
-		bk_close(pevent, pdata);
-	}
-
-	// store wave forms
-	auto const t = nanoTime() - glob::runStartTime;
-	for (uint8_t i = 0; i < NUM_OF_CHANNELS; i++) {
-		if (glob::enabledChannels[i]) {
-			auto const dt = 1.0e9 / glob::frequencies[i];
-
-			if (glob::recordLength > 0) {
-				uint16_t* pdata;
-				bk_create(pevent, util::TWaveFormRawData::bankName(i), TID_WORD,
-						(void**) &pdata);
-
-				for (uint32_t j = 0; j < glob::recordLength; j++) {
-					auto const ns = static_cast<int64_t>(j) * 1000000000
-							/ glob::dFrequency + t - glob::phases[i];
-					auto const v = std::sin(2.0 * PI * ns / dt)
-							* glob::amplitudes[i] + 2048;
-					*pdata++ = v < 0.0 ? 0 :
-								v > 4095 ? 4095 : static_cast<uint16_t>(v);
-				}
-
-				bk_close(pevent, pdata);
-			}
-		}
-	}
-
-	return bk_size(pevent);
+	return frontend.pollEvent(source, count, test);
 
 }
 
-int readEvent(char * const pevent, const int /* off */) {
+INT interrupt_configure(INT const cmd, INT const source, PTYPE const adr) {
 
-	std::lock_guard < std::mutex > lock(glob::readingMutex);
-	int result;
+	return frontend.interruptConfigure(cmd, source, adr);
 
-	if (glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
-		result = util::FrontEndUtils::commandR([pevent]() {
+}
 
-			return buildEvent(pevent);
+int readEvent(char * const pevent, int const off) {
 
-		});
-	} else {
-		result = 0;
-	}
-
-	return result;
+	return frontend.readEvent(pevent, off);
 
 }
