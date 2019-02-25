@@ -1,18 +1,4 @@
-#include <midas.h>
-#include <msystem.h>
-
-#include <midas/odb.hxx>
-#include <util/types.hxx>
-#include <util/V1720InfoRawData.hxx>
-#include <util/FrontEndUtils.hxx>
-#include <caen/exception.hxx>
-#include <caen/v1724.hxx>
-#include <caen/device.hxx>
-#include <caen/fe-commons.hxx>
-
 #include "fe-v1724.hxx"
-
-using namespace fe::v1724;
 
 #ifndef NEED_NO_EXTERN_C
 extern "C" {
@@ -33,23 +19,19 @@ BOOL frontend_call_loop = FALSE;
 INT display_period = 1000;
 
 /* maximum event size produced by this frontend */
-INT max_event_size = MAX_EVENT_SIZE;
-INT max_event_size_frag = MAX_EVENT_SIZE;
+INT max_event_size = fe::caen::v1724::MAX_EVENT_SIZE;
+INT max_event_size_frag = fe::caen::v1724::MAX_EVENT_SIZE;
 
 /* buffer size to hold events */
-INT event_buffer_size = 2 * MAX_EVENT_SIZE;
-
-extern HNDLE hDB;
-
-int readEvent(char *pevent, int off);
+INT event_buffer_size = 2 * fe::caen::v1724::MAX_EVENT_SIZE;
 
 /*-- Equipment list ------------------------------------------------*/
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
-EQUIPMENT equipment[] = { { EQUIP_NAME "%02d", { fe::commons::EVID, (1
-		<< fe::commons::EVID), /* event ID, trigger mask */
+EQUIPMENT equipment[] = { { EQUIP_NAME "%02d", { fe::caen::EVID, (1
+		<< fe::caen::EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
 EQ_MULTITHREAD, /* equipment type */
 0, /* event source */
@@ -69,124 +51,64 @@ RO_RUNNING, /* Read when running */
 }
 #endif
 
-static void configure(caen::Handle& hDevice) {
+static ::fe::caen::v1724::V1724DigitizerFrontend frontend;
 
-	auto& boardInfo = fe::commons::glob::boardInfo;
-	hDevice.hCommand("getting digitizer info",
-			[&boardInfo](int handle) {return CAEN_DGTZ_GetInfo(handle, &boardInfo);});
+INT frontend_init() {
 
-	if (boardInfo.Model != CAEN_DGTZ_V1724) {
-		throw caen::Exception(CAEN_DGTZ_GenericError,
-				"The device is not CAEN V1724");
-	}
-
-	int majorNumber;
-	sscanf(boardInfo.AMC_FirmwareRel, "%d", &majorNumber);
-	if (majorNumber >= 128) {
-		throw caen::Exception(CAEN_DGTZ_GenericError,
-				"This digitizer has a DPP firmware");
-	}
-
-	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
-	fe::commons::configure(hDevice, hSet, caen::v1724::V1724Details());
+	return frontend.frontendInit();
 
 }
 
-namespace fe {
+INT frontend_exit() {
 
-namespace commons {
-
-void configureDevice(caen::Handle& hDevice) {
-
-	::configure(hDevice);
+	return frontend.frontendExit();
 
 }
 
-}
+INT begin_of_run(INT const run_number, char* const error) {
+
+	return frontend.beginOfRun(run_number, error);
 
 }
 
-static std::size_t calculateEventSize(CAEN_DGTZ_EventInfo_t const& eventInfo,
-		CAEN_DGTZ_UINT16_EVENT_t const& event) {
+INT end_of_run(INT const run_number, char* const error) {
 
-	// count number of active channels
-	unsigned numOfActiveChannels = 0, recordLength = 0;
-	for (unsigned i = 0; i < fe::commons::glob::boardInfo.Channels; i++) {
-		if (eventInfo.ChannelMask & (0x0001 << i)) {
-			numOfActiveChannels++;
-			recordLength = std::max(recordLength, event.ChSize[i]);
-		}
-	}
-
-	return calculateEventSize(numOfActiveChannels, recordLength);
+	return frontend.endOfRun(run_number, error);
 
 }
 
-static int parseEvent(char * const pevent,
-		CAEN_DGTZ_EventInfo_t const& eventInfo,
-		CAEN_DGTZ_UINT16_EVENT_t const& event) {
+INT pause_run(INT const run_number, char* const error) {
 
-	// check event size
-	auto const eventSize = calculateEventSize(eventInfo, event);
-	if (eventSize > static_cast<DWORD>(max_event_size)) {
-		// event size exceeds the limit
-		fe::commons::stopAcquisition(*fe::commons::glob::device);
-		cm_msg(MERROR, frontend_name,
-				"Event size %" PRIu32 " larger than maximum size %" PRIi32,
-				static_cast<DWORD>(eventSize), max_event_size);
-		return 0;
-	}
-
-	bk_init32(pevent);
-
-	{
-		// store general information
-		uint8_t* pdata;
-		bk_create(pevent, util::V1720InfoRawData::bankName(), TID_DWORD,
-				(void**) &pdata);
-		util::InfoBank* info = (util::InfoBank*) pdata;
-		info->boardId = eventInfo.BoardId;
-		info->channelMask = eventInfo.ChannelMask;
-		info->eventCounter = eventInfo.EventCounter;
-		info->timeStampLo = eventInfo.TriggerTimeTag;
-		info->timeStampHi = eventInfo.Pattern;
-		info->frontendIndex = util::FrontEndUtils::frontendIndex<
-				decltype(info->frontendIndex)>();
-		info->preTriggerLength = fe::commons::glob::preTriggerLength;
-		info->triggerMode = 0;
-		bk_close(pevent, pdata + sizeof(*info));
-	}
-
-	fe::commons::storeTriggerBank(pevent);
-	fe::commons::storeDcOffsetBank(pevent);
-	fe::commons::storeWaveformBanks(pevent, eventInfo, event);
-
-	return bk_size(pevent);
+	return frontend.pauseRun(run_number, error);
 
 }
 
-int readEvent(char * const pevent, const int /* off */) {
+INT resume_run(INT const run_number, char* const error) {
 
-	std::lock_guard<decltype(fe::commons::glob::mDevice)> lock(
-			fe::commons::glob::mDevice);
-	int result;
+	return frontend.resumeRun(run_number, error);
 
-	if (fe::commons::glob::acquisitionIsOn.load(std::memory_order_relaxed)) {
-		result = util::FrontEndUtils::commandR([pevent] {
+}
 
-			CAEN_DGTZ_EventInfo_t eventInfo;
-			auto const event = fe::commons::glob::device->nextEvent(eventInfo);
-			if (event) {
-				return parseEvent(pevent, eventInfo, *event);
-			} else {
-				return 0;
-			}
+INT frontend_loop() {
 
-		});
-	} else {
-		result = 0;
-	}
+	return frontend.frontendLoop();
 
-	return result;
+}
+
+INT interrupt_configure(INT const cmd, INT const source, PTYPE const adr) {
+
+	return frontend.interruptConfigure(cmd, source, adr);
+
+}
+
+INT poll_event(INT const source, INT const count, BOOL const test) {
+
+	return frontend.pollEvent(source, count, test);
+
+}
+
+int readEvent(char * const pevent, int const off) {
+
+	return frontend.readEvent(pevent, off);
 
 }

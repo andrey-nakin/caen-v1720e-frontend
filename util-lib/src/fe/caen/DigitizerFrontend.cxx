@@ -15,6 +15,23 @@ DigitizerFrontend::DigitizerFrontend() :
 		acquisitionIsOn(false) {
 }
 
+std::size_t DigitizerFrontend::calculateEventSize(
+		CAEN_DGTZ_EventInfo_t const& eventInfo,
+		CAEN_DGTZ_UINT16_EVENT_t const& event) const {
+
+	// count number of active channels
+	unsigned numOfActiveChannels = 0, recordLength = 0;
+	for (unsigned i = 0; i < boardInfo.Channels; i++) {
+		if (eventInfo.ChannelMask & (0x0001 << i)) {
+			numOfActiveChannels++;
+			recordLength = std::max(recordLength, event.ChSize[i]);
+		}
+	}
+
+	return calculateEventSize(numOfActiveChannels, recordLength);
+
+}
+
 void DigitizerFrontend::doInitSynchronized() {
 
 	odb::getValueInt32(hDB, 0,

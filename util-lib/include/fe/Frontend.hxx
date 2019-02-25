@@ -1,19 +1,6 @@
 #pragma once
 
-#include <midas.h>
-
-#ifndef NEED_NO_EXTERN_C
-extern "C" {
-#endif
-
-extern const char *frontend_name;
-extern EQUIPMENT equipment[];
-extern HNDLE hDB;
-extern INT max_event_size;
-
-#ifndef NEED_NO_EXTERN_C
-}
-#endif
+#include <midas/fe-api.hxx>
 
 namespace fe {
 

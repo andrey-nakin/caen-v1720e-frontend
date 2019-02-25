@@ -20,7 +20,7 @@ add_subdirectory(math-lib)
 
 if(BUILD_FRONTENDS)
   add_subdirectory(fe-v1720)
-#  add_subdirectory(fe-v1724)
+  add_subdirectory(fe-v1724)
 endif()
 
 if(BUILD_ANALYZERS)

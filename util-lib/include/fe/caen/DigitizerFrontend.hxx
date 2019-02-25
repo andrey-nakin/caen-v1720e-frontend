@@ -76,10 +76,13 @@ protected:
 	bool triggerRaisingPolarity;
 
 	virtual uint32_t getMaxRecordLength() const = 0;
+	virtual char const* infoBankName() const = 0;
+	virtual std::size_t calculateEventSize(unsigned numOfActiveChannels,
+			unsigned recordLength) const = 0;
+
 	virtual std::size_t calculateEventSize(
 			CAEN_DGTZ_EventInfo_t const& eventInfo,
-			CAEN_DGTZ_UINT16_EVENT_t const& event) const = 0;
-	virtual char const* infoBankName() const = 0;
+			CAEN_DGTZ_UINT16_EVENT_t const& event) const;
 
 private:
 

@@ -2,30 +2,11 @@
 
 #include <cstdio>
 #include <cstdint>
-#include <midas.h>
+#include <midas/fe-api.hxx>
 #include <caen/v1720.hxx>
 #include <util/types.hxx>
 #include <fe/caen/DigitizerFrontend.hxx>
 #include <util/V1720InfoRawData.hxx>
-
-#ifndef NEED_NO_EXTERN_C
-extern "C" {
-#endif
-
-INT frontend_init();
-INT frontend_exit();
-INT begin_of_run(INT run_number, char *error);
-INT end_of_run(INT run_number, char *error);
-INT pause_run(INT run_number, char *error);
-INT resume_run(INT run_number, char *error);
-INT frontend_loop();
-INT poll_event(INT source, INT count, BOOL test);
-INT interrupt_configure(INT cmd, INT source, PTYPE adr);
-int readEvent(char * const pevent, int const off);
-
-#ifndef NEED_NO_EXTERN_C
-}
-#endif
 
 namespace fe {
 
@@ -67,17 +48,8 @@ protected:
 
 	}
 
-	std::size_t calculateEventSize(CAEN_DGTZ_EventInfo_t const& eventInfo,
-			CAEN_DGTZ_UINT16_EVENT_t const& event) const override {
-
-		// count number of active channels
-		unsigned numOfActiveChannels = 0, recordLength = 0;
-		for (unsigned i = 0; i < boardInfo.Channels; i++) {
-			if (eventInfo.ChannelMask & (0x0001 << i)) {
-				numOfActiveChannels++;
-				recordLength = std::max(recordLength, event.ChSize[i]);
-			}
-		}
+	std::size_t calculateEventSize(unsigned const numOfActiveChannels,
+			unsigned const recordLength) const override {
 
 		return fe::caen::v1720::calculateEventSize(numOfActiveChannels,
 				recordLength);
