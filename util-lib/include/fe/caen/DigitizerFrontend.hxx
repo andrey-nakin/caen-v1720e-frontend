@@ -101,6 +101,7 @@ private:
 
 	virtual void startAcquisition(::caen::Device& device);
 	virtual void stopAcquisition(::caen::Device& device);
+	virtual void closeDevice();
 
 	virtual void storeTriggerBank(char* pevent);
 	virtual void storeDcOffsetBank(char* pevent);

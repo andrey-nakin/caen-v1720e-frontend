@@ -45,15 +45,15 @@ void DigitizerFrontend::doInitSynchronized() {
 
 void DigitizerFrontend::doExitSynchronized() {
 
-	if (device) {
-		stopAcquisition(*device);
-		device = nullptr;
-	}
+	closeDevice();
 
 }
 
 void DigitizerFrontend::doBeginOfRunSynchronized(INT /* run_number */,
 		char* /* error */) {
+
+	// stop acquisition if previous run was not properly stopped
+	closeDevice();
 
 	::caen::Handle handle = connect();
 	configure(handle);
@@ -68,15 +68,7 @@ void DigitizerFrontend::doBeginOfRunSynchronized(INT /* run_number */,
 void DigitizerFrontend::doEndOfRunSynchronized(INT /* run_number */,
 		char* /* error */) {
 
-	if (device) {
-		try {
-			stopAcquisition(*device);
-		} catch (::caen::Exception& e) {
-			util::FrontEndUtils::handleCaenException(e);
-		}
-
-		device = nullptr;
-	}
+	closeDevice();
 
 }
 
@@ -281,14 +273,28 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 void DigitizerFrontend::startAcquisition(::caen::Device& device) {
 
 	device.startAcquisition();
-	acquisitionIsOn.store(true);
+	acquisitionIsOn = true;
 
 }
 
 void DigitizerFrontend::stopAcquisition(::caen::Device& device) {
 
-	acquisitionIsOn.store(false);
+	acquisitionIsOn = false;
 	device.stopAcquisition();
+
+}
+
+void DigitizerFrontend::closeDevice() {
+
+	if (device) {
+		try {
+			stopAcquisition(*device);
+		} catch (::caen::Exception& e) {
+			util::FrontEndUtils::handleCaenException(e);
+		}
+
+		device = nullptr;
+	}
 
 }
 
