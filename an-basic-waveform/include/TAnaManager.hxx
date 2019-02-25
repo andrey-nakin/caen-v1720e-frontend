@@ -3,6 +3,7 @@
 
 #include <TDataContainer.hxx>
 #include <analyzer/hist/V1720Waveform.hxx>
+#include <analyzer/hist/V1724Waveform.hxx>
 
 namespace bwf {
 
@@ -20,6 +21,7 @@ public:
 private:
 
 	analyzer::hist::V1720Waveform v1720Waveform;
+	analyzer::hist::V1724Waveform v1724Waveform;
 
 };
 

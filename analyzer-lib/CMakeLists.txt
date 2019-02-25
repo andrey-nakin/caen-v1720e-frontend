@@ -8,6 +8,7 @@ include_directories($ENV{MIDASSYS}/include)
 include_directories($ENV{ROOTSYS}/include)
 include_directories($ENV{ROOTANASYS}/include)
 include_directories(${PROJECT_SOURCE_DIR}/../fe-v1720/include/)
+include_directories(${PROJECT_SOURCE_DIR}/../fe-v1724/include/)
 include_directories(${PROJECT_SOURCE_DIR}/include/)
 
 #----------------------------------------------------------------------------
