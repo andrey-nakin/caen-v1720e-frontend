@@ -11,6 +11,13 @@ Device::Device(Handle&& aHandle) :
 
 }
 
+Device::Device(Device&& aDevice) :
+		handle(std::move(aDevice.getHandle())) {
+
+	reset();
+
+}
+
 Device::~Device() {
 
 }

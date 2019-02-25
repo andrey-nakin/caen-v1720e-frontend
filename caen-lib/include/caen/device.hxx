@@ -13,6 +13,7 @@ class Device final : public Noncopyable {
 public:
 
 	explicit Device(Handle&&);
+	explicit Device(Device&&);
 	~Device();
 
 	Handle& getHandle();
