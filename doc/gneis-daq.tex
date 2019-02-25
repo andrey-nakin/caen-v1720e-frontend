@@ -21,7 +21,6 @@
 \newcommand{\APP}[1]{\mbox{\tt #1}}
 \newcommand{\TERM}[1]{{\it #1}}
 \newcommand{\BANK}[1]{{\tt #1}}
-\newcommand{\DEVICE}{CAEN~V1720}
 \newcommand{\ODBNODE}[1]{<<{\tt #1}>>}
 \newcommand{\CPPCLASS}[1]{\mbox{\tt #1}}
 \newcommand{\DIRECTORY}[1]{<<{\tt #1}>>}
@@ -721,9 +720,26 @@ sudo make install
 
 \end{enumerate}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\FE}{\APP{fe-v1720}}
+\newcommand{\DEVICE}{CAEN~V1720}
+
 \chapter{Фронтенд для \DEVICE{}}
+\label{sec-fe-v1720}
 
 \input{fe-v1720.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\FE}{\APP{fe-v1724}}
+\renewcommand{\DEVICE}{CAEN~V1724}
+
+\chapter{Фронтенд для \DEVICE{}}
+
+\input{fe-v1724.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \appendix
 
