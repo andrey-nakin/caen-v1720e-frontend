@@ -4,9 +4,8 @@
 #include <cstdint>
 #include <midas/fe-api.hxx>
 #include <caen/v1724.hxx>
-#include <util/types.hxx>
 #include <fe/caen/DigitizerFrontend.hxx>
-#include <util/V1720InfoRawData.hxx>
+#include <util/caen/V1724InfoRawData.hxx>
 
 namespace fe {
 
@@ -58,8 +57,7 @@ protected:
 
 	char const* infoBankName() const override {
 
-		// TODO
-		return util::V1720InfoRawData::bankName();
+		return util::caen::V1724InfoRawData::bankName();
 
 	}
 

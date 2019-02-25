@@ -5,7 +5,7 @@
 #include <util/TriggerInfoRawData.hxx>
 #include <util/TDcOffsetRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
-#include <util/V1720InfoRawData.hxx>
+#include <util/caen/V1720InfoRawData.hxx>
 #include <midas/odb.hxx>
 #include "defaults.hxx"
 
@@ -168,8 +168,8 @@ private:
 		{
 			// store general information
 			uint8_t* pdata;
-			bk_create(pevent, util::V1720InfoRawData::bankName(), TID_DWORD,
-					(void**) &pdata);
+			bk_create(pevent, util::caen::V1720InfoRawData::bankName(),
+					TID_DWORD, (void**) &pdata);
 			util::InfoBank* info = (util::InfoBank*) pdata;
 			info->boardId = 0;
 			info->channelMask = channelMask;

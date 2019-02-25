@@ -23,7 +23,7 @@ V1720Waveform::V1720Waveform(VirtualOdb* const anOdb) :
 
 void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
-	using util::V1720InfoRawData;
+	using util::caen::V1720InfoRawData;
 	using util::TWaveFormRawData;
 
 	auto const v1720Info = dataContainer.GetEventData < V1720InfoRawData
@@ -59,8 +59,8 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 }
 
 void V1720Waveform::AnalyzeWaveform(
-		util::V1720InfoRawData const* const v1720Info, uint8_t const channelNo,
-		std::size_t const numOfSamples,
+		util::caen::V1720InfoRawData const* const v1720Info,
+		uint8_t const channelNo, std::size_t const numOfSamples,
 		util::TWaveFormRawData::difference_type const edgePosition,
 		util::TWaveFormRawData::const_iterator_type const wfBegin,
 		util::TWaveFormRawData::const_iterator_type const wfEnd) {
@@ -107,7 +107,8 @@ void V1720Waveform::AnalyzeWaveform(
 }
 
 util::TWaveFormRawData::difference_type V1720Waveform::FindEdgeDistance(
-		TDataContainer &dataContainer, util::V1720InfoRawData const*v1720Info) {
+		TDataContainer &dataContainer,
+		util::caen::V1720InfoRawData const*v1720Info) {
 
 	using util::TWaveFormRawData;
 	using util::TriggerInfoRawData;
