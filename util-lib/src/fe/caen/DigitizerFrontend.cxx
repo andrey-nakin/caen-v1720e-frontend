@@ -38,9 +38,10 @@ void DigitizerFrontend::doExitSynchronized() {
 void DigitizerFrontend::doBeginOfRunSynchronized(INT /* run_number */,
 		char* /* error */) {
 
-	device.reset(new ::caen::Device(connect()));
-	configure(device->getHandle());
+	::caen::Handle handle = connect();
+	configure(handle);
 
+	device.reset(new ::caen::Device(std::move(handle)));
 	startAcquisition(*device);
 
 }
