@@ -19,11 +19,11 @@
 	}
 
 int const linkNum = 0;
-int const conetNode = 0;
+int const conetNode = 1;
 uint32_t const vmeBaseAddr = 0;
 uint32_t const channelMask = 0xff;
 uint32_t const triggerChannel = 0;
-uint16_t const triggerThreshold = 1000; //2100;
+uint16_t const triggerThreshold = 1000;//3000; //2100;
 uint32_t const recordLength = 1024 * 1;	//	num of samples
 uint32_t const postTrigger = 1024 * 1 - 64;	//	num of samples
 uint8_t const IRQlevel = 1;
@@ -75,15 +75,15 @@ int main(int argc, char* argv[]) {
 				<< "VME device.getHandle(): " << boardInfo.VMEHandle << "\n"
 				<< "***************************" << std::endl;
 
-		if (boardInfo.FamilyCode != CAEN_DGTZ_XX720_FAMILY_CODE) {
-			std::cerr << "The device is not of CAEN x720 family\n";
-			ERREXIT();
-		}
-
-		if (boardInfo.Model != CAEN_DGTZ_V1720) {
-			std::cerr << "The device is not CAEN V1720\n";
-			ERREXIT();
-		}
+//		if (boardInfo.FamilyCode != CAEN_DGTZ_XX720_FAMILY_CODE) {
+//			std::cerr << "The device is not of CAEN x720 family\n";
+//			ERREXIT();
+//		}
+//
+//		if (boardInfo.Model != CAEN_DGTZ_V1720) {
+//			std::cerr << "The device is not CAEN V1720\n";
+//			ERREXIT();
+//		}
 
 		sscanf(boardInfo.AMC_FirmwareRel, "%d", &majorNumber);
 		if (majorNumber >= 128) {
@@ -134,6 +134,10 @@ int main(int argc, char* argv[]) {
 				CAEN_DGTZ_TriggerOnFallingEdge);
 		CHECK(ret, "setting trigger polarity");
 
+		ret = CAEN_DGTZ_SetExtTriggerInputMode(device.getHandle(),
+				CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT);
+		CHECK(ret, "setting external trigger");
+
 		ret = CAEN_DGTZ_SetMaxNumEventsBLT(device.getHandle(), 10);
 		CHECK(ret, "setting max num events");
 
@@ -166,6 +170,9 @@ int main(int argc, char* argv[]) {
 		ret = CAEN_DGTZ_ReadRegister(device.getHandle(), 0x8020, &regData);
 		CHECK(ret, "reading 0x8020 register");
 		std::cout << "Value of 0x8020 register: " << regData << std::endl;
+
+		device.getHandle().setBit(CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, 21, true);
+		device.getHandle().setBit(CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, 22, false);
 
 		std::cout << "Readout buffer size: "
 				<< device.getBuffer().getBufferSize() << std::endl;
@@ -201,9 +208,10 @@ int main(int argc, char* argv[]) {
 				if (verbose) {
 					std::cout << "Event #=" << eventInfo.EventCounter
 							<< ", size=" << eventInfo.EventSize << ", channels="
-							<< eventInfo.ChannelMask << ", time="
-							<< (eventInfo.TriggerTimeTag & ~0x80000000)
-							<< ", maxNumOfEvents=" << maxNumOfEvents
+							<< std::hex << eventInfo.ChannelMask << ", time="
+							<< eventInfo.TriggerTimeTag << ", pattern="
+							<< std::hex << eventInfo.Pattern
+							<< ", maxNumOfEvents=" << std::dec << maxNumOfEvents
 							<< std::endl;
 				}
 
