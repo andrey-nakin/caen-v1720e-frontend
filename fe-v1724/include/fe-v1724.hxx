@@ -68,13 +68,18 @@ protected:
 					"The device is not CAEN V1724");
 		}
 
-		int majorNumber;
+		int majorNumber, minorNumber;
 		sscanf(boardInfo.AMC_FirmwareRel, "%d", &majorNumber);
 		if (majorNumber >= 128) {
 			throw ::caen::Exception(CAEN_DGTZ_GenericError,
 					"This digitizer has a DPP firmware");
 		}
 
+		sscanf(boardInfo.ROC_FirmwareRel, "%d.%d", &majorNumber, &minorNumber);
+		if (majorNumber < 4 || (majorNumber == 4 && minorNumber < 6)) {
+			throw ::caen::Exception(CAEN_DGTZ_GenericError,
+					"ROC FPGA firmware 4.6 or higher required");
+		}
 	}
 
 };

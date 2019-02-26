@@ -1,4 +1,5 @@
 #include <cstring>
+#include <sstream>
 #include <fe/caen/DigitizerFrontend.hxx>
 #include <util/FrontEndUtils.hxx>
 #include <util/types.hxx>
@@ -138,6 +139,14 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 	});
 	checkBoardInfo(boardInfo);
 
+	{
+		std::stringstream ss;
+		ss << "digitizer model: " << boardInfo.ModelName
+				<< ", ROC FPGA Release: " << boardInfo.ROC_FirmwareRel;
+		std::string s = ss.str();
+		cm_msg(MINFO, frontend_name, s.c_str());
+	}
+
 	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
 
 	hDevice.hCommand("resetting digitizer", CAEN_DGTZ_Reset);
@@ -249,6 +258,10 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 	// disable trigger overlap
 	hDevice.setBit(::caen::reg::BROAD_CH_CTRL_ADD,
 			::caen::regbit::config::TRIGGER_OVERLAP, false);
+
+	// make pattern field to have trigger source
+	hDevice.setBit(::caen::reg::FRONT_PANEL_IO_CTRL_ADD, 21, true);
+	hDevice.setBit(::caen::reg::FRONT_PANEL_IO_CTRL_ADD, 22, false);
 
 	// set front panel IO level
 	{
