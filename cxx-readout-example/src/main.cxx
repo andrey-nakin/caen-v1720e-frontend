@@ -18,8 +18,8 @@
 		ERREXIT();	\
 	}
 
-int const linkNum = 0;
-int const conetNode = 1;
+int const linkNum = 1;
+int const conetNode = 0;
 uint32_t const vmeBaseAddr = 0;
 uint32_t const channelMask = 0xff;
 uint32_t const triggerChannel = 0;
