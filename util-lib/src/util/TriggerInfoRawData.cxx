@@ -20,6 +20,18 @@ uint8_t TriggerInfoRawData::numOfChannels() const {
 
 }
 
+int8_t TriggerInfoRawData::masterTriggerChannel() const {
+
+	for (uint8_t ch = 0, last = numOfChannels(); ch < last; ch++) {
+		if (masterTrigger(ch)) {
+			return ch;
+		}
+	}
+
+	return -1;
+
+}
+
 TriggerBank const& TriggerInfoRawData::info(
 		uint8_t const triggerChannel) const {
 
@@ -43,6 +55,12 @@ uint16_t TriggerInfoRawData::triggerThreshold(
 bool TriggerInfoRawData::triggerRising(uint8_t const triggerChannel) const {
 
 	return info(triggerChannel).triggerInfo.bits.rising == 0 ? false : true;
+
+}
+
+bool TriggerInfoRawData::masterTrigger(uint8_t const triggerChannel) const {
+
+	return info(triggerChannel).triggerInfo.bits.master == 0 ? false : true;
 
 }
 
