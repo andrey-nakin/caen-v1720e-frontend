@@ -27,7 +27,7 @@ constexpr uint32_t recordLength = 1024;
 constexpr bool triggerChannel = false;
 constexpr uint32_t triggerThreshold = 1000;
 constexpr bool triggerRaisingPolarity = false;
-constexpr int8_t masterTriggerChannel = 0;
+constexpr int8_t masterTriggerChannel = -1;
 
 namespace channel {
 
