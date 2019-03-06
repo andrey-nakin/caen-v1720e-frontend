@@ -14,6 +14,7 @@ Collection of data-acquisition applications for [GNEIS](http://accelconf.web.cer
 * `caen-lib`: library with light-weight wrappers around CAEN digitizer API.
 * `midas-util-lib`: library with light-weight wrappers around MIDAS API.
 * `util-lib`: library with commonly used definitions.
+* `util-lib-test`: unit tests for `util-lib`.
 * `analyzer-lib`: library for analyzer applications.
 * `math-lib`: general purpose math library.
 * `math-lib-test`: unit tests for `math-lib`.

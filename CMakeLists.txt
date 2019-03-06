@@ -39,6 +39,7 @@ if(BUILD_EXAMPLES)
 endif()
 
 if(BUILD_TESTS)
+  add_subdirectory(util-lib-test)
   add_subdirectory(math-lib-test)
 endif()
 

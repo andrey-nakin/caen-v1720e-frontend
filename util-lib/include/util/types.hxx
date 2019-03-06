@@ -1,5 +1,4 @@
-#ifndef	__frontend_util_lib_types_hxx__
-#define	__frontend_util_lib_types_hxx__
+#pragma once
 
 #include <cstdint>
 #include <midas.h>
@@ -66,6 +65,7 @@ typedef struct
 
 		static_assert(sizeof(InfoBank) == sizeof(uint32_t) * 8, "InfoBank size is not correct");
 
-		}
+		void fillTriggerInfo(TriggerBank& bank, uint8_t channel,
+				uint32_t threshold, bool rising, bool master);
 
-#endif	//	__frontend_util_lib_types_hxx__
+		}

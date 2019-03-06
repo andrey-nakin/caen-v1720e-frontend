@@ -349,15 +349,8 @@ void DigitizerFrontend::storeTriggerBank(char* const pevent) {
 
 	for (int8_t ch = 0; ch != static_cast<int8_t>(boardInfo.Channels); ch++) {
 		if (triggerChannel[ch]) {
-			bank->triggerChannel.raw = 0;
-			bank->triggerChannel.bits.no = ch;
-			bank->triggerThreshold =
-					static_cast<uint16_t>(triggerThreshold[ch]);
-			bank->triggerInfo.raw = 0;
-			bank->triggerInfo.bits.rising = triggerRaisingPolarity[ch] ? 1 : 0;
-			bank->triggerInfo.bits.master = masterTriggerChannel == ch ? 1 : 0;
-			bank->reserved = static_cast<uint16_t>(triggerThreshold[ch] >> 16);
-
+			util::fillTriggerInfo(*bank, ch, triggerThreshold[ch],
+					triggerRaisingPolarity[ch], masterTriggerChannel == ch);
 			bank++;
 		}
 	}
