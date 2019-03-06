@@ -55,8 +55,17 @@ typedef struct
 			uint32_t boardId;
 			uint32_t channelMask;
 			uint32_t eventCounter;
-			uint32_t timeStampLo;
-			uint32_t timeStampHi;
+			uint32_t timeStamp;
+			union {
+				struct {
+					uint32_t channelTrigger :8;
+					uint32_t lvdsTrigger :1;
+					uint32_t extTrigger :1;
+					uint32_t swTrigger :1;
+					uint32_t :21;	//	reserved
+				} bits;
+				uint32_t raw;
+			} pattern;
 			uint32_t frontendIndex;
 			uint32_t preTriggerLength;
 			uint32_t triggerMode;

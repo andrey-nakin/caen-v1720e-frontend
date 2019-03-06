@@ -418,8 +418,8 @@ int DigitizerFrontend::parseEvent(char* const pevent,
 		info->boardId = eventInfo.BoardId;
 		info->channelMask = eventInfo.ChannelMask;
 		info->eventCounter = eventInfo.EventCounter;
-		info->timeStampLo = eventInfo.TriggerTimeTag;
-		info->timeStampHi = eventInfo.Pattern;
+		info->timeStamp = eventInfo.TriggerTimeTag;
+		info->pattern.raw = eventInfo.Pattern;
 		info->frontendIndex = util::FrontEndUtils::frontendIndex<
 				decltype(info->frontendIndex)>();
 		info->preTriggerLength = preTriggerLength;

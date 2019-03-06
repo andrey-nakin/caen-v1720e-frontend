@@ -175,9 +175,8 @@ private:
 			info->channelMask = channelMask;
 			info->eventCounter = ++eventCounter;
 			auto const t = nanoTime();
-			info->timeStampLo = t & 0xffffffff;
-			info->timeStampHi = t >> 32;
-			info->timeStampHi = t >> 32;
+			info->timeStamp = t;
+			info->pattern.raw = 0;
 			info->frontendIndex = util::FrontEndUtils::frontendIndex<
 					decltype(info->frontendIndex)>();
 			bk_close(pevent, pdata + sizeof(*info));
