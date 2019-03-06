@@ -13,11 +13,12 @@ public:
 
 	static const char* bankName();
 
-	TriggerBank const& info() const;
+	uint8_t numOfChannels() const;
+	TriggerBank const& info(uint8_t triggerChannel) const;
 
-	uint8_t triggerChannel() const;
-	uint16_t triggerThreshold() const;
-	bool triggerRising() const;
+	uint8_t triggerChannel(uint8_t triggerChannel) const;
+	uint16_t triggerThreshold(uint8_t triggerChannel) const;
+	bool triggerRising(uint8_t triggerChannel) const;
 
 };
 

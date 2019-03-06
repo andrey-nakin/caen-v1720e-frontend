@@ -14,27 +14,35 @@ const char* TriggerInfoRawData::bankName() {
 
 }
 
-TriggerBank const& TriggerInfoRawData::info() const {
+uint8_t TriggerInfoRawData::numOfChannels() const {
 
-	return *reinterpret_cast<TriggerBank const*>(GetData16());
-
-}
-
-uint8_t TriggerInfoRawData::triggerChannel() const {
-
-	return static_cast<uint8_t>(info().triggerChannel.bits.no);
+	return GetSize() * sizeof(uint16_t) / sizeof(TriggerBank);
 
 }
 
-uint16_t TriggerInfoRawData::triggerThreshold() const {
+TriggerBank const& TriggerInfoRawData::info(
+		uint8_t const triggerChannel) const {
 
-	return static_cast<uint16_t>(info().triggerThreshold);
+	return reinterpret_cast<TriggerBank const*>(GetData16())[triggerChannel];
 
 }
 
-bool TriggerInfoRawData::triggerRising() const {
+uint8_t TriggerInfoRawData::triggerChannel(uint8_t const triggerChannel) const {
 
-	return info().triggerInfo.bits.rising == 0 ? false : true;
+	return static_cast<uint8_t>(info(triggerChannel).triggerChannel.bits.no);
+
+}
+
+uint16_t TriggerInfoRawData::triggerThreshold(
+		uint8_t const triggerChannel) const {
+
+	return static_cast<uint16_t>(info(triggerChannel).triggerThreshold);
+
+}
+
+bool TriggerInfoRawData::triggerRising(uint8_t const triggerChannel) const {
+
+	return info(triggerChannel).triggerInfo.bits.rising == 0 ? false : true;
 
 }
 
