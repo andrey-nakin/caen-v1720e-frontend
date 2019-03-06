@@ -4,9 +4,9 @@
 
 namespace util {
 
-TEST(FillTriggerInfo, Generic) {
+constexpr int FILLER = -1;
 
-	constexpr int FILLER = -1;
+TEST(FillTriggerInfo, Generic) {
 
 	union {
 		TriggerBank t;
@@ -42,6 +42,24 @@ TEST(FillTriggerInfo, Generic) {
 	EXPECT_EQ(0x5678, bank.words.w1);
 	EXPECT_EQ(0x0003, bank.words.w2);
 	EXPECT_EQ(0x1234, bank.words.w3);
+
+}
+
+TEST(FillTriggerInfo, Overflow) {
+
+	union {
+		TriggerBank t;
+		struct {
+			uint16_t w0, w1, w2, w3;
+		}words;
+	}bank;
+
+	std::memset(&bank, FILLER, sizeof(bank));
+	fillTriggerInfo(bank.t, -1, -1, -1, -1);
+	EXPECT_EQ(0x000f, bank.words.w0);
+	EXPECT_EQ(0xffff, bank.words.w1);
+	EXPECT_EQ(0x0003, bank.words.w2);
+	EXPECT_EQ(0xffff, bank.words.w3);
 
 }
 
