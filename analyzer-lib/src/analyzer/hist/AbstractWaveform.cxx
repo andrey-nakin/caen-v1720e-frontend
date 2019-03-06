@@ -104,8 +104,8 @@ AbstractWaveform::HistType* AbstractWaveform::CreatePositionHistogram(
 		INT const feIndex, unsigned const channelNo,
 		unsigned const waveformLength, unsigned const preTriggerLength) {
 
-	auto const name = ConstructName(feIndex, channelNo, "PO");
-	auto const title = ConstructTitle(feIndex, channelNo, "Position");
+	auto const name = ConstructName(feIndex, channelNo, "TM");
+	auto const title = ConstructTitle(feIndex, channelNo, "Time");
 
 	auto const h = new HistType(name.c_str(), title.c_str(),
 			waveformLength + preTriggerLength,
