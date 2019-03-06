@@ -47,6 +47,12 @@ protected:
 
 	}
 
+	uint32_t getMaxSampleValue() const override {
+
+		return ::caen::v1724::MAX_SAMPLE_VALUE;
+
+	}
+
 	std::size_t calculateEventSize(unsigned const numOfActiveChannels,
 			unsigned const recordLength) const override {
 

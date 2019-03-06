@@ -171,56 +171,82 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 	dcOffsets = odb::getValueUInt16V(hDB, hSet, settings::channelDcOffset,
 			boardInfo.Channels, defaults::channel::dcOffset, true);
 
-	triggerChannel = odb::getValueInt8(hDB, hSet, settings::triggerChannel,
-			defaults::triggerChannel, true);
-	if (triggerChannel >= static_cast<int8_t>(boardInfo.Channels)) {
-		throw midas::Exception(FE_ERR_ODB,
-				std::string("Invalid trigger channel: ")
-						+ std::to_string(triggerChannel));
-	}
-	hDevice.hCommand("setting channel self trigger", [this](int handle) {
+	triggerChannel = odb::getValueBoolV(hDB, hSet, settings::triggerChannel,
+			boardInfo.Channels, defaults::triggerChannel, true);
+	auto const trigChMask = channelMask(triggerChannel);
+	hDevice.hCommand("setting channel self trigger", [trigChMask](int handle) {
 		return CAEN_DGTZ_SetChannelSelfTrigger(
 				handle,
 				CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT,
-				triggerChannel >= 0 ? (1 << triggerChannel) : 0
+				trigChMask
 		);
 	});
 
-	uint32_t channelMask = triggerChannel >= 0 ? 0x0001 << triggerChannel : 0;
-	for (std::size_t i = 0; i != enabledChannels.size(); i++) {
-		if (enabledChannels[i]) {
-			channelMask |= 0x0001 << i;
-		}
+	triggerThreshold = odb::getValueUInt32V(hDB, hSet,
+			settings::triggerThreshold, boardInfo.Channels,
+			defaults::triggerThreshold, true);
 
-		hDevice.hCommand("setting record length",
-				[recordLength, i](int handle) {return CAEN_DGTZ_SetRecordLength(handle, recordLength, i);});
+	triggerRaisingPolarity = odb::getValueBoolV(hDB, hSet,
+			settings::triggerRaisingPolarity, boardInfo.Channels,
+			defaults::triggerRaisingPolarity, true);
 
-		auto const& dcOffset = dcOffsets[i];
-		hDevice.hCommand("setting channel DC offset",
-				[dcOffset, i](int handle) {return CAEN_DGTZ_SetChannelDCOffset(handle, i, dcOffset);});
+	masterTriggerChannel = odb::getValueInt8(hDB, hSet,
+			settings::masterTriggerChannel, defaults::masterTriggerChannel,
+			true);
+	if (masterTriggerChannel >= static_cast<int8_t>(boardInfo.Channels)) {
+		std::stringstream ss;
+		ss << "Invalid value of " << settings::masterTriggerChannel
+				<< " parameter: " << masterTriggerChannel
+				<< " is greater than max channel number ("
+				<< (boardInfo.Channels - 1) << ")";
+		throw midas::Exception(FE_ERR_ODB, ss.str());
 	}
 
-	hDevice.hCommand("setting channel enable mask", [channelMask](int handle) {
-		return CAEN_DGTZ_SetChannelEnableMask(handle, channelMask);
+	auto const chMask = trigChMask | channelMask(enabledChannels);
+	hDevice.hCommand("setting channel enable mask", [chMask](int handle) {
+		return CAEN_DGTZ_SetChannelEnableMask(handle, chMask);
 	});
 
-	triggerThreshold = odb::getValueUInt16(hDB, hSet,
-			settings::triggerThreshold, defaults::triggerThreshold, true);
-	if (triggerChannel >= 0) {
-		hDevice.hCommand("setting channel trigger threshold",
-				[this](int handle) {
-					return CAEN_DGTZ_SetChannelTriggerThreshold(handle, triggerChannel, triggerThreshold);
+	for (std::size_t ch = 0; ch != enabledChannels.size(); ch++) {
+		hDevice.hCommand("setting record length",
+				[recordLength, ch](int handle) {
+					return CAEN_DGTZ_SetRecordLength(handle, recordLength, ch);
 				});
-	}
 
-	triggerRaisingPolarity = odb::getValueBool(hDB, hSet,
-			settings::triggerRaisingPolarity, defaults::triggerRaisingPolarity,
-			true);
-	if (triggerChannel > 0) {
-		hDevice.hCommand("setting trigger polarity",
-				[this](int handle) {
-					return CAEN_DGTZ_SetTriggerPolarity(handle, triggerChannel, triggerRaisingPolarity ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge);
-				});
+		if (dcOffsets.size() >= ch) {
+			hDevice.hCommand("setting channel DC offset",
+					[this, ch](int handle) {
+						return CAEN_DGTZ_SetChannelDCOffset(handle, ch, dcOffsets[ch]);
+					});
+		}
+
+		if (triggerThreshold.size() >= ch) {
+			if (triggerThreshold[ch] > getMaxSampleValue()) {
+				std::stringstream ss;
+				ss << "Invalid value of " << settings::triggerThreshold << "["
+						<< ch << "] parameter: " << triggerThreshold[ch]
+						<< " is greater than max sample value ("
+						<< getMaxSampleValue() << ")";
+				throw midas::Exception(FE_ERR_ODB, ss.str());
+			}
+
+			hDevice.hCommand("setting channel trigger threshold",
+					[this, ch](int handle) {
+						return CAEN_DGTZ_SetChannelTriggerThreshold(handle, ch, triggerThreshold[ch]);
+					});
+		}
+
+		if (triggerRaisingPolarity.size() > ch) {
+			hDevice.hCommand("setting trigger polarity",
+					[this, ch](int handle) {
+						return CAEN_DGTZ_SetTriggerPolarity(
+								handle,
+								ch,
+								triggerRaisingPolarity[ch] ? CAEN_DGTZ_TriggerOnRisingEdge : CAEN_DGTZ_TriggerOnFallingEdge
+						);
+					});
+		}
+
 	}
 
 	// external trigger
@@ -313,19 +339,30 @@ void DigitizerFrontend::closeDevice() {
 
 void DigitizerFrontend::storeTriggerBank(char* const pevent) {
 
-	if (triggerChannel < 0) {
-		return;
+	if (!channelMask(triggerChannel)) {
+		return;	//	 no self-triggers
 	}
 
-	uint8_t* pdata;
+	util::TriggerBank* bank;
 	bk_create(pevent, util::TriggerInfoRawData::bankName(), TID_WORD,
-			(void**) &pdata);
-	util::TriggerBank* bank = (util::TriggerBank*) pdata;
-	bank->triggerChannel = triggerChannel;
-	bank->triggerThreshold = triggerThreshold;
-	bank->triggerRising = triggerRaisingPolarity ? 1 : 0;
-	bank->reserved = 0;
-	bk_close(pevent, pdata + sizeof(*bank));
+			(void**) &bank);
+
+	for (int8_t ch = 0; ch != static_cast<int8_t>(boardInfo.Channels); ch++) {
+		if (triggerChannel[ch]) {
+			bank->triggerChannel.raw = 0;
+			bank->triggerChannel.bits.no = ch;
+			bank->triggerThreshold =
+					static_cast<uint16_t>(triggerThreshold[ch]);
+			bank->triggerInfo.raw = 0;
+			bank->triggerInfo.bits.rising = triggerRaisingPolarity[ch] ? 1 : 0;
+			bank->triggerInfo.bits.master = masterTriggerChannel == ch ? 1 : 0;
+			bank->reserved = static_cast<uint16_t>(triggerThreshold[ch] >> 16);
+
+			bank++;
+		}
+	}
+
+	bk_close(pevent, bank);
 
 }
 
@@ -402,6 +439,20 @@ int DigitizerFrontend::parseEvent(char* const pevent,
 	storeWaveformBanks(pevent, eventInfo, event);
 
 	return bk_size(pevent);
+
+}
+
+uint32_t DigitizerFrontend::channelMask(std::vector<bool> const& channelState) {
+
+	uint32_t channelMask = 0;
+
+	for (std::size_t i = 0; i != channelState.size(); i++) {
+		if (channelState[i]) {
+			channelMask |= 0x0001 << i;
+		}
+	}
+
+	return channelMask;
 
 }
 

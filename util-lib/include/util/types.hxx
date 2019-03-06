@@ -25,27 +25,47 @@ constexpr std::size_t calcBankSize(std::size_t const dataSize) {
 typedef struct
 	__attribute__((packed)) {
 
-		uint16_t triggerChannel;
+		union {
+			struct {
+				uint16_t no :4;
+				uint16_t :12;	//	reserved
+			} bits;
+			uint16_t raw;
+		} triggerChannel;
+
 		uint16_t triggerThreshold;
-		uint16_t triggerRising;
+
+		union {
+			struct {
+				uint16_t rising :1;
+				uint16_t master :1;
+				uint16_t :14;	//	reserved
+			} bits;
+			uint16_t raw;
+		} triggerInfo;
+
 		uint16_t reserved;
 
 	} TriggerBank;
 
-typedef struct
-	__attribute__((packed)) {
+	static_assert(sizeof(TriggerBank) == sizeof(uint16_t) * 4, "TriggerBank size is not correct");
 
-		uint32_t boardId;
-		uint32_t channelMask;
-		uint32_t eventCounter;
-		uint32_t timeStampLo;
-		uint32_t timeStampHi;
-		uint32_t frontendIndex;
-		uint32_t preTriggerLength;
-		uint32_t triggerMode;
+	typedef struct
+		__attribute__((packed)) {
 
-	} InfoBank;
+			uint32_t boardId;
+			uint32_t channelMask;
+			uint32_t eventCounter;
+			uint32_t timeStampLo;
+			uint32_t timeStampHi;
+			uint32_t frontendIndex;
+			uint32_t preTriggerLength;
+			uint32_t triggerMode;
 
-}
+		} InfoBank;
+
+		static_assert(sizeof(InfoBank) == sizeof(uint32_t) * 8, "InfoBank size is not correct");
+
+		}
 
 #endif	//	__frontend_util_lib_types_hxx__

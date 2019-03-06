@@ -24,9 +24,10 @@ constexpr uint32_t vmeBaseAddr = 0;
 constexpr uint32_t preTriggerLength = 64;
 constexpr bool extTrigger = false;
 constexpr uint32_t recordLength = 1024;
-constexpr uint8_t triggerChannel = 0;
-constexpr uint16_t triggerThreshold = 1000;
+constexpr bool triggerChannel = false;
+constexpr uint32_t triggerThreshold = 1000;
 constexpr bool triggerRaisingPolarity = false;
+constexpr int8_t masterTriggerChannel = 0;
 
 namespace channel {
 
@@ -58,6 +59,7 @@ constexpr char channelDcOffset[] = "channel_dc_offset";
 constexpr char triggerChannel[] = "trigger_channel";
 constexpr char triggerThreshold[] = "trigger_threshold";
 constexpr char triggerRaisingPolarity[] = "trigger_raising_polarity";
+constexpr char masterTriggerChannel[] = "master_trigger_channel";
 
 }
 
@@ -71,11 +73,13 @@ protected:
 	CAEN_DGTZ_BoardInfo_t boardInfo;
 	uint32_t preTriggerLength;
 	std::vector<uint16_t> dcOffsets;
-	int8_t triggerChannel;
-	uint16_t triggerThreshold;
-	bool triggerRaisingPolarity;
+	std::vector<bool> triggerChannel;
+	std::vector<uint32_t> triggerThreshold;
+	std::vector<bool> triggerRaisingPolarity;
+	int8_t masterTriggerChannel;
 
 	virtual uint32_t getMaxRecordLength() const = 0;
+	virtual uint32_t getMaxSampleValue() const = 0;
 	virtual char const* infoBankName() const = 0;
 	virtual std::size_t calculateEventSize(unsigned numOfActiveChannels,
 			unsigned recordLength) const = 0;
@@ -83,6 +87,8 @@ protected:
 	virtual std::size_t calculateEventSize(
 			CAEN_DGTZ_EventInfo_t const& eventInfo,
 			CAEN_DGTZ_UINT16_EVENT_t const& event) const;
+
+	static uint32_t channelMask(std::vector<bool> const& channelState);
 
 private:
 
