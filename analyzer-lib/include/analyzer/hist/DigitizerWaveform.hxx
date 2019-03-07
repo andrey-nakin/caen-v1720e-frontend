@@ -152,7 +152,7 @@ protected:
 					// this event is caused by non-master trigger
 					if (masterEventOccurred) {
 						std::cout << "Non-master " << timeStamp(lastMasterEvent)
-								<< "\t" << timeStamp(info->info())
+								<< "\t" << timeStamp(info->info()) << "\t"
 								<< (timeStamp(info->info())
 										- timeStamp(lastMasterEvent))
 								<< std::endl;				//	TODO
