@@ -130,7 +130,22 @@ protected:
 			auto const master = triggerInfo->masterTriggerChannel();
 			if (master < 0) {
 				// no master trigger
-				// TODO
+				auto const trigger = info->firstSelfTriggerChannel();
+				if (trigger >= 0) {
+					if (info->channelIncluded(trigger)) {
+						auto const wfRaw = dataContainer.GetEventData
+								< TWaveFormRawData
+								> (TWaveFormRawData::bankName(trigger));
+						if (wfRaw) {
+							return math::FindEdgeDistance(
+									triggerInfo->triggerRising(trigger),
+									triggerInfo->triggerThreshold(trigger),
+									wfRaw->begin(), wfRaw->end());
+						}
+					}
+				} else {
+					// this event is not caused by any self-trigger channel
+				}
 			} else {
 				// use master trigger
 				if (info->selfTrigger(master)) {
@@ -161,7 +176,7 @@ protected:
 											timeStamp(info->info())) << "\t"
 									<< (timeStamp(lastMasterEvent)
 											> timeStamp(info->info()) ?
-											"OVERFLOW" : "") << std::endl;//	TODO
+											"OVERFLOW" : "") << std::endl; //	TODO
 						}
 						auto const tm = samplesPerTimeTick()
 								* timeDiff(timeStamp(lastMasterEvent),
