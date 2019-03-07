@@ -44,6 +44,20 @@ AbstractWaveform::HistType& AbstractWaveform::GetPositionHist(INT const feIndex,
 
 }
 
+AbstractWaveform::HistType& AbstractWaveform::RebinPositionHist(
+		INT const feIndex, unsigned const channelNo,
+		unsigned const waveformLength, unsigned const preTriggerLength) {
+
+	auto& h = GetPositionHist(feIndex, channelNo, waveformLength,
+			preTriggerLength);
+	auto newh = static_cast<AbstractWaveform::HistType*>(h.RebinX(
+			waveformLength + preTriggerLength));
+	delete posHistograms[feIndex][channelNo];
+	posHistograms[feIndex][channelNo] = newh;
+	return *newh;
+
+}
+
 AbstractWaveform::HistType& AbstractWaveform::GetAmplitudeHist(
 		INT const feIndex, unsigned const channelNo, unsigned const maxValue) {
 

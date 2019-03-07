@@ -56,6 +56,8 @@ protected:
 			unsigned waveformLength);
 	HistType& GetPositionHist(INT feIndex, unsigned channelNo,
 			unsigned waveformLength, unsigned preTriggerLength);
+	HistType& RebinPositionHist(INT feIndex, unsigned channelNo,
+			unsigned waveformLength, unsigned preTriggerLength);
 	HistType& GetAmplitudeHist(INT feIndex, unsigned channelNo,
 			unsigned maxValue);
 

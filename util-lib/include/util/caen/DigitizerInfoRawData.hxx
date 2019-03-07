@@ -61,7 +61,7 @@ public:
 
 	bool selfTrigger(uint8_t const channel) const {
 
-		return 0 != info().pattern.bits.channelTrigger & (0x01 << channel);
+		return 0 != (info().pattern.bits.channelTrigger & (0x01 << channel));
 
 	}
 
