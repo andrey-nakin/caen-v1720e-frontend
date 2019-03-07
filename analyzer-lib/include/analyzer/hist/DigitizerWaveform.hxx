@@ -153,9 +153,11 @@ protected:
 					if (masterEventOccurred) {
 						std::cout << "Non-master " << timeStamp(lastMasterEvent)
 								<< "\t" << timeStamp(info->info()) << "\t"
-								<< (timeStamp(info->info())
-										- timeStamp(lastMasterEvent))
-								<< std::endl;				//	TODO
+								<< timeDiff(timeStamp(lastMasterEvent),
+										timeStamp(info->info())) << "\t"
+								<< (timeStamp(lastMasterEvent)
+										> timeStamp(info->info()) ?
+										"OVERFLOW" : "") << std::endl;	//	TODO
 						auto const tm = samplesPerTimeTick()
 								* timeDiff(timeStamp(lastMasterEvent),
 										timeStamp(info->info()));
