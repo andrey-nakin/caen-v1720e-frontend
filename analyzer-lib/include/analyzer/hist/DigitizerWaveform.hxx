@@ -149,10 +149,14 @@ protected:
 												wfRaw->begin(), wfRaw->end())
 										<< std::endl;
 							}
-							return math::FindEdgeDistance(
-									triggerInfo->triggerRising(trigger),
-									triggerInfo->triggerThreshold(trigger),
-									wfRaw->begin(), wfRaw->end());
+							auto const idx = triggerInfo->triggerChannelIndex(
+									trigger);
+							if (idx >= 0) {
+								return math::FindEdgeDistance(
+										triggerInfo->triggerRising(idx),
+										triggerInfo->triggerThreshold(idx),
+										wfRaw->begin(), wfRaw->end());
+							}
 						}
 					}
 				}
@@ -165,13 +169,17 @@ protected:
 								< TWaveFormRawData
 								> (TWaveFormRawData::bankName(master));
 						if (wfRaw) {
-							masterEventOccurred = true;
-							lastMasterEvent = info->info();
-							lastMasterEdgeDistance = math::FindEdgeDistance(
-									triggerInfo->triggerRising(master),
-									triggerInfo->triggerThreshold(master),
-									wfRaw->begin(), wfRaw->end());
-							return lastMasterEdgeDistance;
+							auto const idx = triggerInfo->triggerChannelIndex(
+									master);
+							if (idx >= 0) {
+								masterEventOccurred = true;
+								lastMasterEvent = info->info();
+								lastMasterEdgeDistance = math::FindEdgeDistance(
+										triggerInfo->triggerRising(idx),
+										triggerInfo->triggerThreshold(idx),
+										wfRaw->begin(), wfRaw->end());
+								return lastMasterEdgeDistance;
+							}
 						}
 					}
 				} else {

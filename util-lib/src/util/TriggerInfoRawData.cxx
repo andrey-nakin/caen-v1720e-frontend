@@ -32,35 +32,45 @@ int8_t TriggerInfoRawData::masterTriggerChannel() const {
 
 }
 
-TriggerBank const& TriggerInfoRawData::info(
-		uint8_t const triggerChannel) const {
+int8_t TriggerInfoRawData::triggerChannelIndex(uint8_t const channel) const {
 
-	return reinterpret_cast<TriggerBank const*>(GetData16())[triggerChannel];
+	for (uint8_t i = 0, last = numOfChannels(); i < last; i++) {
+		if (triggerChannel(i) == channel) {
+			return i;
+		}
+	}
 
-}
-
-uint8_t TriggerInfoRawData::triggerChannel(uint8_t const triggerChannel) const {
-
-	return static_cast<uint8_t>(info(triggerChannel).triggerChannel.bits.no);
-
-}
-
-uint16_t TriggerInfoRawData::triggerThreshold(
-		uint8_t const triggerChannel) const {
-
-	return static_cast<uint16_t>(info(triggerChannel).triggerThreshold);
+	return -1;
 
 }
 
-bool TriggerInfoRawData::triggerRising(uint8_t const triggerChannel) const {
+TriggerBank const& TriggerInfoRawData::info(uint8_t const idx) const {
 
-	return info(triggerChannel).triggerInfo.bits.rising == 0 ? false : true;
+	return reinterpret_cast<TriggerBank const*>(GetData16())[idx];
 
 }
 
-bool TriggerInfoRawData::masterTrigger(uint8_t const triggerChannel) const {
+uint8_t TriggerInfoRawData::triggerChannel(uint8_t const idx) const {
 
-	return info(triggerChannel).triggerInfo.bits.master == 0 ? false : true;
+	return static_cast<uint8_t>(info(idx).triggerChannel.bits.no);
+
+}
+
+uint16_t TriggerInfoRawData::triggerThreshold(uint8_t const idx) const {
+
+	return static_cast<uint16_t>(info(idx).triggerThreshold);
+
+}
+
+bool TriggerInfoRawData::triggerRising(uint8_t const idx) const {
+
+	return info(idx).triggerInfo.bits.rising == 0 ? false : true;
+
+}
+
+bool TriggerInfoRawData::masterTrigger(uint8_t const idx) const {
+
+	return info(idx).triggerInfo.bits.master == 0 ? false : true;
 
 }
 

@@ -15,13 +15,14 @@ public:
 
 	uint8_t numOfChannels() const;
 	int8_t masterTriggerChannel() const;
+	int8_t triggerChannelIndex(uint8_t channel) const;
 
-	TriggerBank const& info(uint8_t triggerChannel) const;
+	TriggerBank const& info(uint8_t idx) const;
 
-	uint8_t triggerChannel(uint8_t triggerChannel) const;
-	uint16_t triggerThreshold(uint8_t triggerChannel) const;
-	bool triggerRising(uint8_t triggerChannel) const;
-	bool masterTrigger(uint8_t triggerChannel) const;
+	uint8_t triggerChannel(uint8_t idx) const;
+	uint16_t triggerThreshold(uint8_t idx) const;
+	bool triggerRising(uint8_t idx) const;
+	bool masterTrigger(uint8_t idx) const;
 
 };
 
