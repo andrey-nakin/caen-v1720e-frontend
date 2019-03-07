@@ -139,19 +139,19 @@ protected:
 								< TWaveFormRawData
 								> (TWaveFormRawData::bankName(trigger));
 						if (wfRaw) {
-							if (trigger > 0) {	//	TODO
-								std::cout << "TRIGGER " << trigger << "\t"
-										<< math::FindEdgeDistance(
-												triggerInfo->triggerRising(
-														trigger),
-												triggerInfo->triggerThreshold(
-														trigger),
-												wfRaw->begin(), wfRaw->end())
-										<< std::endl;
-							}
 							auto const idx = triggerInfo->triggerChannelIndex(
 									trigger);
 							if (idx >= 0) {
+								if (trigger > 0) {	//	TODO
+									std::cout << "TRIGGER " << trigger << "\t"
+											<< math::FindEdgeDistance(
+													triggerInfo->triggerRising(
+															idx),
+													triggerInfo->triggerThreshold(
+															idx),
+													wfRaw->begin(),
+													wfRaw->end()) << std::endl;
+								}
 								return math::FindEdgeDistance(
 										triggerInfo->triggerRising(idx),
 										triggerInfo->triggerThreshold(idx),
