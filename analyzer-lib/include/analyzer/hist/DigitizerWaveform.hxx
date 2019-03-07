@@ -7,6 +7,7 @@
 #include <math/DiffContainer.hxx>
 #include <math/StatAccum.hxx>
 #include <math/PeakFinder.hxx>
+#include <math/IntOp.hxx>
 
 namespace analyzer {
 
@@ -14,6 +15,8 @@ namespace hist {
 
 class DigitizerWaveform: public AbstractWaveform {
 protected:
+
+	typedef math::IntOp<uint32_t, 31> TimeStamp;
 
 	DigitizerWaveform(VirtualOdb* anOdb, std::string const& aBaseEquipName,
 			std::string const & aDisplayName,
@@ -142,16 +145,6 @@ protected:
 							auto const idx = triggerInfo->triggerChannelIndex(
 									trigger);
 							if (idx >= 0) {
-								if (trigger > 0) {	//	TODO
-									std::cout << "TRIGGER " << trigger << "\t"
-											<< math::FindEdgeDistance(
-													triggerInfo->triggerRising(
-															idx),
-													triggerInfo->triggerThreshold(
-															idx),
-													wfRaw->begin(),
-													wfRaw->end()) << std::endl;
-								}
 								return math::FindEdgeDistance(
 										triggerInfo->triggerRising(idx),
 										triggerInfo->triggerThreshold(idx),
@@ -185,17 +178,6 @@ protected:
 				} else {
 					// this event is caused by non-master trigger
 					if (masterEventOccurred) {
-						if (timeDiff(timeStamp(lastMasterEvent),
-								timeStamp(info->info())) >= 100000) {
-							std::cout << "Non-master "
-									<< timeStamp(lastMasterEvent) << "\t"
-									<< timeStamp(info->info()) << "\t"
-									<< timeDiff(timeStamp(lastMasterEvent),
-											timeStamp(info->info())) << "\t"
-									<< (timeStamp(lastMasterEvent)
-											> timeStamp(info->info()) ?
-											"OVERFLOW" : "") << std::endl; //	TODO
-						}
 						auto const tm = samplesPerTimeTick()
 								* timeDiff(timeStamp(lastMasterEvent),
 										timeStamp(info->info()));
@@ -205,18 +187,6 @@ protected:
 					}
 				}
 			}
-
-//			auto const triggerChannel = triggerInfo->triggerChannel();
-//
-//			if (info->channelIncluded(triggerChannel)) {
-//				auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
-//						> (TWaveFormRawData::bankName(triggerChannel));
-//				if (wfRaw) {
-//					return math::FindEdgeDistance(triggerInfo->triggerRising(),
-//							triggerInfo->triggerThreshold(), wfRaw->begin(),
-//							wfRaw->end());
-//				}
-//			}
 		}
 
 		return 0;
@@ -240,13 +210,13 @@ private:
 
 	static uint32_t timeStamp(util::InfoBank const& info) {
 
-		return info.timeStamp & ~0x80000000;
+		return TimeStamp::value(info.timeStamp);
 
 	}
 
 	static uint32_t timeDiff(uint32_t const first, uint32_t const last) {
 
-		return (last - first) % static_cast<uint32_t>(0x80000000);
+		return TimeStamp::sub(last, first);
 
 	}
 
