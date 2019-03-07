@@ -94,7 +94,8 @@ protected:
 				if (position >= 0) {
 					if (position > ph.GetXaxis()->GetXmax()) {
 						std::cout << "New hist on position " << position
-								<< std::endl;	//	TODO
+								<< " ep " << edgePosition << " d "
+								<< std::distance(wfBegin, i) << std::endl; //	TODO
 //						auto& phNew = RebinPositionHist(feIndex, channelNo,
 //								position, preTriggerLength);
 //						phNew.AddBinContent(position);
