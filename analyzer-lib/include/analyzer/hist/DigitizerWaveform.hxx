@@ -107,7 +107,7 @@ protected:
 				decltype(zeroLevel) const ampAdjusted =
 						rising ? *i - zeroLevel : zeroLevel - *i;
 				auto const amplitude = std::min(ampAdjusted, maxSampleValue());
-				ah.AddBinContent(amplitude);
+				ah.Fill(amplitude);
 			}
 		}
 
