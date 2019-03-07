@@ -131,20 +131,30 @@ protected:
 			if (master < 0) {
 				// no master trigger
 				auto const trigger = info->firstSelfTriggerChannel();
-				if (trigger >= 0) {
+				if (trigger < 0) {
+					// this event is not caused by any self-trigger channel
+				} else {
 					if (info->channelIncluded(trigger)) {
 						auto const wfRaw = dataContainer.GetEventData
 								< TWaveFormRawData
 								> (TWaveFormRawData::bankName(trigger));
 						if (wfRaw) {
+							if (trigger > 0) {	//	TODO
+								std::cout << "TRIGGER " << trigger << "\t"
+										<< math::FindEdgeDistance(
+												triggerInfo->triggerRising(
+														trigger),
+												triggerInfo->triggerThreshold(
+														trigger),
+												wfRaw->begin(), wfRaw->end())
+										<< std::endl;
+							}
 							return math::FindEdgeDistance(
 									triggerInfo->triggerRising(trigger),
 									triggerInfo->triggerThreshold(trigger),
 									wfRaw->begin(), wfRaw->end());
 						}
 					}
-				} else {
-					// this event is not caused by any self-trigger channel
 				}
 			} else {
 				// use master trigger
