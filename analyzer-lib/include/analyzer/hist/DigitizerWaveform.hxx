@@ -92,15 +92,16 @@ protected:
 				auto const position = std::distance(wfBegin, i) - edgePosition
 						+ preTriggerLength;
 				if (position >= 0) {
-					if (position > ph.GetXaxis()->GetXmax()) {
-						std::cout << "New hist on position " << position
-								<< std::endl;	//	TODO
-						auto& phNew = RebinPositionHist(feIndex, channelNo,
-								position, preTriggerLength);
-						phNew.AddBinContent(position);
-					} else {
-						ph.AddBinContent(position);
-					}
+//					if (position > ph.GetXaxis()->GetXmax()) {
+//						std::cout << "New hist on position " << position
+//								<< std::endl;	//	TODO
+//						auto& phNew = RebinPositionHist(feIndex, channelNo,
+//								position, preTriggerLength);
+//						phNew.AddBinContent(position);
+//					} else {
+//						ph.AddBinContent(position);
+//					}
+					ph.Fill(position);
 				}
 
 				decltype(zeroLevel) const ampAdjusted =

@@ -126,6 +126,7 @@ AbstractWaveform::HistType* AbstractWaveform::CreatePositionHistogram(
 			-static_cast<double>(preTriggerLength), waveformLength);
 	h->SetXTitle("Channel");
 	h->SetYTitle("Count");
+	h->SetCanExtend(HistType::kAllAxes);
 	push_back(h);
 
 	return h;
