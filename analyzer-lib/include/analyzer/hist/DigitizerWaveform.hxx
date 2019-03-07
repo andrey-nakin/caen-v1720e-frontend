@@ -166,7 +166,7 @@ protected:
 						auto const tm = samplesPerTimeTick()
 								* timeDiff(timeStamp(lastMasterEvent),
 										timeStamp(info->info()));
-						if (tm < 10000000) {
+						if (tm < 100000) {
 							return lastMasterEdgeDistance - tm;
 						}
 					}
