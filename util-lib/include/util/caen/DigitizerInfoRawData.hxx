@@ -71,6 +71,18 @@ public:
 
 	}
 
+	int8_t firstSelfTriggerChannel() const {
+
+		for (uint8_t ch = 0; ch < 8; ch++) {
+			if (selfTrigger(ch)) {
+				return ch;
+			}
+		}
+
+		return -1;
+
+	}
+
 private:
 
 	InfoBank infoBank;
