@@ -151,13 +151,17 @@ protected:
 				} else {
 					// this event is caused by non-master trigger
 					if (masterEventOccurred) {
-						std::cout << "Non-master " << timeStamp(lastMasterEvent)
-								<< "\t" << timeStamp(info->info()) << "\t"
-								<< timeDiff(timeStamp(lastMasterEvent),
-										timeStamp(info->info())) << "\t"
-								<< (timeStamp(lastMasterEvent)
-										> timeStamp(info->info()) ?
-										"OVERFLOW" : "") << std::endl;	//	TODO
+						if (timeDiff(timeStamp(lastMasterEvent),
+								timeStamp(info->info())) >= 100000) {
+							std::cout << "Non-master "
+									<< timeStamp(lastMasterEvent) << "\t"
+									<< timeStamp(info->info()) << "\t"
+									<< timeDiff(timeStamp(lastMasterEvent),
+											timeStamp(info->info())) << "\t"
+									<< (timeStamp(lastMasterEvent)
+											> timeStamp(info->info()) ?
+											"OVERFLOW" : "") << std::endl;//	TODO
+						}
 						auto const tm = samplesPerTimeTick()
 								* timeDiff(timeStamp(lastMasterEvent),
 										timeStamp(info->info()));
