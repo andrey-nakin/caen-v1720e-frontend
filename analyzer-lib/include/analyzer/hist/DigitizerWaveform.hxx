@@ -92,15 +92,15 @@ protected:
 				auto const position = std::distance(wfBegin, i) - edgePosition
 						+ preTriggerLength;
 				if (position >= 0) {
-//					if (position > ph.GetXaxis()->GetXmax()) {
-//						std::cout << "New hist on position " << position
-//								<< std::endl;	//	TODO
+					if (position > ph.GetXaxis()->GetXmax()) {
+						std::cout << "New hist on position " << position
+								<< std::endl;	//	TODO
 //						auto& phNew = RebinPositionHist(feIndex, channelNo,
 //								position, preTriggerLength);
 //						phNew.AddBinContent(position);
 //					} else {
 //						ph.AddBinContent(position);
-//					}
+					}
 					ph.Fill(position);
 				}
 
@@ -152,9 +152,9 @@ protected:
 					// this event is caused by non-master trigger
 					if (masterEventOccurred) {
 						auto const tm = samplesPerTimeTick()
-								* (timeStamp(info->info())
-										- timeStamp(lastMasterEvent));
-						if (tm < 100000000) {
+								* timeDiff(timeStamp(lastMasterEvent),
+										timeStamp(info->info()));
+						if (tm < 10000000) {
 							return lastMasterEdgeDistance - tm;
 						}
 					}
@@ -196,6 +196,12 @@ private:
 	static uint32_t timeStamp(util::InfoBank const& info) {
 
 		return info.timeStamp & ~0x80000000;
+
+	}
+
+	static uint32_t timeDiff(uint32_t const first, uint32_t const last) {
+
+		return (last - first) % static_cast<uint32_t>(0x80000000);
 
 	}
 
