@@ -151,6 +151,8 @@ protected:
 				} else {
 					// this event is caused by non-master trigger
 					if (masterEventOccurred) {
+						std::cout << "Non-master " << timeStamp(lastMasterEvent)
+								<< "\t" << timeStamp(info->info()) << std::endl;//	TODO
 						auto const tm = samplesPerTimeTick()
 								* timeDiff(timeStamp(lastMasterEvent),
 										timeStamp(info->info()));
