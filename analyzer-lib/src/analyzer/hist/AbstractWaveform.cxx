@@ -50,7 +50,7 @@ AbstractWaveform::HistType& AbstractWaveform::RebinPositionHist(
 
 	auto& h = GetPositionHist(feIndex, channelNo, waveformLength,
 			preTriggerLength);
-	auto newh = static_cast<AbstractWaveform::HistType*>(h.RebinX(
+	auto newh = dynamic_cast<AbstractWaveform::HistType*>(h.RebinX(
 			waveformLength + preTriggerLength));
 	delete posHistograms[feIndex][channelNo];
 	posHistograms[feIndex][channelNo] = newh;
