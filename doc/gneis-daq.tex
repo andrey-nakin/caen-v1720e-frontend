@@ -29,6 +29,7 @@
 \newcommand{\PACKAGE}[1]{{\tt #1}}
 \newcommand{\ENV}[1]{{\tt #1}}
 \newcommand{\BITVALUE}[1]{<<#1>>}
+\newcommand{\NOTE}{{\bf Внимание:}}
 
 \input{version.tex}
 
@@ -583,6 +584,8 @@ sudo make
 
 \section{Установка ПО для устройств CAEN}
 
+\subsection{Установка библиотек CAEN}
+
 Для связи с дигитайзерами компании CAEN необходимо скачать с официального сайта \cite{CaenHome} следующие компоненты:
 
 \begin{itemize}
@@ -595,7 +598,7 @@ sudo make
 
 \end{itemize}
 
-На странице каждого из компонентов необходимо выбрать раздел <<Downloads>> и скачать версию для Linux в формате TGZ. Для скачивания может потребоваться регистрация на сайте.
+На странице каждого из компонентов необходимо выбрать раздел <<Downloads>> и скачать версию для Linux в формате TGZ. \NOTE{} для скачивания может потребоваться регистрация на сайте.
 
 После скачивания приступите к установке:
 
@@ -654,6 +657,39 @@ sudo ./install_x64
 cd ~/opt/caen
 cd CAENDigitizer_2.12.0
 sudo ./install_64
+\end{lstlisting}
+
+\end{enumerate}
+
+\subsection{Установка драйвера для CAEN~A3818}
+
+Связь с дигитайзерами компании CAEN производится посредством A3818 --- карты-контроллера оптической сети CONET2.
+
+Для работы с картой необходимо скачать с официального сайта \cite{CaenHome} и установить драйвер:
+
+\begin{enumerate}
+
+\item Создайте в домашнем каталоге подкаталог \DIRECTORY{\~{}/opt/caen} (если он не был создан ранее) и перейдите в него:
+
+\begin{lstlisting}[language=bash]
+cd
+mkdir -p opt/caen
+cd opt/caen
+\end{lstlisting}
+
+\item Найдите на сайте \cite{CaenHome} раздел, посвящённый карте-контроллеру A3818. Выберите подраздел <<Downloads>> и скачайте драйвер для Linux  в формате TGZ в каталог \DIRECTORY{\~{}/opt/caen}.
+
+\item Распакуйте архив (здесь и далее номера версий в именах файлов и каталогов условные и могут отличаться):
+
+\begin{lstlisting}[language=bash]
+tar -xzf A3818Drv-1.6.2-build20181214.tgz
+\end{lstlisting}
+
+\item После распаковки в каталоге \DIRECTORY{\~{}/opt/caen} должен появиться подкаталог \DIRECTORY{A3818Drv-1.6.2}. Перейдите в него и запустите установку:
+
+\begin{lstlisting}[language=bash]
+make
+sudo make install
 \end{lstlisting}
 
 \end{enumerate}
