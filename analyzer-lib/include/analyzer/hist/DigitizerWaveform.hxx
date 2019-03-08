@@ -3,6 +3,7 @@
 #include "AbstractWaveform.hxx"
 #include <util/TWaveFormRawData.hxx>
 #include <util/TriggerInfoRawData.hxx>
+#include <util/caen/DigitizerInfoRawData.hxx>
 #include <math/EdgeFinder.hxx>
 #include <math/DiffContainer.hxx>
 #include <math/StatAccum.hxx>
@@ -16,182 +17,24 @@ namespace hist {
 class DigitizerWaveform: public AbstractWaveform {
 protected:
 
-	typedef math::IntOp<uint32_t, 31> TimeStamp;
+	typedef math::IntOp<uint32_t, 31> TimeStampOp;
 
 	DigitizerWaveform(VirtualOdb* anOdb, std::string const& aBaseEquipName,
 			std::string const & aDisplayName,
 			ns_per_sample_type const aNsPerSample);
 
-	template<typename InfoRawData>
 	void UpdateHistograms(TDataContainer &dataContainer,
-			InfoRawData const* info) {
+			util::caen::DigitizerInfoRawData const* info);
 
-		using util::TWaveFormRawData;
+	void AnalyzeWaveform(util::caen::DigitizerInfoRawData const* info,
+			uint8_t channelNo, std::size_t numOfSamples,
+			util::TWaveFormRawData::difference_type edgePosition,
+			util::TWaveFormRawData::const_iterator_type wfBegin,
+			util::TWaveFormRawData::const_iterator_type wfEnd);
 
-		if (info) {
-			auto const feIndex = frontendIndex(info->info().frontendIndex);
-			auto const edgePosition = FindEdgeDistance(dataContainer, info);
-
-			for (uint8_t channelNo = 0; channelNo < numOfChannels();
-					channelNo++) {
-				if (info->channelIncluded(channelNo)) {
-					auto const wfRaw = dataContainer.GetEventData
-							< TWaveFormRawData
-							> (TWaveFormRawData::bankName(channelNo));
-					if (wfRaw) {
-						auto const numOfSamples = wfRaw->numOfSamples();
-						if (numOfSamples > 0) {
-							auto const wfBegin = wfRaw->begin();
-							auto const wfEnd = wfRaw->end();
-
-							// draw raw waveform
-							auto &h = GetWaveformHist(feIndex, channelNo,
-									numOfSamples);
-							SetData(h, wfBegin, wfEnd);
-
-							AnalyzeWaveform(info, channelNo, numOfSamples,
-									edgePosition, wfBegin, wfEnd);
-						}
-					}
-				}
-			}
-		}
-
-	}
-
-	template<typename InfoRawData>
-	void AnalyzeWaveform(InfoRawData const* const info, uint8_t const channelNo,
-			std::size_t const numOfSamples,
-			util::TWaveFormRawData::difference_type const edgePosition,
-			util::TWaveFormRawData::const_iterator_type const wfBegin,
-			util::TWaveFormRawData::const_iterator_type const wfEnd) {
-
-		auto const wfDiff = math::MakeDiffContainer<int16_t>(wfBegin, wfEnd,
-				frontLength);
-		auto const diffStat = math::MakeStatAccum(std::begin(wfDiff),
-				std::end(wfDiff));
-		auto const t = diffStat.GetStdScaled
-				< util::TWaveFormRawData::value_type > (threshold);
-		auto const hasPeak =
-				rising ?
-						diffStat.GetMaxValue() >= t :
-						diffStat.GetMinValue() <= -t;
-
-		if (hasPeak) {
-			auto const wfStat = math::MakeStatAccum(wfBegin, wfEnd);
-			auto const zeroLevel = wfStat.GetRoughMean();
-			auto const feIndex = frontendIndex(info->info().frontendIndex);
-			auto const preTriggerLength =
-					info->hasTriggerSettings() ? info->preTriggerLength() : 0;
-			auto &ph = GetPositionHist(feIndex, channelNo, numOfSamples,
-					preTriggerLength);
-			auto &ah = GetAmplitudeHist(feIndex, channelNo,
-					numOfSampleValues());
-
-			auto pf = math::MakePeakFinder(rising, wfBegin, wfEnd, frontLength,
-					t, peakLength);
-			while (pf.HasNext()) {
-				auto const i = pf.GetNext();
-				auto const position = std::distance(wfBegin, i) - edgePosition
-						+ preTriggerLength;
-				if (position >= 0) {
-					if (position > ph.GetXaxis()->GetXmax()) {
-						std::cout << "New hist on position " << position
-								<< " ep " << edgePosition << " d "
-								<< std::distance(wfBegin, i) << std::endl; //	TODO
-//						auto& phNew = RebinPositionHist(feIndex, channelNo,
-//								position, preTriggerLength);
-//						phNew.AddBinContent(position);
-//					} else {
-//						ph.AddBinContent(position);
-					}
-					ph.Fill(position);
-				}
-
-				decltype(zeroLevel) const ampAdjusted =
-						rising ? *i - zeroLevel : zeroLevel - *i;
-				auto const amplitude = std::min(ampAdjusted, maxSampleValue());
-				ah.Fill(amplitude);
-			}
-		}
-
-	}
-
-	template<typename InfoRawData>
 	util::TWaveFormRawData::difference_type FindEdgeDistance(
-			TDataContainer &dataContainer, InfoRawData const* info) {
-
-		using util::TWaveFormRawData;
-		using util::TriggerInfoRawData;
-
-		auto const triggerInfo = dataContainer.GetEventData < TriggerInfoRawData
-				> (TriggerInfoRawData::bankName());
-
-		if (triggerInfo && info->hasTriggerSettings()
-				&& info->triggerMode() == 0) {
-
-			auto const master = triggerInfo->masterTriggerChannel();
-			if (master < 0) {
-				// no master trigger
-				auto const trigger = info->firstSelfTriggerChannel();
-				if (trigger < 0) {
-					// this event is not caused by any self-trigger channel
-				} else {
-					if (info->channelIncluded(trigger)) {
-						auto const wfRaw = dataContainer.GetEventData
-								< TWaveFormRawData
-								> (TWaveFormRawData::bankName(trigger));
-						if (wfRaw) {
-							auto const idx = triggerInfo->triggerChannelIndex(
-									trigger);
-							if (idx >= 0) {
-								return math::FindEdgeDistance(
-										triggerInfo->triggerRising(idx),
-										triggerInfo->triggerThreshold(idx),
-										wfRaw->begin(), wfRaw->end());
-							}
-						}
-					}
-				}
-			} else {
-				// use master trigger
-				if (info->selfTrigger(master)) {
-					// this event is caused by master trigger
-					if (info->channelIncluded(master)) {
-						auto const wfRaw = dataContainer.GetEventData
-								< TWaveFormRawData
-								> (TWaveFormRawData::bankName(master));
-						if (wfRaw) {
-							auto const idx = triggerInfo->triggerChannelIndex(
-									master);
-							if (idx >= 0) {
-								masterEventOccurred = true;
-								lastMasterEvent = info->info();
-								lastMasterEdgeDistance = math::FindEdgeDistance(
-										triggerInfo->triggerRising(idx),
-										triggerInfo->triggerThreshold(idx),
-										wfRaw->begin(), wfRaw->end());
-								return lastMasterEdgeDistance;
-							}
-						}
-					}
-				} else {
-					// this event is caused by non-master trigger
-					if (masterEventOccurred) {
-						auto const tm = samplesPerTimeTick()
-								* timeDiff(timeStamp(lastMasterEvent),
-										timeStamp(info->info()));
-						if (tm < 100000) {
-							return lastMasterEdgeDistance - tm;
-						}
-					}
-				}
-			}
-		}
-
-		return 0;
-
-	}
+			TDataContainer &dataContainer,
+			util::caen::DigitizerInfoRawData const* info);
 
 private:
 
@@ -210,13 +53,13 @@ private:
 
 	static uint32_t timeStamp(util::InfoBank const& info) {
 
-		return TimeStamp::value(info.timeStamp);
+		return TimeStampOp::value(info.timeStamp);
 
 	}
 
 	static uint32_t timeDiff(uint32_t const first, uint32_t const last) {
 
-		return TimeStamp::sub(last, first);
+		return TimeStampOp::sub(last, first);
 
 	}
 
