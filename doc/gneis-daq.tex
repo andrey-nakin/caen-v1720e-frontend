@@ -758,9 +758,11 @@ cd ~/opt/gneis-daq
 git pull origin master
 \end{lstlisting}
 
-\item Пересоберите и установите приложения:
+\item Пересоберите и установите приложение:
 
 \begin{lstlisting}[language=bash]
+cd obj
+cmake ..
 make
 sudo make install
 \end{lstlisting}
