@@ -22,16 +22,6 @@ private:
 	unsigned numOfSampleValues() const override;
 	uint16_t maxSampleValue() const override;
 
-	void AnalyzeWaveform(util::caen::DigitizerInfoRawData const* info,
-			uint8_t channelNo, std::size_t numOfSamples,
-			util::TWaveFormRawData::difference_type edgePosition,
-			util::TWaveFormRawData::const_iterator_type wfBegin,
-			util::TWaveFormRawData::const_iterator_type wfEnd);
-
-	util::TWaveFormRawData::difference_type FindEdgeDistance(
-			TDataContainer &dataContainer,
-			util::caen::DigitizerInfoRawData const* info);
-
 };
 
 }

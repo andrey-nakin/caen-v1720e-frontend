@@ -26,16 +26,6 @@ protected:
 	void UpdateHistograms(TDataContainer &dataContainer,
 			util::caen::DigitizerInfoRawData const* info);
 
-	void AnalyzeWaveform(util::caen::DigitizerInfoRawData const* info,
-			uint8_t channelNo, std::size_t numOfSamples,
-			util::TWaveFormRawData::difference_type edgePosition,
-			util::TWaveFormRawData::const_iterator_type wfBegin,
-			util::TWaveFormRawData::const_iterator_type wfEnd);
-
-	util::TWaveFormRawData::difference_type FindEdgeDistance(
-			TDataContainer &dataContainer,
-			util::caen::DigitizerInfoRawData const* info);
-
 private:
 
 	uint16_t minFront;
@@ -50,6 +40,16 @@ private:
 	virtual unsigned numOfChannels() const = 0;
 	virtual unsigned numOfSampleValues() const = 0;
 	virtual uint16_t maxSampleValue() const = 0;
+
+	void AnalyzeWaveform(util::caen::DigitizerInfoRawData const* info,
+			uint8_t channelNo, std::size_t numOfSamples,
+			util::TWaveFormRawData::difference_type edgePosition,
+			util::TWaveFormRawData::const_iterator_type wfBegin,
+			util::TWaveFormRawData::const_iterator_type wfEnd);
+
+	util::TWaveFormRawData::difference_type FindEdgeDistance(
+			TDataContainer &dataContainer,
+			util::caen::DigitizerInfoRawData const* info);
 
 	static uint32_t timeStamp(util::InfoBank const& info) {
 
