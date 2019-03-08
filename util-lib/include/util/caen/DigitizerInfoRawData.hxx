@@ -8,80 +8,26 @@ namespace util {
 
 namespace caen {
 
-template<const char** BankName>
 class DigitizerInfoRawData: public TGenericData {
 public:
 
-	DigitizerInfoRawData(int bklen, int bktype, const char* name, void *pdata) :
-			TGenericData(bklen, bktype, name, pdata) {
+	DigitizerInfoRawData(int bklen, int bktype, const char* name, void *pdata);
 
-		std::memset(&infoBank, 0, sizeof(infoBank));
-		infoBank.frontendIndex =
-				static_cast<decltype(infoBank.frontendIndex)>(-1);
-		std::memcpy(&infoBank, GetData32(),
-				std::min(sizeof(infoBank), GetSize() * sizeof(GetData32()[0])));
+	InfoBank const& info() const;
 
-	}
+	bool channelIncluded(uint8_t const channelNo) const;
 
-	static const char* bankName() {
+	bool hasTriggerSettings() const;
 
-		return *BankName;
+	uint32_t preTriggerLength() const;
 
-	}
+	uint32_t triggerMode() const;
 
-	InfoBank const& info() const {
+	bool selfTrigger(uint8_t const channel) const;
 
-		return infoBank;
+	bool extTrigger() const;
 
-	}
-
-	bool channelIncluded(uint8_t const channelNo) const {
-
-		return (info().channelMask & (0x0001 << channelNo)) != 0;
-
-	}
-
-	bool hasTriggerSettings() const {
-
-		return GetSize() >= 8;
-
-	}
-
-	uint32_t preTriggerLength() const {
-
-		return info().preTriggerLength;
-
-	}
-
-	uint32_t triggerMode() const {
-
-		return info().triggerMode;
-
-	}
-
-	bool selfTrigger(uint8_t const channel) const {
-
-		return 0 != (info().pattern.bits.channelTrigger & (0x01 << channel));
-
-	}
-
-	bool extTrigger() const {
-
-		return 0 != info().pattern.bits.extTrigger;
-
-	}
-
-	int8_t firstSelfTriggerChannel() const {
-
-		for (uint8_t ch = 0; ch < 8; ch++) {
-			if (selfTrigger(ch)) {
-				return ch;
-			}
-		}
-
-		return -1;
-
-	}
+	int8_t firstSelfTriggerChannel() const;
 
 private:
 

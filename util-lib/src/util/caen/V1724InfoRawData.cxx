@@ -4,11 +4,17 @@ namespace util {
 
 namespace caen {
 
-const char* V1724InfoBankName = "V240";
+static const char* const V1724InfoBankName = "V240";
 
 V1724InfoRawData::V1724InfoRawData(int const bklen, int const bktype,
 		const char* const name, void* const pdata) :
-		DigitizerInfoRawData<&V1724InfoBankName>(bklen, bktype, name, pdata) {
+		DigitizerInfoRawData(bklen, bktype, name, pdata) {
+}
+
+const char* V1724InfoRawData::bankName() {
+
+	return V1724InfoBankName;
+
 }
 
 }
