@@ -140,8 +140,8 @@ util::TWaveFormRawData::difference_type DigitizerWaveform::FindEdgeDistance(
 
 	if (triggerInfo && info->hasTriggerSettings() && info->triggerMode() == 0) {
 
-		auto const master = triggerInfo->masterTriggerChannel();
-		if (master < 0) {
+//		auto const master = triggerInfo->masterTriggerChannel();
+		if (true /* master < 0 */) {	//	TODO
 			// no master trigger
 			auto const trigger = info->firstSelfTriggerChannel();
 			if (trigger < 0) {
@@ -155,13 +155,6 @@ util::TWaveFormRawData::difference_type DigitizerWaveform::FindEdgeDistance(
 						auto const idx = triggerInfo->triggerChannelIndex(
 								trigger);
 						if (idx >= 0) {
-							auto const e = math::FindEdgeDistance(
-									triggerInfo->triggerRising(idx),
-									triggerInfo->triggerThreshold(idx),
-									wfRaw->begin(), wfRaw->end());
-							if (true || e < 500) {
-								std::cout << "Edge found at " << e << std::endl;
-							}
 							return math::FindEdgeDistance(
 									triggerInfo->triggerRising(idx),
 									triggerInfo->triggerThreshold(idx),
@@ -172,37 +165,37 @@ util::TWaveFormRawData::difference_type DigitizerWaveform::FindEdgeDistance(
 			}
 		} else {
 			// use master trigger
-			if (info->selfTrigger(master)) {
-				// this event is caused by master trigger
-				if (info->channelIncluded(master)) {
-					auto const wfRaw = dataContainer.GetEventData
-							< TWaveFormRawData
-							> (TWaveFormRawData::bankName(master));
-					if (wfRaw) {
-						auto const idx = triggerInfo->triggerChannelIndex(
-								master);
-						if (idx >= 0) {
-							masterEventOccurred = true;
-							lastMasterEvent = info->info();
-							lastMasterEdgeDistance = math::FindEdgeDistance(
-									triggerInfo->triggerRising(idx),
-									triggerInfo->triggerThreshold(idx),
-									wfRaw->begin(), wfRaw->end());
-							return lastMasterEdgeDistance;
-						}
-					}
-				}
-			} else {
-				// this event is caused by non-master trigger
-				if (masterEventOccurred) {
-					auto const tm = samplesPerTimeTick()
-							* timeDiff(timeStamp(lastMasterEvent),
-									timeStamp(info->info()));
-					if (tm < 100000) {
-						return lastMasterEdgeDistance - tm;
-					}
-				}
-			}
+//			if (info->selfTrigger(master)) {
+//				// this event is caused by master trigger
+//				if (info->channelIncluded(master)) {
+//					auto const wfRaw = dataContainer.GetEventData
+//							< TWaveFormRawData
+//							> (TWaveFormRawData::bankName(master));
+//					if (wfRaw) {
+//						auto const idx = triggerInfo->triggerChannelIndex(
+//								master);
+//						if (idx >= 0) {
+//							masterEventOccurred = true;
+//							lastMasterEvent = info->info();
+//							lastMasterEdgeDistance = math::FindEdgeDistance(
+//									triggerInfo->triggerRising(idx),
+//									triggerInfo->triggerThreshold(idx),
+//									wfRaw->begin(), wfRaw->end());
+//							return lastMasterEdgeDistance;
+//						}
+//					}
+//				}
+//			} else {
+//				// this event is caused by non-master trigger
+//				if (masterEventOccurred) {
+//					auto const tm = samplesPerTimeTick()
+//							* timeDiff(timeStamp(lastMasterEvent),
+//									timeStamp(info->info()));
+//					if (tm < 100000) {
+//						return lastMasterEdgeDistance - tm;
+//					}
+//				}
+//			}
 		}
 	}
 

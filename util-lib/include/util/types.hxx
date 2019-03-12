@@ -37,8 +37,7 @@ typedef struct
 		union {
 			struct {
 				uint16_t rising :1;
-				uint16_t master :1;
-				uint16_t :14;	//	reserved
+				uint16_t :15;	//	reserved
 			} bits;
 			uint16_t raw;
 		} triggerInfo;
@@ -75,7 +74,7 @@ typedef struct
 		static_assert(sizeof(InfoBank) == sizeof(uint32_t) * 8, "InfoBank size is not correct");
 
 		void fillTriggerInfo(TriggerBank& bank, uint8_t channel,
-				uint32_t threshold, bool rising, bool master);
+				uint32_t threshold, bool rising);
 
 		typedef struct
 			__attribute__((packed)) {

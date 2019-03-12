@@ -16,31 +16,17 @@ TEST(FillTriggerInfo, Generic) {
 	}bank;
 
 	std::memset(&bank, FILLER, sizeof(bank));
-	fillTriggerInfo(bank.t, 0x0f, 0x12345678, false, false);
+	fillTriggerInfo(bank.t, 0x0f, 0x12345678, false);
 	EXPECT_EQ(0x000f, bank.words.w0);
 	EXPECT_EQ(0x5678, bank.words.w1);
 	EXPECT_EQ(0x0000, bank.words.w2);
 	EXPECT_EQ(0x1234, bank.words.w3);
 
 	std::memset(&bank, FILLER, sizeof(bank));
-	fillTriggerInfo(bank.t, 0x0f, 0x12345678, true, false);
+	fillTriggerInfo(bank.t, 0x0f, 0x12345678, true);
 	EXPECT_EQ(0x000f, bank.words.w0);
 	EXPECT_EQ(0x5678, bank.words.w1);
 	EXPECT_EQ(0x0001, bank.words.w2);
-	EXPECT_EQ(0x1234, bank.words.w3);
-
-	std::memset(&bank, FILLER, sizeof(bank));
-	fillTriggerInfo(bank.t, 0x0f, 0x12345678, false, true);
-	EXPECT_EQ(0x000f, bank.words.w0);
-	EXPECT_EQ(0x5678, bank.words.w1);
-	EXPECT_EQ(0x0002, bank.words.w2);
-	EXPECT_EQ(0x1234, bank.words.w3);
-
-	std::memset(&bank, FILLER, sizeof(bank));
-	fillTriggerInfo(bank.t, 0x0f, 0x12345678, true, true);
-	EXPECT_EQ(0x000f, bank.words.w0);
-	EXPECT_EQ(0x5678, bank.words.w1);
-	EXPECT_EQ(0x0003, bank.words.w2);
 	EXPECT_EQ(0x1234, bank.words.w3);
 
 }
@@ -55,10 +41,10 @@ TEST(FillTriggerInfo, Overflow) {
 	}bank;
 
 	std::memset(&bank, FILLER, sizeof(bank));
-	fillTriggerInfo(bank.t, -1, -1, -1, -1);
+	fillTriggerInfo(bank.t, -1, -1, -1);
 	EXPECT_EQ(0x000f, bank.words.w0);
 	EXPECT_EQ(0xffff, bank.words.w1);
-	EXPECT_EQ(0x0003, bank.words.w2);
+	EXPECT_EQ(0x0001, bank.words.w2);
 	EXPECT_EQ(0xffff, bank.words.w3);
 
 }
