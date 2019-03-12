@@ -23,7 +23,7 @@ int const conetNode = 0;
 uint32_t const vmeBaseAddr = 0;
 uint32_t const channelMask = 0xff;
 uint32_t const triggerChannel = 0;
-uint16_t const triggerThreshold = 1000;//3000; //2100;
+uint16_t const triggerThreshold = 3000; //2100;
 uint32_t const recordLength = 1024 * 1;	//	num of samples
 uint32_t const postTrigger = 1024 * 1 - 64;	//	num of samples
 uint8_t const IRQlevel = 1;
@@ -173,6 +173,9 @@ int main(int argc, char* argv[]) {
 
 		device.getHandle().setBit(CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, 21, true);
 		device.getHandle().setBit(CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, 22, false);
+
+		ret = CAEN_DGTZ_SetPostTriggerSize(device.getHandle(), 90);
+		CHECK(ret, "setting post trigger size");
 
 		std::cout << "Readout buffer size: "
 				<< device.getBuffer().getBufferSize() << std::endl;

@@ -83,6 +83,7 @@ protected:
 	virtual char const* infoBankName() const = 0;
 	virtual std::size_t calculateEventSize(unsigned numOfActiveChannels,
 			unsigned recordLength) const = 0;
+	virtual uint32_t postTriggerRegisterValue(uint32_t recordLength, uint32_t preTriggerLength) const = 0;
 
 	virtual std::size_t calculateEventSize(
 			CAEN_DGTZ_EventInfo_t const& eventInfo,

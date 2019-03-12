@@ -278,7 +278,7 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 		}
 
 		hDevice.writeRegister(::caen::reg::POST_TRIG_ADD,
-				(recordLength - preTriggerLength) / 4);
+				postTriggerRegisterValue(recordLength, preTriggerLength));
 	}
 
 	// disable trigger overlap

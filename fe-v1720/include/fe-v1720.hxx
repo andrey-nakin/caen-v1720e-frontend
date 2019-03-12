@@ -53,6 +53,13 @@ protected:
 
 	}
 
+	uint32_t postTriggerRegisterValue(uint32_t const recordLength,
+			uint32_t const preTriggerLength) const override {
+
+		return (recordLength - preTriggerLength) / 4;
+
+	}
+
 	std::size_t calculateEventSize(unsigned const numOfActiveChannels,
 			unsigned const recordLength) const override {
 
