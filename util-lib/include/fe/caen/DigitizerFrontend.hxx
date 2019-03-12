@@ -27,12 +27,15 @@ constexpr uint32_t recordLength = 1024;
 constexpr bool triggerChannel = false;
 constexpr uint32_t triggerThreshold = 1000;
 constexpr bool triggerRaisingPolarity = false;
-constexpr int8_t masterTriggerChannel = -1;
 
 namespace channel {
 
 constexpr bool enabled = true;
 constexpr uint16_t dcOffset = 0x8000;
+constexpr uint32_t signalFrontLength = 3;
+constexpr uint32_t signalLength = 16;
+constexpr bool signalRisingPolarity = false;
+constexpr int8_t signalTriggerChannel = -1;
 
 }
 
@@ -59,7 +62,10 @@ constexpr char channelDcOffset[] = "channel_dc_offset";
 constexpr char triggerChannel[] = "trigger_channel";
 constexpr char triggerThreshold[] = "trigger_threshold";
 constexpr char triggerRaisingPolarity[] = "trigger_raising_polarity";
-constexpr char masterTriggerChannel[] = "master_trigger_channel";
+constexpr char signalTriggerChannel[] = "signal_trigger_channel";
+constexpr char signalFrontLength[] = "signal_front_length";
+constexpr char signalLength[] = "signal_length";
+constexpr char signalRisingPolarity[] = "signal_rising_polarity";
 
 }
 
@@ -76,14 +82,18 @@ protected:
 	std::vector<bool> triggerChannel;
 	std::vector<uint32_t> triggerThreshold;
 	std::vector<bool> triggerRaisingPolarity;
-	int8_t masterTriggerChannel;
+	std::vector<int8_t> signalTriggerChannel;
+	std::vector<uint32_t> signalFrontLengths;
+	std::vector<uint32_t> signalLengths;
+	std::vector<bool> signalRisingPolarities;
 
 	virtual uint32_t getMaxRecordLength() const = 0;
 	virtual uint32_t getMaxSampleValue() const = 0;
 	virtual char const* infoBankName() const = 0;
 	virtual std::size_t calculateEventSize(unsigned numOfActiveChannels,
 			unsigned recordLength) const = 0;
-	virtual uint32_t postTriggerRegisterValue(uint32_t recordLength, uint32_t preTriggerLength) const = 0;
+	virtual uint32_t postTriggerRegisterValue(uint32_t recordLength,
+			uint32_t preTriggerLength) const = 0;
 
 	virtual std::size_t calculateEventSize(
 			CAEN_DGTZ_EventInfo_t const& eventInfo,

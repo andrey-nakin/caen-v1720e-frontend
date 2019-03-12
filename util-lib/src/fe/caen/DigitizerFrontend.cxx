@@ -170,6 +170,17 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 
 	dcOffsets = odb::getValueUInt16V(hDB, hSet, settings::channelDcOffset,
 			boardInfo.Channels, defaults::channel::dcOffset, true);
+	signalFrontLengths = odb::getValueUInt32V(hDB, hSet,
+			settings::signalFrontLength, boardInfo.Channels,
+			defaults::channel::signalFrontLength, true);
+	signalLengths = odb::getValueUInt32V(hDB, hSet, settings::signalLength,
+			boardInfo.Channels, defaults::channel::signalLength, true);
+	signalRisingPolarities = odb::getValueBoolV(hDB, hSet,
+			settings::signalRisingPolarity, boardInfo.Channels,
+			defaults::channel::signalRisingPolarity, true);
+	signalTriggerChannel = odb::getValueInt8V(hDB, hSet,
+			settings::signalTriggerChannel, boardInfo.Channels,
+			defaults::channel::signalTriggerChannel, true);
 
 	triggerChannel = odb::getValueBoolV(hDB, hSet, settings::triggerChannel,
 			boardInfo.Channels, defaults::triggerChannel, true);
@@ -189,18 +200,6 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 	triggerRaisingPolarity = odb::getValueBoolV(hDB, hSet,
 			settings::triggerRaisingPolarity, boardInfo.Channels,
 			defaults::triggerRaisingPolarity, true);
-
-	masterTriggerChannel = odb::getValueInt8(hDB, hSet,
-			settings::masterTriggerChannel, defaults::masterTriggerChannel,
-			true);
-	if (masterTriggerChannel >= static_cast<int8_t>(boardInfo.Channels)) {
-		std::stringstream ss;
-		ss << "Invalid value of " << settings::masterTriggerChannel
-				<< " parameter: " << masterTriggerChannel
-				<< " is greater than max channel number ("
-				<< (boardInfo.Channels - 1) << ")";
-		throw midas::Exception(FE_ERR_ODB, ss.str());
-	}
 
 	auto const chMask = trigChMask | channelMask(enabledChannels);
 	hDevice.hCommand("setting channel enable mask", [chMask](int handle) {
@@ -350,7 +349,7 @@ void DigitizerFrontend::storeTriggerBank(char* const pevent) {
 	for (int8_t ch = 0; ch != static_cast<int8_t>(boardInfo.Channels); ch++) {
 		if (triggerChannel[ch]) {
 			util::fillTriggerInfo(*bank, ch, triggerThreshold[ch],
-					triggerRaisingPolarity[ch], masterTriggerChannel == ch);
+					triggerRaisingPolarity[ch], false);
 			bank++;
 		}
 	}
