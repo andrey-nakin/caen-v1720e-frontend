@@ -6,6 +6,7 @@
 #include <util/TriggerInfoRawData.hxx>
 #include <util/TDcOffsetRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
+#include <util/SignalInfoRawData.hxx>
 #include <midas/odb.hxx>
 
 namespace fe {
@@ -178,7 +179,7 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 	signalRisingPolarities = odb::getValueBoolV(hDB, hSet,
 			settings::signalRisingPolarity, boardInfo.Channels,
 			defaults::channel::signalRisingPolarity, true);
-	signalTriggerChannel = odb::getValueInt8V(hDB, hSet,
+	signalTriggerChannel = odb::getValueUInt8V(hDB, hSet,
 			settings::signalTriggerChannel, boardInfo.Channels,
 			defaults::channel::signalTriggerChannel, true);
 
@@ -392,6 +393,20 @@ void DigitizerFrontend::storeWaveformBanks(char* const pevent,
 
 }
 
+void DigitizerFrontend::storeSignalInfoBank(char* pevent) {
+
+	util::SignalInfoBank* pdata;
+	bk_create(pevent, util::SignalInfoRawData::BANK_NAME, TID_DWORD,
+			(void**) &pdata);
+	for (unsigned i = 0; i < boardInfo.Channels; i++) {
+		util::fillSignalInfo(*pdata, signalLengths[i], signalFrontLengths[i],
+				signalTriggerChannel[i], signalRisingPolarities[i]);
+		pdata++;
+	}
+	bk_close(pevent, pdata);
+
+}
+
 int DigitizerFrontend::parseEvent(char* const pevent,
 		CAEN_DGTZ_EventInfo_t const& eventInfo,
 		CAEN_DGTZ_UINT16_EVENT_t const& event) {
@@ -428,6 +443,7 @@ int DigitizerFrontend::parseEvent(char* const pevent,
 
 	storeTriggerBank(pevent);
 	storeDcOffsetBank(pevent);
+	storeSignalInfoBank(pevent);
 	storeWaveformBanks(pevent, eventInfo, event);
 
 	return bk_size(pevent);

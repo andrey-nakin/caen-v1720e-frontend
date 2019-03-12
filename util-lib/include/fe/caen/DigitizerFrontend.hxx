@@ -35,7 +35,7 @@ constexpr uint16_t dcOffset = 0x8000;
 constexpr uint32_t signalFrontLength = 3;
 constexpr uint32_t signalLength = 16;
 constexpr bool signalRisingPolarity = false;
-constexpr int8_t signalTriggerChannel = -1;
+constexpr uint8_t signalTriggerChannel = 0;
 
 }
 
@@ -82,7 +82,7 @@ protected:
 	std::vector<bool> triggerChannel;
 	std::vector<uint32_t> triggerThreshold;
 	std::vector<bool> triggerRaisingPolarity;
-	std::vector<int8_t> signalTriggerChannel;
+	std::vector<uint8_t> signalTriggerChannel;
 	std::vector<uint32_t> signalFrontLengths;
 	std::vector<uint32_t> signalLengths;
 	std::vector<bool> signalRisingPolarities;
@@ -125,6 +125,7 @@ private:
 	virtual void storeWaveformBanks(char* pevent,
 			CAEN_DGTZ_EventInfo_t const& eventInfo,
 			CAEN_DGTZ_UINT16_EVENT_t const& event);
+	virtual void storeSignalInfoBank(char* pevent);
 
 	virtual int parseEvent(char* pevent, CAEN_DGTZ_EventInfo_t const& eventInfo,
 			CAEN_DGTZ_UINT16_EVENT_t const& event);
