@@ -16,10 +16,13 @@ void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,
 		util::caen::DigitizerInfoRawData const* info) {
 
 	using util::TWaveFormRawData;
+	using util::SignalInfoRawData;
 
 	if (info) {
 		auto const feIndex = frontendIndex(info->info().frontendIndex);
 		auto const edgePosition = FindEdgeDistance(dataContainer, info);
+		auto const signalInfo = dataContainer.GetEventData < SignalInfoRawData
+				> (SignalInfoRawData::BANK_NAME);
 
 		for (uint8_t channelNo = 0; channelNo < numOfChannels(); channelNo++) {
 			if (info->channelIncluded(channelNo)) {
@@ -37,7 +40,9 @@ void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,
 						SetData(h, wfBegin, wfEnd);
 
 						AnalyzeWaveform(info, channelNo, numOfSamples,
-								edgePosition, wfBegin, wfEnd);
+								edgePosition, wfBegin, wfEnd,
+								signalInfo ?
+										signalInfo->info(channelNo) : nullptr);
 					}
 				}
 			}
@@ -51,7 +56,20 @@ void DigitizerWaveform::AnalyzeWaveform(
 		uint8_t const channelNo, std::size_t const numOfSamples,
 		util::TWaveFormRawData::difference_type const edgePosition,
 		util::TWaveFormRawData::const_iterator_type const wfBegin,
-		util::TWaveFormRawData::const_iterator_type const wfEnd) {
+		util::TWaveFormRawData::const_iterator_type const wfEnd,
+		util::SignalInfoBank const* signalInfo) {
+
+	using util::SignalInfoRawData;
+
+	auto const peakLength =
+			signalInfo ?
+					SignalInfoRawData::length(signalInfo) : this->peakLength;
+	auto const frontLength =
+			signalInfo ?
+					SignalInfoRawData::frontLength(signalInfo) :
+					this->frontLength;
+	auto const rising =
+			signalInfo ? SignalInfoRawData::rising(signalInfo) : this->rising;
 
 	auto const wfDiff = math::MakeDiffContainer<int16_t>(wfBegin, wfEnd,
 			frontLength);

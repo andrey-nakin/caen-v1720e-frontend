@@ -3,6 +3,7 @@
 #include "AbstractWaveform.hxx"
 #include <util/TWaveFormRawData.hxx>
 #include <util/TriggerInfoRawData.hxx>
+#include <util/SignalInfoRawData.hxx>
 #include <util/caen/DigitizerInfoRawData.hxx>
 #include <math/EdgeFinder.hxx>
 #include <math/DiffContainer.hxx>
@@ -45,7 +46,8 @@ private:
 			uint8_t channelNo, std::size_t numOfSamples,
 			util::TWaveFormRawData::difference_type edgePosition,
 			util::TWaveFormRawData::const_iterator_type wfBegin,
-			util::TWaveFormRawData::const_iterator_type wfEnd);
+			util::TWaveFormRawData::const_iterator_type wfEnd,
+			util::SignalInfoBank const* signalInfo);
 
 	util::TWaveFormRawData::difference_type FindEdgeDistance(
 			TDataContainer &dataContainer,

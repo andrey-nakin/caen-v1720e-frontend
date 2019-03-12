@@ -15,35 +15,35 @@ uint8_t SignalInfoRawData::numOfChannels() const {
 
 }
 
-SignalInfoBank const& SignalInfoRawData::info(uint8_t const channelNo) const {
-
-	return reinterpret_cast<SignalInfoBank const*>(GetData16())[channelNo];
-
-}
-
-uint32_t SignalInfoRawData::length(uint8_t const channelNo) const {
-
-	return channelNo < numOfChannels() ? info(channelNo).length : 0;
-
-}
-
-uint32_t SignalInfoRawData::frontLength(uint8_t const channelNo) const {
-
-	return channelNo < numOfChannels() ? info(channelNo).frontLength : 0;
-
-}
-
-uint8_t SignalInfoRawData::triggerChannel(uint8_t const channelNo) const {
+SignalInfoBank const* SignalInfoRawData::info(uint8_t const channelNo) const {
 
 	return channelNo < numOfChannels() ?
-			info(channelNo).pattern.bits.triggerChannel : 0;
+			reinterpret_cast<SignalInfoBank const*>(GetData16()) + channelNo :
+			nullptr;
 
 }
 
-bool SignalInfoRawData::rising(uint8_t const channelNo) const {
+uint32_t SignalInfoRawData::length(SignalInfoBank const* const si) {
 
-	return channelNo < numOfChannels() ?
-			(info(channelNo).pattern.bits.rising ? true : false) : false;
+	return si->length;
+
+}
+
+uint32_t SignalInfoRawData::frontLength(SignalInfoBank const* const si) {
+
+	return si->frontLength;
+
+}
+
+uint8_t SignalInfoRawData::triggerChannel(SignalInfoBank const* const si) {
+
+	return si->pattern.bits.triggerChannel;
+
+}
+
+bool SignalInfoRawData::rising(SignalInfoBank const* const si) {
+
+	return si->pattern.bits.rising ? true : false;
 
 }
 
