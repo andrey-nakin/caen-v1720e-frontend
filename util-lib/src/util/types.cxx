@@ -17,12 +17,13 @@ void fillTriggerInfo(TriggerBank& bank, uint8_t const channel,
 
 void fillSignalInfo(SignalInfoBank& bank, uint32_t const length,
 		uint32_t const frontLength, uint8_t const triggerChannel,
-		bool const rising) {
+		int16_t const threshold, bool const rising) {
 
 	bank.length = length;
 	bank.frontLength = frontLength;
 	bank.pattern.raw = 0;
 	bank.pattern.bits.triggerChannel = triggerChannel;
+	bank.pattern.bits.threshold = threshold;
 	bank.pattern.bits.rising = rising ? 1 : 0;
 	bank.reserved = 0;
 

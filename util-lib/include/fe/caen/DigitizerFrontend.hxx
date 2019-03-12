@@ -36,6 +36,7 @@ constexpr uint32_t signalFrontLength = 3;
 constexpr uint32_t signalLength = 16;
 constexpr bool signalRisingPolarity = false;
 constexpr uint8_t signalTriggerChannel = 0;
+constexpr int16_t signalThreshold = -7;
 
 }
 
@@ -66,6 +67,7 @@ constexpr char signalTriggerChannel[] = "signal_trigger_channel";
 constexpr char signalFrontLength[] = "signal_front_length";
 constexpr char signalLength[] = "signal_length";
 constexpr char signalRisingPolarity[] = "signal_rising_polarity";
+constexpr char signalThreshold[] = "signal_threshold";
 
 }
 
@@ -86,6 +88,7 @@ protected:
 	std::vector<uint32_t> signalFrontLengths;
 	std::vector<uint32_t> signalLengths;
 	std::vector<bool> signalRisingPolarities;
+	std::vector<int16_t> signalThresholds;
 
 	virtual uint32_t getMaxRecordLength() const = 0;
 	virtual uint32_t getMaxSampleValue() const = 0;

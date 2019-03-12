@@ -41,6 +41,12 @@ uint8_t SignalInfoRawData::triggerChannel(SignalInfoBank const* const si) {
 
 }
 
+int16_t SignalInfoRawData::threshold(SignalInfoBank const* const si) {
+
+	return si->pattern.bits.threshold;
+
+}
+
 bool SignalInfoRawData::rising(SignalInfoBank const* const si) {
 
 	return si->pattern.bits.rising ? true : false;

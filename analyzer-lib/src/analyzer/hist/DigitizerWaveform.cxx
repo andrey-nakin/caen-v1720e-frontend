@@ -75,8 +75,17 @@ void DigitizerWaveform::AnalyzeWaveform(
 			frontLength);
 	auto const diffStat = math::MakeStatAccum(std::begin(wfDiff),
 			std::end(wfDiff));
-	auto const t = diffStat.GetStdScaled < util::TWaveFormRawData::value_type
-			> (threshold);
+	auto const t =
+			signalInfo ?
+					(SignalInfoRawData::threshold(signalInfo) < 0 ?
+							diffStat.GetStdScaled
+									< util::TWaveFormRawData::value_type
+									> (std::abs(
+											SignalInfoRawData::threshold(
+													signalInfo))) :
+							SignalInfoRawData::threshold(signalInfo)) :
+					diffStat.GetStdScaled < util::TWaveFormRawData::value_type
+							> (threshold);
 	auto const hasPeak =
 			rising ? diffStat.GetMaxValue() >= t : diffStat.GetMinValue() <= -t;
 

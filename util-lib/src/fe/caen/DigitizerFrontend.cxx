@@ -182,6 +182,8 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 	signalTriggerChannel = odb::getValueUInt8V(hDB, hSet,
 			settings::signalTriggerChannel, boardInfo.Channels,
 			defaults::channel::signalTriggerChannel, true);
+	signalThresholds = odb::getValueInt16V(hDB, hSet, settings::signalThreshold,
+			boardInfo.Channels, defaults::channel::signalThreshold, true);
 
 	triggerChannel = odb::getValueBoolV(hDB, hSet, settings::triggerChannel,
 			boardInfo.Channels, defaults::triggerChannel, true);
@@ -400,7 +402,8 @@ void DigitizerFrontend::storeSignalInfoBank(char* pevent) {
 			(void**) &pdata);
 	for (unsigned i = 0; i < boardInfo.Channels; i++) {
 		util::fillSignalInfo(*pdata, signalLengths[i], signalFrontLengths[i],
-				signalTriggerChannel[i], signalRisingPolarities[i]);
+				signalTriggerChannel[i], signalThresholds[i],
+				signalRisingPolarities[i]);
 		pdata++;
 	}
 	bk_close(pevent, pdata);
