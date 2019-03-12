@@ -68,12 +68,12 @@ InputIt FindEdge(bool const rising,
 	return rising ?
 			std::find_if(begin, end,
 					EdgeFinder<InputIt,
-							std::less<
+							std::less_equal<
 									typename std::iterator_traits<InputIt>::value_type>>(
 							threshold)) :
 			std::find_if(begin, end,
 					EdgeFinder<InputIt,
-							std::greater<
+							std::greater_equal<
 									typename std::iterator_traits<InputIt>::value_type>>(
 							threshold));
 
