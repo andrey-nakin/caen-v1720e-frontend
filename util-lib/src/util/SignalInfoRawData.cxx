@@ -9,9 +9,9 @@ SignalInfoRawData::SignalInfoRawData(int const bklen, int const bktype,
 		TGenericData(bklen, bktype, name, pdata) {
 }
 
-std::size_t SignalInfoRawData::numOfChannels() const {
+uint8_t SignalInfoRawData::numOfChannels() const {
 
-	return GetSize() / 4;
+	return GetSize() / (sizeof(SignalInfoBank) / sizeof(uint32_t));
 
 }
 

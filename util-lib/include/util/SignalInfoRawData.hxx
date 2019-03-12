@@ -12,7 +12,7 @@ public:
 	static char const* BANK_NAME;
 
 	SignalInfoRawData(int bklen, int bktype, const char* name, void *pdata);
-	std::size_t numOfChannels() const;
+	uint8_t numOfChannels() const;
 	SignalInfoBank const& info(uint8_t channelNo) const;
 
 	uint32_t length(uint8_t channelNo) const;
