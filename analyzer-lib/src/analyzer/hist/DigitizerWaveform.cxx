@@ -128,6 +128,13 @@ util::TWaveFormRawData::difference_type DigitizerWaveform::FindEdgeDistance(
 						auto const idx = triggerInfo->triggerChannelIndex(
 								trigger);
 						if (idx >= 0) {
+							auto const e = math::FindEdgeDistance(
+									triggerInfo->triggerRising(idx),
+									triggerInfo->triggerThreshold(idx),
+									wfRaw->begin(), wfRaw->end());
+							if (true || e < 500) {
+								std::cout << "Edge found at " << e << std::endl;
+							}
 							return math::FindEdgeDistance(
 									triggerInfo->triggerRising(idx),
 									triggerInfo->triggerThreshold(idx),
