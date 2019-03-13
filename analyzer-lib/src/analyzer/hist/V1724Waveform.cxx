@@ -19,7 +19,9 @@ void V1724Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
 	auto const v1724Info = dataContainer.GetEventData < V1724InfoRawData
 			> (V1724InfoRawData::bankName());
-	DigitizerWaveform::UpdateHistograms(dataContainer, v1724Info);
+	if (v1724Info) {
+		DigitizerWaveform::UpdateHistograms(dataContainer, *v1724Info);
+	}
 
 }
 

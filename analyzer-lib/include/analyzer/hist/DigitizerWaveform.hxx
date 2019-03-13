@@ -37,7 +37,7 @@ protected:
 			ns_per_sample_type const aNsPerSample);
 
 	void UpdateHistograms(TDataContainer &dataContainer,
-			util::caen::DigitizerInfoRawData const* info);
+			util::caen::DigitizerInfoRawData const& info);
 
 private:
 

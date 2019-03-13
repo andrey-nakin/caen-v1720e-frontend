@@ -11,38 +11,34 @@ DigitizerWaveform::DigitizerWaveform(VirtualOdb* anOdb,
 }
 
 void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,
-		util::caen::DigitizerInfoRawData const* info) {
+		util::caen::DigitizerInfoRawData const& info) {
 
 	using util::TWaveFormRawData;
 	using util::SignalInfoRawData;
 
-	if (info) {
-		auto const feIndex = frontendIndex(info->info().frontendIndex);
-		auto const signalInfo = dataContainer.GetEventData < SignalInfoRawData
-				> (SignalInfoRawData::BANK_NAME);
+	auto const feIndex = frontendIndex(info.info().frontendIndex);
+	auto const signalInfo = dataContainer.GetEventData < SignalInfoRawData
+			> (SignalInfoRawData::BANK_NAME);
 
-		DetectTrigger(dataContainer, *info);
+	DetectTrigger(dataContainer, info);
 
-		for (channel_no_type channelNo = 0; channelNo < numOfChannels();
-				channelNo++) {
-			if (info->channelIncluded(channelNo)) {
-				auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
-						> (TWaveFormRawData::bankName(channelNo));
-				if (wfRaw) {
-					auto const numOfSamples = wfRaw->numOfSamples();
-					if (numOfSamples > 0) {
-						auto const wfBegin = wfRaw->begin();
-						auto const wfEnd = wfRaw->end();
+	for (channel_no_type channelNo = 0; channelNo < numOfChannels();
+			channelNo++) {
+		if (info.channelIncluded(channelNo)) {
+			auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
+					> (TWaveFormRawData::bankName(channelNo));
+			if (wfRaw) {
+				auto const numOfSamples = wfRaw->numOfSamples();
+				if (numOfSamples > 0) {
+					auto const wfBegin = wfRaw->begin();
+					auto const wfEnd = wfRaw->end();
 
-						// draw raw waveform
-						auto &h = GetWaveformHist(feIndex, channelNo,
-								numOfSamples);
-						SetData(h, wfBegin, wfEnd);
+					// draw raw waveform
+					auto &h = GetWaveformHist(feIndex, channelNo, numOfSamples);
+					SetData(h, wfBegin, wfEnd);
 
-						AnalyzeWaveform(*info, channelNo, wfBegin, wfEnd,
-								signalInfo ?
-										signalInfo->info(channelNo) : nullptr);
-					}
+					AnalyzeWaveform(info, channelNo, wfBegin, wfEnd,
+							signalInfo ? signalInfo->info(channelNo) : nullptr);
 				}
 			}
 		}
