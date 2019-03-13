@@ -9,18 +9,22 @@ namespace util {
 class TriggerInfoRawData: public TGenericData {
 public:
 
+	typedef uint8_t channelno_type;
+
 	TriggerInfoRawData(int bklen, int bktype, const char* name, void *pdata);
 
 	static const char* bankName();
 
-	uint8_t numOfChannels() const;
-	int8_t triggerChannelIndex(uint8_t channel) const;
+	TriggerBank const* channelInfo(channelno_type channel) const;
 
-	TriggerBank const& info(uint8_t idx) const;
+	static channelno_type channel(TriggerBank const&);
+	static uint16_t threshold(TriggerBank const&);
+	static bool rising(TriggerBank const&);
 
-	uint8_t triggerChannel(uint8_t idx) const;
-	uint16_t triggerThreshold(uint8_t idx) const;
-	bool triggerRising(uint8_t idx) const;
+private:
+
+	int numOfChannels() const;
+	TriggerBank const* info(int idx) const;
 
 };
 

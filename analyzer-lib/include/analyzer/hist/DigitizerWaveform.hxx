@@ -21,8 +21,13 @@ protected:
 
 	typedef math::IntOp<uint32_t, 31> TimestampOp;
 	typedef uint8_t channel_no_type;
+	typedef uint32_t wflength_type;
 	typedef util::TWaveFormRawData::difference_type distance_type;
 
+	static constexpr bool DEF_SIGNAL_RISING = false;
+	static constexpr wflength_type DEF_SIGNAL_LENGTH = 16;
+	static constexpr wflength_type DEF_SIGNAL_FRONT_LENGTH = 3;
+	static constexpr double DEF_SIGNAL_THRESHOLD_KAPPA = 7.0;
 	static constexpr channel_no_type EXT_TRIGGER =
 			static_cast<channel_no_type>(-1);
 
@@ -35,13 +40,6 @@ protected:
 
 private:
 
-	uint16_t minFront;
-	unsigned frontLength, peakLength;
-	double threshold;
-	bool rising;
-	bool masterEventOccurred;
-	util::TWaveFormRawData::difference_type lastMasterEdgeDistance;
-	util::InfoBank lastMasterEvent;
 	std::map<channel_no_type, distance_type> triggers;
 	std::map<channel_no_type, TimestampOp::value_type> triggerTimestamps;
 
@@ -56,8 +54,14 @@ private:
 	channel_no_type ChannelTrigger(util::caen::DigitizerInfoRawData const* info,
 			util::SignalInfoBank const* signalInfo) const;
 
+	std::pair<bool, util::TWaveFormRawData::value_type> HasPeaks(
+			util::TWaveFormRawData::const_iterator_type wfBegin,
+			util::TWaveFormRawData::const_iterator_type wfEnd,
+			util::SignalInfoBank const* signalInfo, wflength_type frontLength,
+			bool rising) const;
+
 	void AnalyzeWaveform(util::caen::DigitizerInfoRawData const* info,
-			channel_no_type channelNo, std::size_t numOfSamples,
+			channel_no_type channelNo,
 			util::TWaveFormRawData::const_iterator_type wfBegin,
 			util::TWaveFormRawData::const_iterator_type wfEnd,
 			util::SignalInfoBank const* signalInfo);

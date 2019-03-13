@@ -14,45 +14,48 @@ const char* TriggerInfoRawData::bankName() {
 
 }
 
-uint8_t TriggerInfoRawData::numOfChannels() const {
+int TriggerInfoRawData::numOfChannels() const {
 
 	return GetSize() * sizeof(uint16_t) / sizeof(TriggerBank);
 
 }
 
-int8_t TriggerInfoRawData::triggerChannelIndex(uint8_t const channel) const {
+TriggerBank const* TriggerInfoRawData::info(int const idx) const {
 
-	for (uint8_t i = 0, last = numOfChannels(); i < last; i++) {
-		if (triggerChannel(i) == channel) {
-			return i;
+	return reinterpret_cast<TriggerBank const*>(GetData16()) + idx;
+
+}
+
+TriggerBank const* TriggerInfoRawData::channelInfo(
+		channelno_type const ch) const {
+
+	for (int i = 0, last = numOfChannels(); i < last; i++) {
+		auto const inf = info(i);
+		if (channel(*inf) == ch) {
+			return inf;
 		}
 	}
 
-	return -1;
+	return nullptr;
 
 }
 
-TriggerBank const& TriggerInfoRawData::info(uint8_t const idx) const {
+TriggerInfoRawData::channelno_type TriggerInfoRawData::channel(
+		TriggerBank const& ti) {
 
-	return reinterpret_cast<TriggerBank const*>(GetData16())[idx];
-
-}
-
-uint8_t TriggerInfoRawData::triggerChannel(uint8_t const idx) const {
-
-	return static_cast<uint8_t>(info(idx).triggerChannel.bits.no);
+	return ti.triggerChannel.bits.no;
 
 }
 
-uint16_t TriggerInfoRawData::triggerThreshold(uint8_t const idx) const {
+uint16_t TriggerInfoRawData::threshold(TriggerBank const& ti) {
 
-	return static_cast<uint16_t>(info(idx).triggerThreshold);
+	return ti.triggerThreshold;
 
 }
 
-bool TriggerInfoRawData::triggerRising(uint8_t const idx) const {
+bool TriggerInfoRawData::rising(TriggerBank const& ti) {
 
-	return info(idx).triggerInfo.bits.rising == 0 ? false : true;
+	return ti.triggerInfo.bits.rising == 0 ? false : true;
 
 }
 

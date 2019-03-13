@@ -7,9 +7,7 @@ namespace hist {
 DigitizerWaveform::DigitizerWaveform(VirtualOdb* anOdb,
 		std::string const& aBaseEquipName, std::string const & aDisplayName,
 		ns_per_sample_type const aNsPerSample) :
-		AbstractWaveform(anOdb, aBaseEquipName, aDisplayName, aNsPerSample), minFront(
-				14), frontLength(3), peakLength(16), threshold(7.0), rising(
-				false), masterEventOccurred(false), lastMasterEdgeDistance(0) {
+		AbstractWaveform(anOdb, aBaseEquipName, aDisplayName, aNsPerSample) {
 }
 
 void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,
@@ -41,8 +39,7 @@ void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,
 								numOfSamples);
 						SetData(h, wfBegin, wfEnd);
 
-						AnalyzeWaveform(info, channelNo, numOfSamples, wfBegin,
-								wfEnd,
+						AnalyzeWaveform(info, channelNo, wfBegin, wfEnd,
 								signalInfo ?
 										signalInfo->info(channelNo) : nullptr);
 					}
@@ -82,22 +79,14 @@ DigitizerWaveform::channel_no_type DigitizerWaveform::ChannelTrigger(
 
 }
 
-void DigitizerWaveform::AnalyzeWaveform(
-		util::caen::DigitizerInfoRawData const* const info,
-		channel_no_type const channelNo, std::size_t const numOfSamples,
+std::pair<bool, util::TWaveFormRawData::value_type> DigitizerWaveform::HasPeaks(
 		util::TWaveFormRawData::const_iterator_type const wfBegin,
 		util::TWaveFormRawData::const_iterator_type const wfEnd,
-		util::SignalInfoBank const* signalInfo) {
+		util::SignalInfoBank const* const signalInfo,
+		wflength_type const frontLength, bool const rising) const {
 
 	using util::SignalInfoRawData;
 	using util::TWaveFormRawData;
-
-	auto const frontLength =
-			signalInfo ?
-					SignalInfoRawData::frontLength(*signalInfo) :
-					this->frontLength;
-	auto const rising =
-			signalInfo ? SignalInfoRawData::rising(*signalInfo) : this->rising;
 
 	auto const wfDiff = math::MakeDiffContainer<int16_t>(wfBegin, wfEnd,
 			frontLength);
@@ -119,25 +108,49 @@ void DigitizerWaveform::AnalyzeWaveform(
 		}
 	} else {
 		// have to calculate threshold using waveform noise level
-		t = diffStat.GetStdScaled < TWaveFormRawData::value_type > (threshold);
+		t = diffStat.GetStdScaled < TWaveFormRawData::value_type
+				> (DEF_SIGNAL_THRESHOLD_KAPPA);
 	}
 
 	auto const hasPeak =
 			rising ? diffStat.GetMaxValue() >= t : diffStat.GetMinValue() <= -t;
 
+	return std::pair<bool, util::TWaveFormRawData::value_type>(hasPeak, t);
+}
+
+void DigitizerWaveform::AnalyzeWaveform(
+		util::caen::DigitizerInfoRawData const* const info,
+		channel_no_type const channelNo,
+		util::TWaveFormRawData::const_iterator_type const wfBegin,
+		util::TWaveFormRawData::const_iterator_type const wfEnd,
+		util::SignalInfoBank const* signalInfo) {
+
+	using util::SignalInfoRawData;
+
+	auto const frontLength =
+			signalInfo ?
+					SignalInfoRawData::frontLength(*signalInfo) :
+					DEF_SIGNAL_FRONT_LENGTH;
+	auto const rising =
+			signalInfo ?
+					SignalInfoRawData::rising(*signalInfo) : DEF_SIGNAL_RISING;
+	auto const hp = HasPeaks(wfBegin, wfEnd, signalInfo, frontLength, rising);
+	auto const hasPeak = hp.first;
+	auto const t = hp.second;
+
 	if (hasPeak) {
 		auto const peakLength =
 				signalInfo ?
 						SignalInfoRawData::length(*signalInfo) :
-						this->peakLength;
+						DEF_SIGNAL_LENGTH;
 		auto const triggerChannel = ChannelTrigger(info, signalInfo);
 		auto const wfStat = math::MakeStatAccum(wfBegin, wfEnd);
 		auto const zeroLevel = wfStat.GetRoughMean();
 		auto const feIndex = frontendIndex(info->info().frontendIndex);
 		auto const preTriggerLength =
 				info->hasTriggerSettings() ? info->preTriggerLength() : 0;
-		auto &ph = GetPositionHist(feIndex, channelNo, numOfSamples,
-				preTriggerLength);
+		auto &ph = GetPositionHist(feIndex, channelNo,
+				std::distance(wfBegin, wfEnd), preTriggerLength);
 		auto &ah = GetAmplitudeHist(feIndex, channelNo, numOfSampleValues());
 
 		auto pf = math::MakePeakFinder(rising, wfBegin, wfEnd, frontLength, t,
@@ -188,11 +201,11 @@ void DigitizerWaveform::DetectTrigger(TDataContainer &dataContainer,
 			auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
 					> (TWaveFormRawData::bankName(trigCh));
 			if (wfRaw) {
-				auto const idx = triggerInfo->triggerChannelIndex(trigCh);
-				if (idx >= 0) {
+				auto const ti = triggerInfo->channelInfo(trigCh);
+				if (ti) {
 					triggers[trigCh] = math::FindEdgeDistance(
-							triggerInfo->triggerRising(idx),
-							triggerInfo->triggerThreshold(idx), wfRaw->begin(),
+							TriggerInfoRawData::rising(*ti),
+							TriggerInfoRawData::threshold(*ti), wfRaw->begin(),
 							wfRaw->end());
 				}
 			}
@@ -201,38 +214,6 @@ void DigitizerWaveform::DetectTrigger(TDataContainer &dataContainer,
 	}
 
 }
-
-//unsigned V1720Waveform::loadWaveformLength(INT const feIndex) {
-//
-//	auto const hKeyName = odb::equipSettingsKeyName(getBaseEquipName(), feIndex,
-//			fe::v1720::settings::waveformLength);
-//
-//	if (getOdb()->odbReadArraySize(hKeyName.c_str()) <= 0) {
-//		return 0;
-//	}
-//
-//	return getOdb()->odbReadUint32(hKeyName.c_str(), 0, 0);
-//
-//}
-//
-//std::vector<bool> V1720Waveform::loadEnabledChannels(INT feIndex) {
-//
-//	std::vector<bool> result;
-//	auto const hKeyName = odb::equipSettingsKeyName(getBaseEquipName(), feIndex,
-//			fe::v1720::settings::enabledChannels);
-//
-//	auto const size = getOdb()->odbReadArraySize(hKeyName.c_str());
-//	if (size > 0) {
-//		result.resize(size);
-//
-//		for (int i = 0; i < size; i++) {
-//			result[i] = getOdb()->odbReadBool(hKeyName.c_str(), i, false);
-//		}
-//	}
-//
-//	return result;
-//
-//}
 
 }
 
