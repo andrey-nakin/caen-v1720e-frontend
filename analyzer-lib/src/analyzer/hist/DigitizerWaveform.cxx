@@ -122,7 +122,7 @@ DigitizerWaveform::distance_type DigitizerWaveform::CalcPosition(
 			+ (info.hasTriggerSettings() ? info.preTriggerLength() : 0);
 
 	if (triggerChannel != CurrentTrigger(info)
-			&& triggerChannel != EXT_TRIGGER) {
+			&& triggerTimestamps.count(triggerChannel) > 0) {
 
 		auto const tm = timestampDiff(triggerTimestamps[triggerChannel],
 				timestamp(info));
