@@ -73,9 +73,10 @@ private:
 	void DetectTrigger(TDataContainer &dataContainer,
 			util::caen::DigitizerInfoRawData const& info);
 
-	static TimestampOp::value_type timeStamp(util::InfoBank const& info) {
+	static TimestampOp::value_type timestamp(
+			util::caen::DigitizerInfoRawData const& info) {
 
-		return TimestampOp::value(info.timeStamp);
+		return TimestampOp::value(info.info().timeStamp);
 
 	}
 

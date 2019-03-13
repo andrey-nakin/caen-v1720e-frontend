@@ -129,7 +129,7 @@ DigitizerWaveform::distance_type DigitizerWaveform::CalcPosition(
 			&& triggerChannel != EXT_TRIGGER) {
 
 		auto const tm = timestampDiff(triggerTimestamps[triggerChannel],
-				timeStamp(info.info()));
+				timestamp(info));
 		if (tm >= MAX_POSITION) {
 			return -1;	//	discard the position
 		}
@@ -200,28 +200,24 @@ void DigitizerWaveform::DetectTrigger(TDataContainer &dataContainer,
 	using util::TWaveFormRawData;
 	using util::TriggerInfoRawData;
 
-	auto const triggerInfo = dataContainer.GetEventData < TriggerInfoRawData
-			> (TriggerInfoRawData::bankName());
+	auto const trigCh = CurrentTrigger(info);
+	triggers[trigCh] = 0;
+	triggerTimestamps[trigCh] = timestamp(info);
 
-	if (triggerInfo && info.hasTriggerSettings()) {
-		auto const trigCh = CurrentTrigger(info);
-		triggers[trigCh] = 0;
-		triggerTimestamps[trigCh] = timeStamp(info.info());
-
-		if (!info.extTrigger() && info.channelIncluded(trigCh)) {
-			auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
-					> (TWaveFormRawData::bankName(trigCh));
-			if (wfRaw) {
-				auto const ti = triggerInfo->channelInfo(trigCh);
-				if (ti) {
-					triggers[trigCh] = math::FindEdgeDistance(
-							TriggerInfoRawData::rising(*ti),
-							TriggerInfoRawData::threshold(*ti), wfRaw->begin(),
-							wfRaw->end());
-				}
+	if (!info.extTrigger() && info.channelIncluded(trigCh)) {
+		auto const triggerInfo = dataContainer.GetEventData < TriggerInfoRawData
+				> (TriggerInfoRawData::bankName());
+		auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
+				> (TWaveFormRawData::bankName(trigCh));
+		if (triggerInfo && wfRaw) {
+			auto const ti = triggerInfo->channelInfo(trigCh);
+			if (ti) {
+				triggers[trigCh] = math::FindEdgeDistance(
+						TriggerInfoRawData::rising(*ti),
+						TriggerInfoRawData::threshold(*ti), wfRaw->begin(),
+						wfRaw->end());
 			}
 		}
-
 	}
 
 }
