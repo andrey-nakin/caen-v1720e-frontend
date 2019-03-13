@@ -30,6 +30,7 @@ protected:
 	static constexpr double DEF_SIGNAL_THRESHOLD_KAPPA = 7.0;
 	static constexpr channel_no_type EXT_TRIGGER =
 			static_cast<channel_no_type>(-1);
+	static constexpr wflength_type MAX_POSITION = 1000000;
 
 	DigitizerWaveform(VirtualOdb* anOdb, std::string const& aBaseEquipName,
 			std::string const & aDisplayName,
@@ -49,9 +50,9 @@ private:
 	virtual uint16_t maxSampleValue() const = 0;
 
 	channel_no_type CurrentTrigger(
-			util::caen::DigitizerInfoRawData const* info) const;
+			util::caen::DigitizerInfoRawData const& info) const;
 
-	channel_no_type ChannelTrigger(util::caen::DigitizerInfoRawData const* info,
+	channel_no_type ChannelTrigger(util::caen::DigitizerInfoRawData const& info,
 			util::SignalInfoBank const* signalInfo) const;
 
 	std::pair<bool, util::TWaveFormRawData::value_type> HasPeaks(
@@ -60,14 +61,17 @@ private:
 			util::SignalInfoBank const* signalInfo, wflength_type frontLength,
 			bool rising) const;
 
-	void AnalyzeWaveform(util::caen::DigitizerInfoRawData const* info,
+	distance_type CalcPosition(util::caen::DigitizerInfoRawData const& info,
+			distance_type wfPos, channel_no_type triggerChannel);
+
+	void AnalyzeWaveform(util::caen::DigitizerInfoRawData const& info,
 			channel_no_type channelNo,
 			util::TWaveFormRawData::const_iterator_type wfBegin,
 			util::TWaveFormRawData::const_iterator_type wfEnd,
 			util::SignalInfoBank const* signalInfo);
 
 	void DetectTrigger(TDataContainer &dataContainer,
-			util::caen::DigitizerInfoRawData const* info);
+			util::caen::DigitizerInfoRawData const& info);
 
 	static TimestampOp::value_type timeStamp(util::InfoBank const& info) {
 

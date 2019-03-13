@@ -21,7 +21,7 @@ void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,
 		auto const signalInfo = dataContainer.GetEventData < SignalInfoRawData
 				> (SignalInfoRawData::BANK_NAME);
 
-		DetectTrigger(dataContainer, info);
+		DetectTrigger(dataContainer, *info);
 
 		for (channel_no_type channelNo = 0; channelNo < numOfChannels();
 				channelNo++) {
@@ -39,7 +39,7 @@ void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,
 								numOfSamples);
 						SetData(h, wfBegin, wfEnd);
 
-						AnalyzeWaveform(info, channelNo, wfBegin, wfEnd,
+						AnalyzeWaveform(*info, channelNo, wfBegin, wfEnd,
 								signalInfo ?
 										signalInfo->info(channelNo) : nullptr);
 					}
@@ -51,9 +51,9 @@ void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,
 }
 
 DigitizerWaveform::channel_no_type DigitizerWaveform::CurrentTrigger(
-		util::caen::DigitizerInfoRawData const* const info) const {
+		util::caen::DigitizerInfoRawData const& info) const {
 
-	auto const ch = info->firstSelfTriggerChannel();
+	auto const ch = info.firstSelfTriggerChannel();
 	if (ch >= 0 && ch < static_cast<int>(numOfChannels())) {
 		return ch;
 	}
@@ -63,7 +63,7 @@ DigitizerWaveform::channel_no_type DigitizerWaveform::CurrentTrigger(
 }
 
 DigitizerWaveform::channel_no_type DigitizerWaveform::ChannelTrigger(
-		util::caen::DigitizerInfoRawData const* const info,
+		util::caen::DigitizerInfoRawData const& info,
 		util::SignalInfoBank const* const signalInfo) const {
 
 	using util::SignalInfoRawData;
@@ -118,8 +118,30 @@ std::pair<bool, util::TWaveFormRawData::value_type> DigitizerWaveform::HasPeaks(
 	return std::pair<bool, util::TWaveFormRawData::value_type>(hasPeak, t);
 }
 
+DigitizerWaveform::distance_type DigitizerWaveform::CalcPosition(
+		util::caen::DigitizerInfoRawData const& info, distance_type const wfPos,
+		channel_no_type const triggerChannel) {
+
+	auto result = wfPos - triggers[triggerChannel]
+			+ (info.hasTriggerSettings() ? info.preTriggerLength() : 0);
+
+	if (triggerChannel != CurrentTrigger(info)
+			&& triggerChannel != EXT_TRIGGER) {
+
+		auto const tm = timestampDiff(triggerTimestamps[triggerChannel],
+				timeStamp(info.info()));
+		if (tm >= MAX_POSITION) {
+			return -1;	//	discard the position
+		}
+		result += tm;
+	}
+
+	return result;
+
+}
+
 void DigitizerWaveform::AnalyzeWaveform(
-		util::caen::DigitizerInfoRawData const* const info,
+		util::caen::DigitizerInfoRawData const& info,
 		channel_no_type const channelNo,
 		util::TWaveFormRawData::const_iterator_type const wfBegin,
 		util::TWaveFormRawData::const_iterator_type const wfEnd,
@@ -146,9 +168,9 @@ void DigitizerWaveform::AnalyzeWaveform(
 		auto const triggerChannel = ChannelTrigger(info, signalInfo);
 		auto const wfStat = math::MakeStatAccum(wfBegin, wfEnd);
 		auto const zeroLevel = wfStat.GetRoughMean();
-		auto const feIndex = frontendIndex(info->info().frontendIndex);
+		auto const feIndex = frontendIndex(info.info().frontendIndex);
 		auto const preTriggerLength =
-				info->hasTriggerSettings() ? info->preTriggerLength() : 0;
+				info.hasTriggerSettings() ? info.preTriggerLength() : 0;
 		auto &ph = GetPositionHist(feIndex, channelNo,
 				std::distance(wfBegin, wfEnd), preTriggerLength);
 		auto &ah = GetAmplitudeHist(feIndex, channelNo, numOfSampleValues());
@@ -157,34 +179,23 @@ void DigitizerWaveform::AnalyzeWaveform(
 				peakLength);
 		while (pf.HasNext()) {
 			auto const i = pf.GetNext();
-			auto const position = std::distance(wfBegin, i)
-					- triggers[triggerChannel] /* TODO */
-			+ preTriggerLength;
+			auto const position = CalcPosition(info, std::distance(wfBegin, i),
+					triggerChannel);
 			if (position >= 0) {
-				if (position > ph.GetXaxis()->GetXmax()) {
-					std::cout << "New hist on position " << position << " ep "
-							<< triggers[triggerChannel] << " d "
-							<< std::distance(wfBegin, i) << std::endl; //	TODO
-//						auto& phNew = RebinPositionHist(feIndex, channelNo,
-//								position, preTriggerLength);
-//						phNew.AddBinContent(position);
-//					} else {
-//						ph.AddBinContent(position);
-				}
-				ph.Fill(position);
-			}
+				FillPositionHist(ph, position, preTriggerLength);
 
-			decltype(zeroLevel) const ampAdjusted =
-					rising ? *i - zeroLevel : zeroLevel - *i;
-			auto const amplitude = std::min(ampAdjusted, maxSampleValue());
-			ah.Fill(amplitude);
+				decltype(zeroLevel) const ampAdjusted =
+						rising ? *i - zeroLevel : zeroLevel - *i;
+				auto const amplitude = std::min(ampAdjusted, maxSampleValue());
+				ah.Fill(amplitude);
+			}
 		}
 	}
 
 }
 
 void DigitizerWaveform::DetectTrigger(TDataContainer &dataContainer,
-		util::caen::DigitizerInfoRawData const* info) {
+		util::caen::DigitizerInfoRawData const& info) {
 
 	using util::TWaveFormRawData;
 	using util::TriggerInfoRawData;
@@ -192,12 +203,12 @@ void DigitizerWaveform::DetectTrigger(TDataContainer &dataContainer,
 	auto const triggerInfo = dataContainer.GetEventData < TriggerInfoRawData
 			> (TriggerInfoRawData::bankName());
 
-	if (triggerInfo && info->hasTriggerSettings()) {
+	if (triggerInfo && info.hasTriggerSettings()) {
 		auto const trigCh = CurrentTrigger(info);
 		triggers[trigCh] = 0;
-		triggerTimestamps[trigCh] = timeStamp(info->info());
+		triggerTimestamps[trigCh] = timeStamp(info.info());
 
-		if (!info->extTrigger() && info->channelIncluded(trigCh)) {
+		if (!info.extTrigger() && info.channelIncluded(trigCh)) {
 			auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
 					> (TWaveFormRawData::bankName(trigCh));
 			if (wfRaw) {
