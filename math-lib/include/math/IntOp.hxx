@@ -8,6 +8,8 @@ template<typename IntType, uint8_t BitNum>
 class IntOp {
 public:
 
+	typedef IntType value_type;
+
 	static constexpr IntType module() {
 
 		return static_cast<IntType>(0x1) << BitNum;

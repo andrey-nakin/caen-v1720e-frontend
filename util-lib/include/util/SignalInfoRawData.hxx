@@ -15,11 +15,11 @@ public:
 	uint8_t numOfChannels() const;
 	SignalInfoBank const* info(uint8_t channelNo) const;
 
-	static uint32_t length(SignalInfoBank const*);
-	static uint32_t frontLength(SignalInfoBank const*);
-	static uint8_t triggerChannel(SignalInfoBank const*);
-	static int16_t threshold(SignalInfoBank const*);
-	static bool rising(SignalInfoBank const*);
+	static uint32_t length(SignalInfoBank const&);
+	static uint32_t frontLength(SignalInfoBank const&);
+	static int triggerChannel(SignalInfoBank const&);
+	static int16_t threshold(SignalInfoBank const&);
+	static bool rising(SignalInfoBank const&);
 
 };
 

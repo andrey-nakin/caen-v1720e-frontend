@@ -23,33 +23,34 @@ SignalInfoBank const* SignalInfoRawData::info(uint8_t const channelNo) const {
 
 }
 
-uint32_t SignalInfoRawData::length(SignalInfoBank const* const si) {
+uint32_t SignalInfoRawData::length(SignalInfoBank const&si) {
 
-	return si->length;
-
-}
-
-uint32_t SignalInfoRawData::frontLength(SignalInfoBank const* const si) {
-
-	return si->frontLength;
+	return si.length;
 
 }
 
-uint8_t SignalInfoRawData::triggerChannel(SignalInfoBank const* const si) {
+uint32_t SignalInfoRawData::frontLength(SignalInfoBank const& si) {
 
-	return si->pattern.bits.triggerChannel;
-
-}
-
-int16_t SignalInfoRawData::threshold(SignalInfoBank const* const si) {
-
-	return si->pattern.bits.threshold;
+	return si.frontLength;
 
 }
 
-bool SignalInfoRawData::rising(SignalInfoBank const* const si) {
+int SignalInfoRawData::triggerChannel(SignalInfoBank const& si) {
 
-	return si->pattern.bits.rising ? true : false;
+	return si.pattern.bits.triggerChannel == static_cast<uint8_t>(-1) ?
+			-1 : si.pattern.bits.triggerChannel;
+
+}
+
+int16_t SignalInfoRawData::threshold(SignalInfoBank const& si) {
+
+	return si.pattern.bits.threshold;
+
+}
+
+bool SignalInfoRawData::rising(SignalInfoBank const& si) {
+
+	return si.pattern.bits.rising ? true : false;
 
 }
 

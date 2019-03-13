@@ -20,11 +20,13 @@ void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,
 
 	if (info) {
 		auto const feIndex = frontendIndex(info->info().frontendIndex);
-		auto const edgePosition = FindEdgeDistance(dataContainer, info);
 		auto const signalInfo = dataContainer.GetEventData < SignalInfoRawData
 				> (SignalInfoRawData::BANK_NAME);
 
-		for (uint8_t channelNo = 0; channelNo < numOfChannels(); channelNo++) {
+		DetectTrigger(dataContainer, info);
+
+		for (channel_no_type channelNo = 0; channelNo < numOfChannels();
+				channelNo++) {
 			if (info->channelIncluded(channelNo)) {
 				auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
 						> (TWaveFormRawData::bankName(channelNo));
@@ -39,8 +41,8 @@ void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,
 								numOfSamples);
 						SetData(h, wfBegin, wfEnd);
 
-						AnalyzeWaveform(info, channelNo, numOfSamples,
-								edgePosition, wfBegin, wfEnd,
+						AnalyzeWaveform(info, channelNo, numOfSamples, wfBegin,
+								wfEnd,
 								signalInfo ?
 										signalInfo->info(channelNo) : nullptr);
 					}
@@ -51,45 +53,84 @@ void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,
 
 }
 
+DigitizerWaveform::channel_no_type DigitizerWaveform::CurrentTrigger(
+		util::caen::DigitizerInfoRawData const* const info) const {
+
+	auto const ch = info->firstSelfTriggerChannel();
+	if (ch >= 0 && ch < static_cast<int>(numOfChannels())) {
+		return ch;
+	}
+
+	return EXT_TRIGGER;
+
+}
+
+DigitizerWaveform::channel_no_type DigitizerWaveform::ChannelTrigger(
+		util::caen::DigitizerInfoRawData const* const info,
+		util::SignalInfoBank const* const signalInfo) const {
+
+	using util::SignalInfoRawData;
+
+	if (signalInfo) {
+		auto const ch = SignalInfoRawData::triggerChannel(*signalInfo);
+		if (ch >= 0 && ch < static_cast<int>(numOfChannels())) {
+			return ch;
+		}
+	}
+
+	return CurrentTrigger(info);
+
+}
+
 void DigitizerWaveform::AnalyzeWaveform(
 		util::caen::DigitizerInfoRawData const* const info,
-		uint8_t const channelNo, std::size_t const numOfSamples,
-		util::TWaveFormRawData::difference_type const edgePosition,
+		channel_no_type const channelNo, std::size_t const numOfSamples,
 		util::TWaveFormRawData::const_iterator_type const wfBegin,
 		util::TWaveFormRawData::const_iterator_type const wfEnd,
 		util::SignalInfoBank const* signalInfo) {
 
 	using util::SignalInfoRawData;
+	using util::TWaveFormRawData;
 
-	auto const peakLength =
-			signalInfo ?
-					SignalInfoRawData::length(signalInfo) : this->peakLength;
 	auto const frontLength =
 			signalInfo ?
-					SignalInfoRawData::frontLength(signalInfo) :
+					SignalInfoRawData::frontLength(*signalInfo) :
 					this->frontLength;
 	auto const rising =
-			signalInfo ? SignalInfoRawData::rising(signalInfo) : this->rising;
+			signalInfo ? SignalInfoRawData::rising(*signalInfo) : this->rising;
 
 	auto const wfDiff = math::MakeDiffContainer<int16_t>(wfBegin, wfEnd,
 			frontLength);
 	auto const diffStat = math::MakeStatAccum(std::begin(wfDiff),
 			std::end(wfDiff));
-	auto const t =
-			signalInfo ?
-					(SignalInfoRawData::threshold(signalInfo) < 0 ?
-							diffStat.GetStdScaled
-									< util::TWaveFormRawData::value_type
-									> (std::abs(
-											SignalInfoRawData::threshold(
-													signalInfo))) :
-							SignalInfoRawData::threshold(signalInfo)) :
-					diffStat.GetStdScaled < util::TWaveFormRawData::value_type
-							> (threshold);
+
+	// detect signal threshold
+	TWaveFormRawData::value_type t;
+	if (signalInfo) {
+		// a threshold is set for the given channel
+		auto const st = SignalInfoRawData::threshold(*signalInfo);
+		if (st < 0) {
+			// have to calculate threshold using waveform noise level
+			t = diffStat.GetStdScaled < TWaveFormRawData::value_type
+					> (std::abs(st));
+		} else {
+			// threshold value is explicitly set
+			t = st;
+		}
+	} else {
+		// have to calculate threshold using waveform noise level
+		t = diffStat.GetStdScaled < TWaveFormRawData::value_type > (threshold);
+	}
+
 	auto const hasPeak =
 			rising ? diffStat.GetMaxValue() >= t : diffStat.GetMinValue() <= -t;
 
 	if (hasPeak) {
+		auto const peakLength =
+				signalInfo ?
+						SignalInfoRawData::length(*signalInfo) :
+						this->peakLength;
+		auto const triggerChannel = ChannelTrigger(info, signalInfo);
 		auto const wfStat = math::MakeStatAccum(wfBegin, wfEnd);
 		auto const zeroLevel = wfStat.GetRoughMean();
 		auto const feIndex = frontendIndex(info->info().frontendIndex);
@@ -103,12 +144,13 @@ void DigitizerWaveform::AnalyzeWaveform(
 				peakLength);
 		while (pf.HasNext()) {
 			auto const i = pf.GetNext();
-			auto const position = std::distance(wfBegin, i) - edgePosition
-					+ preTriggerLength;
+			auto const position = std::distance(wfBegin, i)
+					- triggers[triggerChannel] /* TODO */
+			+ preTriggerLength;
 			if (position >= 0) {
 				if (position > ph.GetXaxis()->GetXmax()) {
 					std::cout << "New hist on position " << position << " ep "
-							<< edgePosition << " d "
+							<< triggers[triggerChannel] << " d "
 							<< std::distance(wfBegin, i) << std::endl; //	TODO
 //						auto& phNew = RebinPositionHist(feIndex, channelNo,
 //								position, preTriggerLength);
@@ -128,8 +170,7 @@ void DigitizerWaveform::AnalyzeWaveform(
 
 }
 
-util::TWaveFormRawData::difference_type DigitizerWaveform::FindEdgeDistance(
-		TDataContainer &dataContainer,
+void DigitizerWaveform::DetectTrigger(TDataContainer &dataContainer,
 		util::caen::DigitizerInfoRawData const* info) {
 
 	using util::TWaveFormRawData;
@@ -138,68 +179,26 @@ util::TWaveFormRawData::difference_type DigitizerWaveform::FindEdgeDistance(
 	auto const triggerInfo = dataContainer.GetEventData < TriggerInfoRawData
 			> (TriggerInfoRawData::bankName());
 
-	if (triggerInfo && info->hasTriggerSettings() && info->triggerMode() == 0) {
+	if (triggerInfo && info->hasTriggerSettings()) {
+		auto const trigCh = CurrentTrigger(info);
+		triggers[trigCh] = 0;
+		triggerTimestamps[trigCh] = timeStamp(info->info());
 
-//		auto const master = triggerInfo->masterTriggerChannel();
-		if (true /* master < 0 */) {	//	TODO
-			// no master trigger
-			auto const trigger = info->firstSelfTriggerChannel();
-			if (trigger < 0) {
-				// this event is not caused by any self-trigger channel
-			} else {
-				if (info->channelIncluded(trigger)) {
-					auto const wfRaw = dataContainer.GetEventData
-							< TWaveFormRawData
-							> (TWaveFormRawData::bankName(trigger));
-					if (wfRaw) {
-						auto const idx = triggerInfo->triggerChannelIndex(
-								trigger);
-						if (idx >= 0) {
-							return math::FindEdgeDistance(
-									triggerInfo->triggerRising(idx),
-									triggerInfo->triggerThreshold(idx),
-									wfRaw->begin(), wfRaw->end());
-						}
-					}
+		if (!info->extTrigger() && info->channelIncluded(trigCh)) {
+			auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
+					> (TWaveFormRawData::bankName(trigCh));
+			if (wfRaw) {
+				auto const idx = triggerInfo->triggerChannelIndex(trigCh);
+				if (idx >= 0) {
+					triggers[trigCh] = math::FindEdgeDistance(
+							triggerInfo->triggerRising(idx),
+							triggerInfo->triggerThreshold(idx), wfRaw->begin(),
+							wfRaw->end());
 				}
 			}
-		} else {
-			// use master trigger
-//			if (info->selfTrigger(master)) {
-//				// this event is caused by master trigger
-//				if (info->channelIncluded(master)) {
-//					auto const wfRaw = dataContainer.GetEventData
-//							< TWaveFormRawData
-//							> (TWaveFormRawData::bankName(master));
-//					if (wfRaw) {
-//						auto const idx = triggerInfo->triggerChannelIndex(
-//								master);
-//						if (idx >= 0) {
-//							masterEventOccurred = true;
-//							lastMasterEvent = info->info();
-//							lastMasterEdgeDistance = math::FindEdgeDistance(
-//									triggerInfo->triggerRising(idx),
-//									triggerInfo->triggerThreshold(idx),
-//									wfRaw->begin(), wfRaw->end());
-//							return lastMasterEdgeDistance;
-//						}
-//					}
-//				}
-//			} else {
-//				// this event is caused by non-master trigger
-//				if (masterEventOccurred) {
-//					auto const tm = samplesPerTimeTick()
-//							* timeDiff(timeStamp(lastMasterEvent),
-//									timeStamp(info->info()));
-//					if (tm < 100000) {
-//						return lastMasterEdgeDistance - tm;
-//					}
-//				}
-//			}
 		}
-	}
 
-	return 0;
+	}
 
 }
 

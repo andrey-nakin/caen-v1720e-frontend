@@ -29,7 +29,7 @@ unsigned V1720Waveform::samplesPerTimeTick() const {
 
 }
 
-unsigned V1720Waveform::numOfChannels() const {
+V1720Waveform::channel_no_type V1720Waveform::numOfChannels() const {
 
 	return caen::v1720::NUM_OF_CHANNELS;
 

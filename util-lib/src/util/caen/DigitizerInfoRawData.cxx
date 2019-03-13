@@ -57,9 +57,9 @@ bool DigitizerInfoRawData::extTrigger() const {
 
 }
 
-int8_t DigitizerInfoRawData::firstSelfTriggerChannel() const {
+int DigitizerInfoRawData::firstSelfTriggerChannel() const {
 
-	for (uint8_t ch = 0; ch < 8; ch++) {
+	for (int ch = 0; ch < 8; ch++) {
 		if (selfTrigger(ch)) {
 			return ch;
 		}

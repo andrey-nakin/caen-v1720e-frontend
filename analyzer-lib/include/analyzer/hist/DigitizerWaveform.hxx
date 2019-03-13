@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include "AbstractWaveform.hxx"
 #include <util/TWaveFormRawData.hxx>
 #include <util/TriggerInfoRawData.hxx>
@@ -18,7 +19,12 @@ namespace hist {
 class DigitizerWaveform: public AbstractWaveform {
 protected:
 
-	typedef math::IntOp<uint32_t, 31> TimeStampOp;
+	typedef math::IntOp<uint32_t, 31> TimestampOp;
+	typedef uint8_t channel_no_type;
+	typedef util::TWaveFormRawData::difference_type distance_type;
+
+	static constexpr channel_no_type EXT_TRIGGER =
+			static_cast<channel_no_type>(-1);
 
 	DigitizerWaveform(VirtualOdb* anOdb, std::string const& aBaseEquipName,
 			std::string const & aDisplayName,
@@ -36,32 +42,40 @@ private:
 	bool masterEventOccurred;
 	util::TWaveFormRawData::difference_type lastMasterEdgeDistance;
 	util::InfoBank lastMasterEvent;
+	std::map<channel_no_type, distance_type> triggers;
+	std::map<channel_no_type, TimestampOp::value_type> triggerTimestamps;
 
 	virtual unsigned samplesPerTimeTick() const = 0;
-	virtual unsigned numOfChannels() const = 0;
+	virtual channel_no_type numOfChannels() const = 0;
 	virtual unsigned numOfSampleValues() const = 0;
 	virtual uint16_t maxSampleValue() const = 0;
 
+	channel_no_type CurrentTrigger(
+			util::caen::DigitizerInfoRawData const* info) const;
+
+	channel_no_type ChannelTrigger(util::caen::DigitizerInfoRawData const* info,
+			util::SignalInfoBank const* signalInfo) const;
+
 	void AnalyzeWaveform(util::caen::DigitizerInfoRawData const* info,
-			uint8_t channelNo, std::size_t numOfSamples,
-			util::TWaveFormRawData::difference_type edgePosition,
+			channel_no_type channelNo, std::size_t numOfSamples,
 			util::TWaveFormRawData::const_iterator_type wfBegin,
 			util::TWaveFormRawData::const_iterator_type wfEnd,
 			util::SignalInfoBank const* signalInfo);
 
-	util::TWaveFormRawData::difference_type FindEdgeDistance(
-			TDataContainer &dataContainer,
+	void DetectTrigger(TDataContainer &dataContainer,
 			util::caen::DigitizerInfoRawData const* info);
 
-	static uint32_t timeStamp(util::InfoBank const& info) {
+	static TimestampOp::value_type timeStamp(util::InfoBank const& info) {
 
-		return TimeStampOp::value(info.timeStamp);
+		return TimestampOp::value(info.timeStamp);
 
 	}
 
-	static uint32_t timeDiff(uint32_t const first, uint32_t const last) {
+	static TimestampOp::value_type timestampDiff(
+			TimestampOp::value_type const first,
+			TimestampOp::value_type const last) {
 
-		return TimeStampOp::sub(last, first);
+		return TimestampOp::sub(last, first);
 
 	}
 

@@ -17,7 +17,7 @@ public:
 private:
 
 	unsigned samplesPerTimeTick() const override;
-	unsigned numOfChannels() const override;
+	channel_no_type numOfChannels() const override;
 	unsigned numOfSampleValues() const override;
 	uint16_t maxSampleValue() const override;
 
