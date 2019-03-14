@@ -255,15 +255,21 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 
 	// external trigger
 	{
-		auto const v = odb::getValueBool(hDB, hSet, settings::extTrigger,
-				defaults::extTrigger, true);
+		static std::vector<std::string> const EXT_TRIGGERS = { ext_trigger::off,
+				ext_trigger::on, ext_trigger::gate };
+		auto const v = odb::getValueString(hDB, hSet, settings::extTrigger,
+				EXT_TRIGGERS);
 		hDevice.hCommand("setting ext trigger input mode",
 				[v](int handle) {
 					return CAEN_DGTZ_SetExtTriggerInputMode(
 							handle,
-							v ? CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT : CAEN_DGTZ_TRGMODE_DISABLED
+							v == ext_trigger::on ? CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT : CAEN_DGTZ_TRGMODE_DISABLED
 					);
 				});
+		if (v == ext_trigger::gate) {
+			hDevice.setBit(::caen::reg::TRIGGER_SRC_ENABLE_ADD, 27, true);
+			hDevice.setBit(::caen::reg::FRONT_PANEL_IO_CTRL_ADD, 10, true);
+		}
 	}
 
 	// post-trigger configuration

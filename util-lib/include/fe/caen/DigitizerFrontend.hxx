@@ -50,6 +50,14 @@ constexpr char ttl[] = "ttl";
 
 }
 
+namespace ext_trigger {
+
+constexpr char off[] = "n";
+constexpr char on[] = "y";
+constexpr char gate[] = "gate";
+
+}
+
 namespace settings {
 
 constexpr char linkNum[] = "link_num";
