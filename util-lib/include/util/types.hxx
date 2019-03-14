@@ -90,13 +90,13 @@ typedef struct
 					} bits;
 					uint32_t raw;
 				} pattern;
-				uint32_t reserved;
+				uint32_t maxTime;
 
 			} SignalInfoBank;
 
 			static_assert(sizeof(SignalInfoBank) == sizeof(uint32_t) * 4, "SignalInfoBank size is not correct");
 
 			void fillSignalInfo(SignalInfoBank& bank, uint32_t length,
-					uint32_t frontLength, uint8_t triggerChannel, int16_t threshold, bool rising);
+					uint32_t frontLength, uint8_t triggerChannel, int16_t threshold, bool rising, uint32_t maxTime);
 
 			}

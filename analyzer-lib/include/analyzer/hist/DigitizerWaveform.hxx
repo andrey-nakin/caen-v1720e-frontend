@@ -62,7 +62,8 @@ private:
 			bool rising) const;
 
 	distance_type CalcPosition(util::caen::DigitizerInfoRawData const& info,
-			distance_type wfPos, channel_no_type triggerChannel);
+			distance_type wfPos, channel_no_type triggerChannel,
+			util::SignalInfoBank const* signalInfo);
 
 	void AnalyzeWaveform(util::caen::DigitizerInfoRawData const& info,
 			channel_no_type channelNo,

@@ -116,7 +116,8 @@ std::pair<bool, util::TWaveFormRawData::value_type> DigitizerWaveform::HasPeaks(
 
 DigitizerWaveform::distance_type DigitizerWaveform::CalcPosition(
 		util::caen::DigitizerInfoRawData const& info, distance_type const wfPos,
-		channel_no_type const triggerChannel) {
+		channel_no_type const triggerChannel,
+		util::SignalInfoBank const* const signalInfo) {
 
 	auto result = wfPos;
 
@@ -130,7 +131,8 @@ DigitizerWaveform::distance_type DigitizerWaveform::CalcPosition(
 		}
 	}
 
-	if (result >= MAX_POSITION) {
+	auto const maxTime = signalInfo ? signalInfo->maxTime : MAX_POSITION;
+	if (result >= maxTime) {
 		return -1;	//	discard the position
 	}
 
@@ -178,7 +180,7 @@ void DigitizerWaveform::AnalyzeWaveform(
 		while (pf.HasNext()) {
 			auto const i = pf.GetNext();
 			auto const position = CalcPosition(info, std::distance(wfBegin, i),
-					triggerChannel);
+					triggerChannel, signalInfo);
 			if (position >= 0) {
 				FillPositionHist(ph, position, preTriggerLength);
 
