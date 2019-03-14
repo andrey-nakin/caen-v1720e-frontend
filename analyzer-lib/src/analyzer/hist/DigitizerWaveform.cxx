@@ -118,18 +118,20 @@ DigitizerWaveform::distance_type DigitizerWaveform::CalcPosition(
 		util::caen::DigitizerInfoRawData const& info, distance_type const wfPos,
 		channel_no_type const triggerChannel) {
 
-	auto result = wfPos - triggers[triggerChannel]
-			+ (info.hasTriggerSettings() ? info.preTriggerLength() : 0);
+	auto result = wfPos;
 
-	if (triggerChannel != CurrentTrigger(info)
-			&& triggerTimestamps.count(triggerChannel) > 0) {
+	if (triggers.count(triggerChannel) > 0) {
+		result += (info.hasTriggerSettings() ? info.preTriggerLength() : 0)
+				- triggers[triggerChannel];
 
-		auto const tm = timestampDiff(triggerTimestamps[triggerChannel],
-				timestamp(info));
-		if (tm >= MAX_POSITION) {
-			return -1;	//	discard the position
+		if (triggerChannel != CurrentTrigger(info)) {
+			result += timestampDiff(triggerTimestamps[triggerChannel],
+					timestamp(info)) * samplesPerTimeTick();
 		}
-		result += tm;
+	}
+
+	if (result >= MAX_POSITION) {
+		return -1;	//	discard the position
 	}
 
 	return result;
