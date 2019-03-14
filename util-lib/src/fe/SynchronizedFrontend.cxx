@@ -67,6 +67,13 @@ int SynchronizedFrontend::doReadEvent(char* const pevent, int const off) {
 
 }
 
+void SynchronizedFrontend::doOnStop(INT const run_number, char* const error) {
+
+	std::lock_guard<decltype(mutex)> lock(mutex);
+	doOnStopSynchronized(run_number, error);
+
+}
+
 void SynchronizedFrontend::doInitSynchronized() {
 
 	// null implementation
@@ -121,6 +128,13 @@ int SynchronizedFrontend::doReadEventSynchronized(char* /* pevent */,
 		int /* off */) {
 
 	return 0;
+
+}
+
+void SynchronizedFrontend::doOnStopSynchronized(INT /* run_number */,
+		char* /* error */) {
+
+	// null implementation
 
 }
 

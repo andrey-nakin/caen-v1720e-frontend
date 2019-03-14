@@ -27,6 +27,8 @@ public:
 	virtual INT readEvent(char* pevent, int off);
 	//
 
+	virtual INT onStop(INT run_number, char* error);
+
 private:
 
 	// Overridables
@@ -40,6 +42,7 @@ private:
 	virtual void doNoData();
 	virtual int doPoll();
 	virtual int doReadEvent(char* pevent, int off);
+	virtual void doOnStop(INT run_number, char* error);
 
 };
 

@@ -17,7 +17,7 @@ INT Frontend::frontendInit() {
 
 	cm_msg(MDEBUG, frontend_name, "frontend_init");
 
-	midas::Exception::setProgramName(frontend_name);
+	midas::Exception::setProgramName (frontend_name);
 
 	util::FrontEndUtils::command([this]() {doInit();});
 
@@ -111,6 +111,16 @@ INT Frontend::interruptConfigure(INT /* cmd */, INT /* source */,
 
 }
 
+INT Frontend::onStop(INT const run_number, char* const error) {
+
+	cm_msg(MDEBUG, frontend_name, "stop transition, run_number=%d", run_number);
+
+	return util::FrontEndUtils::command([this, run_number, error] {
+		return doOnStop(run_number, error);
+	});
+
+}
+
 void Frontend::doInit() {
 
 	// null implementation
@@ -162,6 +172,12 @@ int Frontend::doPoll() {
 int Frontend::doReadEvent(char* /* pevent */, int /* off */) {
 
 	return 0;
+
+}
+
+void Frontend::doOnStop(INT /* run_number */, char* /* error */) {
+
+	// null implementation
 
 }
 

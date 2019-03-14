@@ -43,6 +43,8 @@ RO_RUNNING, /* Read when running */
 
 #pragma GCC diagnostic pop
 
+INT onStop(INT run_number, char* error);
+
 #ifndef NEED_NO_EXTERN_C
 }
 #endif
@@ -51,6 +53,7 @@ static ::fe::caen::v1720::V1720DigitizerFrontend frontend;
 
 INT frontend_init() {
 
+	cm_register_transition(TR_STOP, onStop, 500);
 	return frontend.frontendInit();
 
 }
@@ -106,5 +109,11 @@ INT poll_event(INT const source, INT const count, BOOL const test) {
 int readEvent(char * const pevent, int const off) {
 
 	return frontend.readEvent(pevent, off);
+
+}
+
+INT onStop(INT const run_number, char* const error) {
+
+	return frontend.onStop(run_number, error);
 
 }

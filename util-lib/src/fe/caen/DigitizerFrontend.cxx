@@ -15,6 +15,7 @@ namespace caen {
 
 DigitizerFrontend::DigitizerFrontend() :
 		acquisitionIsOn(false) {
+
 }
 
 std::size_t DigitizerFrontend::calculateEventSize(
@@ -107,6 +108,14 @@ int DigitizerFrontend::doReadEventSynchronized(char* const pevent,
 	}
 
 	return 0;
+
+}
+
+void DigitizerFrontend::doOnStopSynchronized(INT /* run_number */,
+		char* /*error */) {
+
+	// stop acquisition if previous run was not properly stopped
+	closeDevice();
 
 }
 

@@ -17,6 +17,7 @@ private:
 	void doLoop() override;
 	int doPoll() override;
 	int doReadEvent(char* pevent, int off) override;
+	void doOnStop(INT run_number, char* error) override;
 
 	// Overridables
 	virtual void doInitSynchronized();
@@ -28,6 +29,7 @@ private:
 	virtual void doLoopSynchronized();
 	virtual int doPollSynchronized();
 	virtual int doReadEventSynchronized(char* pevent, int off);
+	virtual void doOnStopSynchronized(INT run_number, char* error);
 
 private:
 

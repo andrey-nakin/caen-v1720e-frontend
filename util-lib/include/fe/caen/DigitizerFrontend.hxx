@@ -125,6 +125,7 @@ private:
 	void doResumeRunSynchronized(INT run_number, char* error) override;
 	int doPollSynchronized() override;
 	int doReadEventSynchronized(char* pevent, int off) override;
+	void doOnStopSynchronized(INT run_number, char* error) override;
 
 	virtual ::caen::Handle connect();
 	virtual void checkBoardInfo(CAEN_DGTZ_BoardInfo_t const& boardInfo);
