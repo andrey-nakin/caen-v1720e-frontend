@@ -7,6 +7,13 @@ namespace analyzer {
 
 namespace hist {
 
+template<typename BinsT, typename MaxBinsT>
+constexpr BinsT numOfNums(BinsT const bins, MaxBinsT const maxBins) {
+
+	return maxBins == 0 || maxBins > bins ? bins : maxBins;
+
+}
+
 AbstractWaveform::AbstractWaveform(VirtualOdb* anOdb,
 		std::string const& anOdbRootKey, std::string const& aBaseEquipName,
 		std::string const & aDisplayName, ns_per_sample_type const aNsPerSample) :
@@ -68,8 +75,8 @@ void AbstractWaveform::FillPositionHist(HistType& ph, unsigned const position,
 		unsigned const preTriggerLength) {
 
 	if (position > ph.GetXaxis()->GetXmax()) {
-		auto const maxBins = GetPositionMaxBins();
-		ph.SetBins(maxBins == 0 ? position + preTriggerLength : maxBins,
+		auto const bins = position + preTriggerLength;
+		ph.SetBins(numOfNums(bins, GetPositionMaxBins()),
 				-static_cast<double>(preTriggerLength), position);
 	}
 	ph.Fill(position);
@@ -148,9 +155,9 @@ AbstractWaveform::HistType* AbstractWaveform::CreatePositionHistogram(
 	auto const name = ConstructName(feIndex, channelNo, "TM");
 	auto const title = ConstructTitle(feIndex, channelNo, "Time");
 
-	auto const maxBins = GetPositionMaxBins();
+	auto const bins = waveformLength + preTriggerLength;
 	auto const h = new HistType(name.c_str(), title.c_str(),
-			maxBins == 0 ? waveformLength + preTriggerLength : maxBins,
+			numOfNums(bins, GetPositionMaxBins()),
 			-static_cast<double>(preTriggerLength), waveformLength);
 	h->SetXTitle("Channel");
 	h->SetYTitle("Count");
@@ -167,9 +174,9 @@ AbstractWaveform::HistType* AbstractWaveform::CreateAmplitudeHistogram(
 	auto const name = ConstructName(feIndex, channelNo, "AM");
 	auto const title = ConstructTitle(feIndex, channelNo, "Amplitude");
 
-	auto const maxBins = GetAmplitudeMaxBins();
+	auto const bins = maxValue;
 	auto const h = new HistType(name.c_str(), title.c_str(),
-			maxBins == 0 ? maxValue : maxBins, 0, maxValue);
+			numOfNums(bins, GetAmplitudeMaxBins()), 0, maxValue);
 	h->SetXTitle("Amplitude");
 	h->SetYTitle("Count");
 	push_back(h);
