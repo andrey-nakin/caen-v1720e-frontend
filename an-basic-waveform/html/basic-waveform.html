@@ -3,120 +3,337 @@
 
 <head>
 <meta charset="UTF-8">
+<link
+	href="https://code.jquery.com/ui/1.11.4/themes/cupertino/jquery-ui.css"
+	rel="stylesheet">
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+<!--  <link rel="stylesheet" href="jquery-ui/jquery-ui.css">  -->
+<!-- <link rel="stylesheet" href="jquery-ui/jquery-ui.theme.css">
+<script type="text/javascript" src="script/jquery.min.js"></script>
+<script type="text/javascript" src="jquery-ui/jquery-ui.min.js"></script> -->
+
 <link rel="stylesheet" type="text/css" href="midas.css">
 <link rel="stylesheet" type="text/css" href="style/basic-waveform.css">
-<script type="text/javascript" src="controls.js"></script>
-<script type="text/javascript" src="midas.js"></script>
-<script type="text/javascript" src="mhttpd.js"></script>
+<!--  <script type="text/javascript" src="controls.js"></script>  -->
+<!--  <script type="text/javascript" src="midas.js"></script>  -->
+<!--  <script type="text/javascript" src="mhttpd.js"></script>  -->
 <script type="text/javascript" src="script/polyfill.js"></script>
-<script type="text/javascript" src="script/jquery.min.js"></script>
 <script type="text/javascript" src="script/rootana-utils.js"></script>
 <script type="text/javascript" src="script/basic-waveform.js"></script>
+<script>
+    $(function () {
+        reloadFrame = function () {
+            url = '';
+            url += '&monitoring=' + escape($("#refreshPeriod").val());
+            url += '&layout=' + escape($("#layout").val());
+            console.debug(url);
+        }
+
+        $("#refreshPeriod").selectmenu({
+            change : function (event, ui) {
+                reloadFrame();
+            }
+        });
+
+        $("#layout").selectmenu({
+            change : function (event, ui) {
+                reloadFrame();
+            }
+        });
+
+        $("#accordion").accordion({
+            heightStyle : "content"
+        });
+
+        for (var i = 0; i < 8; i++) {
+            $("#bt-V1720_" + i).buttonset();
+            $("#bt-V1724_" + i).buttonset();
+        }
+    });
+</script>
 <title>GNEIS - Basic Waveform</title>
 </head>
 
-<body class="mcss" onload="mhttpd_init('Basic Waveform')">
+<body class="mcss">
 
 	<!-- header and side navigation will be filled in mhttpd_start -->
 	<div id="mheader"></div>
 	<div id="msidenav"></div>
 	<div id="mmain">
 
-		<div class="mtable" id="controlPanel">
+		<div class="mtable" id="controlPanel" class="widget">
+
 			<fieldset>
-				<legend>Historgam Groups</legend>
-				<div id="histGroups">
-					<span class="bw-warn">Histogram Groups are not loaded yet.
-						Please ensure that analyzer application is started an the run is
-						on.</span>
-				</div>
-				<div class="bw-template" id="tmplHistGroup" style="display: none">
-					{{#histGroups}}
-					<div class="bw-row bw-cell">
-						<input type="radio" id="group_selector_{{name}}" name="histgroup">
-						<label for="group_selector_{{name}}">{{title}}</label>
+				<div class="bw-row">
+					<div class="bw-cell bw-left-column">
+						<label class="ui-widget" for="refreshPeriod">Refresh
+							Period:</label>
 					</div>
-					{{/histGroups}}
+					<div class="bw-cell bw-right-column">
+						<select id="refreshPeriod" style="width: 22ex"
+							onchange="bw.refreshPeriodChanged(this)">
+							<option value="100">100 ms</option>
+							<option value="250">250 ms</option>
+							<option value="500">500 ms</option>
+							<option value="1000" selected>1 s</option>
+							<option value="5000">5 s</option>
+							<option value="10000">10 s</option>
+							<option value="">None</option>
+						</select>
+					</div>
 				</div>
-				<div class="bw-row bw-cell">
-					<input type="radio" id="selector_V1720_PA" name="histgroup">
-					<label for="selector_V1720_PA">V1720 Peak Amplitude
-						Distribution</label>
-				</div>
-				<div class="bw-row bw-cell">
-					<input type="radio" id="selector_V1720_PT" name="histgroup">
-					<label for="selector_V1720_PT">V1720 Peak Timing
-						Distribution</label>
+				<div class="bw-row">
+					<div class="bw-cell bw-left-column">
+						<label class="ui-widget" for="layout">Layout:</label>
+					</div>
+					<div class="bw-cell bw-right-column">
+						<select id="layout" style="width: 22ex">
+							<option value="simple" selected>simple</option>
+							<option value="vert2">vert2</option>
+							<option value="vert3">vert3</option>
+							<option value="vert231">vert231</option>
+							<option value="horiz2">horiz2</option>
+							<option value="horiz32">horiz32</option>
+							<option value="flex">flex</option>
+							<option value="grid 2x2">grid 2x2</option>
+							<option value="grid 1x3">grid 1x3</option>
+							<option value="grid 2x3">grid 2x3</option>
+							<option value="grid 3x3">grid 3x3</option>
+							<option value="grid 4x4">grid 4x4</option>
+							<option value="collapsible">collapsible</option>
+							<option value="tabs">tabs</option>
+						</select>
+					</div>
 				</div>
 			</fieldset>
 
 			<br>
 
 			<fieldset>
-				<legend>Display Control</legend>
-				<div class="bw-row">
-					<div class="bw-cell bw-left-column">
-						<input type="button" value="Pause" onClick="bw.togglePause(this)">
+
+				<div id="accordion">
+					<h3>V1720</h3>
+					<div>
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 0:</span>
+							</div>
+							<div id="bt-V1720_0" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1720_0"> <label
+									for="ch-WF_V1720_0">WF</label> <input type="checkbox"
+									id="ch-TM_V1720_0"> <label for="ch-TM_V1720_0">Time</label>
+								<input type="checkbox" id="ch-AM_V1720_0"> <label
+									for="ch-AM_V1720_0">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 1:</span>
+							</div>
+							<div id="bt-V1720_1" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1720_1"> <label
+									for="ch-WF_V1720_1">WF</label> <input type="checkbox"
+									id="ch-TM_V1720_1"> <label for="ch-TM_V1720_1">Time</label>
+								<input type="checkbox" id="ch-AM_V1720_1"> <label
+									for="ch-AM_V1720_1">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 2:</span>
+							</div>
+							<div id="bt-V1720_2" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1720_2"> <label
+									for="ch-WF_V1720_2">WF</label> <input type="checkbox"
+									id="ch-TM_V1720_2"> <label for="ch-TM_V1720_2">Time</label>
+								<input type="checkbox" id="ch-AM_V1720_2"> <label
+									for="ch-AM_V1720_2">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 3:</span>
+							</div>
+							<div id="bt-V1720_3" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1720_3"> <label
+									for="ch-WF_V1720_3">WF</label> <input type="checkbox"
+									id="ch-TM_V1720_3"> <label for="ch-TM_V1720_3">Time</label>
+								<input type="checkbox" id="ch-AM_V1720_3"> <label
+									for="ch-AM_V1720_3">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 4:</span>
+							</div>
+							<div id="bt-V1720_4" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1720_4"> <label
+									for="ch-WF_V1720_4">WF</label> <input type="checkbox"
+									id="ch-TM_V1720_4"> <label for="ch-TM_V1720_4">Time</label>
+								<input type="checkbox" id="ch-AM_V1720_4"> <label
+									for="ch-AM_V1720_4">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 5:</span>
+							</div>
+							<div id="bt-V1720_5" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1720_5"> <label
+									for="ch-WF_V1720_5">WF</label> <input type="checkbox"
+									id="ch-TM_V1720_5"> <label for="ch-TM_V1720_5">Time</label>
+								<input type="checkbox" id="ch-AM_V1720_5"> <label
+									for="ch-AM_V1720_5">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 6:</span>
+							</div>
+							<div id="bt-V1720_6" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1720_6"> <label
+									for="ch-WF_V1720_6">WF</label> <input type="checkbox"
+									id="ch-TM_V1720_6"> <label for="ch-TM_V1720_6">Time</label>
+								<input type="checkbox" id="ch-AM_V1720_6"> <label
+									for="ch-AM_V1720_6">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 7:</span>
+							</div>
+							<div id="bt-V1720_7" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1720_7"> <label
+									for="ch-WF_V1720_7">WF</label> <input type="checkbox"
+									id="ch-TM_V1720_7"> <label for="ch-TM_V1720_7">Time</label>
+								<input type="checkbox" id="ch-AM_V1720_7"> <label
+									for="ch-AM_V1720_7">Amp</label>
+							</div>
+						</div>
 					</div>
-					<div class="bw-cell bw-right-column">
-						<input type="button" value="Reset All Histograms">
+
+					<h3>V1724</h3>
+					<div>
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 0:</span>
+							</div>
+							<div id="bt-V1724_0" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1724_0"> <label
+									for="ch-WF_V1724_0">WF</label> <input type="checkbox"
+									id="ch-TM_V1724_0"> <label for="ch-TM_V1724_0">Time</label>
+								<input type="checkbox" id="ch-AM_V1724_0"> <label
+									for="ch-AM_V1724_0">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 1:</span>
+							</div>
+							<div id="bt-V1724_1" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1724_1"> <label
+									for="ch-WF_V1724_1">WF</label> <input type="checkbox"
+									id="ch-TM_V1724_1"> <label for="ch-TM_V1724_1">Time</label>
+								<input type="checkbox" id="ch-AM_V1724_1"> <label
+									for="ch-AM_V1724_1">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 2:</span>
+							</div>
+							<div id="bt-V1724_2" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1724_2"> <label
+									for="ch-WF_V1724_2">WF</label> <input type="checkbox"
+									id="ch-TM_V1724_2"> <label for="ch-TM_V1724_2">Time</label>
+								<input type="checkbox" id="ch-AM_V1724_2"> <label
+									for="ch-AM_V1724_2">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 3:</span>
+							</div>
+							<div id="bt-V1724_3" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1724_3"> <label
+									for="ch-WF_V1724_3">WF</label> <input type="checkbox"
+									id="ch-TM_V1724_3"> <label for="ch-TM_V1724_3">Time</label>
+								<input type="checkbox" id="ch-AM_V1724_3"> <label
+									for="ch-AM_V1724_3">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 4:</span>
+							</div>
+							<div id="bt-V1724_4" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1724_4"> <label
+									for="ch-WF_V1724_4">WF</label> <input type="checkbox"
+									id="ch-TM_V1724_4"> <label for="ch-TM_V1724_4">Time</label>
+								<input type="checkbox" id="ch-AM_V1724_4"> <label
+									for="ch-AM_V1724_4">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 5:</span>
+							</div>
+							<div id="bt-V1724_5" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1724_5"> <label
+									for="ch-WF_V1724_5">WF</label> <input type="checkbox"
+									id="ch-TM_V1724_5"> <label for="ch-TM_V1724_5">Time</label>
+								<input type="checkbox" id="ch-AM_V1724_5"> <label
+									for="ch-AM_V1724_5">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 6:</span>
+							</div>
+							<div id="bt-V1724_6" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1724_6"> <label
+									for="ch-WF_V1724_6">WF</label> <input type="checkbox"
+									id="ch-TM_V1724_6"> <label for="ch-TM_V1724_6">Time</label>
+								<input type="checkbox" id="ch-AM_V1724_6"> <label
+									for="ch-AM_V1724_6">Amp</label>
+							</div>
+						</div>
+
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<span>CH 7:</span>
+							</div>
+							<div id="bt-V1724_7" class="bw-cell bw-right-column">
+								<input type="checkbox" id="ch-WF_V1724_7"> <label
+									for="ch-WF_V1724_7">WF</label> <input type="checkbox"
+									id="ch-TM_V1724_7"> <label for="ch-TM_V1724_7">Time</label>
+								<input type="checkbox" id="ch-AM_V1724_7"> <label
+									for="ch-AM_V1724_7">Amp</label>
+							</div>
+						</div>
 					</div>
-				</div>
-				<div class="bw-row">
-					<div class="bw-cell">
-						<hr>
-					</div>
-				</div>
-				<div class="bw-row">
-					<div class="bw-cell bw-left-column">
-						<span>Refresh Period (ms):</span>
-					</div>
-					<div class="bw-cell bw-right-column">
-						<input id="refreshPeriod" type="number" class="displayControlEl"
-							min="1000" max="100000" value="5000" step="1000"
-							onchange="bw.refreshPeriodChanged(this)">
-					</div>
-				</div>
-				<div class="bw-row">
-					<div class="bw-cell bw-left-column">
-						<span>Channel:</span>
-					</div>
-					<div class="bw-cell bw-right-column">
-						<input type="number" class="displayControlEl" min="0" max="8"
-							value="0">
-					</div>
-				</div>
-				<div class="bw-row">
-					<div class="bw-cell bw-left-column">
-						<span>Select Dislay Type:</span>
-					</div>
-					<div class="bw-cell bw-right-column">
-						<select>
-							<option>Single</option>
-							<option>Overlay</option>
-						</select>
-					</div>
-				</div>
-				<div class="bw-row">
-					<div class="bw-cell bw-left-column">
-						<span>Overlay Histograms:</span>
-					</div>
-					<div class="bw-cell bw-right-column">
-						<input type="number" class="displayControlEl" min="2" max="8"
-							value="2">
-					</div>
+
 				</div>
 			</fieldset>
 		</div>
 
 		<div class="mtable" id="chartPanel">
-			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-				do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-				enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
-				ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-				reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-				pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-				culpa qui officia deserunt mollit anim id est laborum.
+			<iframe id="frame"> </iframe>
 		</div>
 
 	</div>
