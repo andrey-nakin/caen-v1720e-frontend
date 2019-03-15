@@ -125,9 +125,10 @@ DigitizerWaveform::distance_type DigitizerWaveform::CalcPosition(
 	if (triggers.count(triggerChannel) > 0) {
 		result -= triggers[triggerChannel];
 
-		if (triggerChannel != CurrentTrigger(info)) {
+		auto const curTrg = CurrentTrigger(info);
+		if (triggerChannel != curTrg) {
 			result += timestampDiff(triggerTimestamps[triggerChannel],
-					timestamp(info)) * samplesPerTimeTick();
+					timestamp(info)) * samplesPerTimeTick() - triggers[curTrg];
 		}
 	}
 
