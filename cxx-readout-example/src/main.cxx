@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
 				if (verbose) {
 					std::cout << "Event #=" << eventInfo.EventCounter
 							<< ", size=" << eventInfo.EventSize << ", channels="
-							<< std::hex << eventInfo.ChannelMask << ", time="
+							<< eventInfo.ChannelMask << ", time="
 							<< eventInfo.TriggerTimeTag << ", pattern="
 							<< std::hex << eventInfo.Pattern
 							<< ", maxNumOfEvents=" << std::dec << maxNumOfEvents
