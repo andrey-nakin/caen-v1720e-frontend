@@ -50,12 +50,9 @@ AbstractWaveform::HistType& AbstractWaveform::RebinPositionHist(
 
 	auto& h = GetPositionHist(feIndex, channelNo, waveformLength,
 			preTriggerLength);
-//	auto newh = dynamic_cast<AbstractWaveform::HistType*>(h.RebinX(
-//			waveformLength + preTriggerLength));
-	posHistograms[feIndex][channelNo]->SetBins(
-			waveformLength + preTriggerLength,
+	h.SetBins(waveformLength + preTriggerLength,
 			-static_cast<double>(preTriggerLength), waveformLength);
-	return *posHistograms[feIndex][channelNo];
+	return h;
 
 }
 
