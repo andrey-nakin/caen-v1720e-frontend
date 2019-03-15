@@ -57,7 +57,7 @@ static ::fe::caen::v1724::V1724DigitizerFrontend frontend;
 
 INT frontend_init() {
 
-	cm_register_transition(TR_STOP, onStop, 500);
+	// TODO cm_register_transition(TR_STOP, onStop, 500);
 	return frontend.frontendInit();
 
 }
