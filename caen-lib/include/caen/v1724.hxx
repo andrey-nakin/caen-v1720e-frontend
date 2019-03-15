@@ -16,7 +16,7 @@ constexpr uint16_t MAX_SAMPLE_VALUE = 16383;
 constexpr uint16_t NUM_OF_SAMPLE_VALUES = MAX_SAMPLE_VALUE - MIN_SAMPLE_VALUE
 		+ 1;
 
-constexpr unsigned SAMPLES_PER_TIME_TICK = 2;
+constexpr unsigned SAMPLES_PER_TIME_TICK = 1;
 
 /**
  * Number of nanoseconds per one sample
