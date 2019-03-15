@@ -189,7 +189,7 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 	signalRisingPolarities = odb::getValueBoolV(hDB, hSet,
 			settings::signalRisingPolarity, boardInfo.Channels,
 			defaults::channel::signalRisingPolarity, true);
-	signalTriggerChannel = odb::getValueUInt8V(hDB, hSet,
+	signalTriggerChannel = odb::getValueInt8V(hDB, hSet,
 			settings::signalTriggerChannel, boardInfo.Channels,
 			defaults::channel::signalTriggerChannel, true);
 	signalThresholds = odb::getValueInt16V(hDB, hSet, settings::signalThreshold,

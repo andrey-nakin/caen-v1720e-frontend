@@ -37,7 +37,7 @@ uint32_t SignalInfoRawData::frontLength(SignalInfoBank const& si) {
 
 int SignalInfoRawData::triggerChannel(SignalInfoBank const& si) {
 
-	return si.pattern.bits.triggerChannel == static_cast<uint8_t>(-1) ?
+	return si.pattern.bits.triggerChannel < 0 ?
 			-1 : si.pattern.bits.triggerChannel;
 
 }

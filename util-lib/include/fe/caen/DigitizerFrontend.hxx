@@ -35,7 +35,7 @@ constexpr uint16_t dcOffset = 0x8000;
 constexpr uint32_t signalFrontLength = 3;
 constexpr uint32_t signalLength = 16;
 constexpr bool signalRisingPolarity = false;
-constexpr uint8_t signalTriggerChannel = 0;
+constexpr int8_t signalTriggerChannel = -1;
 constexpr int16_t signalThreshold = -7;
 constexpr uint32_t signalMaxTime = 1000000;
 
@@ -94,7 +94,7 @@ protected:
 	std::vector<bool> triggerChannel;
 	std::vector<uint32_t> triggerThreshold;
 	std::vector<bool> triggerRaisingPolarity;
-	std::vector<uint8_t> signalTriggerChannel;
+	std::vector<int8_t> signalTriggerChannel;
 	std::vector<uint32_t> signalFrontLengths;
 	std::vector<uint32_t> signalLengths;
 	std::vector<bool> signalRisingPolarities;
