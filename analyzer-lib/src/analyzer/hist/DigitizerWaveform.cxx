@@ -122,8 +122,7 @@ DigitizerWaveform::distance_type DigitizerWaveform::CalcPosition(
 	auto result = wfPos;
 
 	if (triggers.count(triggerChannel) > 0) {
-		result += (info.hasTriggerSettings() ? info.preTriggerLength() : 0)
-				- triggers[triggerChannel];
+		result -= triggers[triggerChannel];
 
 		if (triggerChannel != CurrentTrigger(info)) {
 			result += timestampDiff(triggerTimestamps[triggerChannel],
