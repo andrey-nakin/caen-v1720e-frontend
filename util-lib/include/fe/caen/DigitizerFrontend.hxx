@@ -72,12 +72,18 @@ constexpr char channelDcOffset[] = "channel_dc_offset";
 constexpr char triggerChannel[] = "trigger_channel";
 constexpr char triggerThreshold[] = "trigger_threshold";
 constexpr char triggerRaisingPolarity[] = "trigger_raising_polarity";
-constexpr char signalTriggerChannel[] = "signal_trigger_channel";
-constexpr char signalFrontLength[] = "signal_front_length";
-constexpr char signalLength[] = "signal_length";
-constexpr char signalRisingPolarity[] = "signal_rising_polarity";
-constexpr char signalThreshold[] = "signal_threshold";
-constexpr char signalMaxTime[] = "signal_max_time";
+
+namespace signal {
+
+constexpr char signal[] = "Signal/";
+constexpr char triggerChannel[] = "trigger_channel";
+constexpr char frontLength[] = "front_length";
+constexpr char length[] = "length";
+constexpr char risingPolarity[] = "rising_polarity";
+constexpr char threshold[] = "threshold";
+constexpr char maxTime[] = "max_time";
+
+}
 
 }
 

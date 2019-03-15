@@ -181,21 +181,26 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 
 	dcOffsets = odb::getValueUInt16V(hDB, hSet, settings::channelDcOffset,
 			boardInfo.Channels, defaults::channel::dcOffset, true);
+
+	std::string const signalKey = settings::signal::signal;
 	signalFrontLengths = odb::getValueUInt32V(hDB, hSet,
-			settings::signalFrontLength, boardInfo.Channels,
+			signalKey + settings::signal::frontLength, boardInfo.Channels,
 			defaults::channel::signalFrontLength, true);
-	signalLengths = odb::getValueUInt32V(hDB, hSet, settings::signalLength,
-			boardInfo.Channels, defaults::channel::signalLength, true);
+	signalLengths = odb::getValueUInt32V(hDB, hSet,
+			signalKey + settings::signal::length, boardInfo.Channels,
+			defaults::channel::signalLength, true);
 	signalRisingPolarities = odb::getValueBoolV(hDB, hSet,
-			settings::signalRisingPolarity, boardInfo.Channels,
+			signalKey + settings::signal::risingPolarity, boardInfo.Channels,
 			defaults::channel::signalRisingPolarity, true);
 	signalTriggerChannel = odb::getValueInt8V(hDB, hSet,
-			settings::signalTriggerChannel, boardInfo.Channels,
+			signalKey + settings::signal::triggerChannel, boardInfo.Channels,
 			defaults::channel::signalTriggerChannel, true);
-	signalThresholds = odb::getValueInt16V(hDB, hSet, settings::signalThreshold,
-			boardInfo.Channels, defaults::channel::signalThreshold, true);
-	signalMaxTimes = odb::getValueUInt32V(hDB, hSet, settings::signalMaxTime,
-			boardInfo.Channels, defaults::channel::signalMaxTime, true);
+	signalThresholds = odb::getValueInt16V(hDB, hSet,
+			signalKey + settings::signal::threshold, boardInfo.Channels,
+			defaults::channel::signalThreshold, true);
+	signalMaxTimes = odb::getValueUInt32V(hDB, hSet,
+			signalKey + settings::signal::maxTime, boardInfo.Channels,
+			defaults::channel::signalMaxTime, true);
 
 	triggerChannel = odb::getValueBoolV(hDB, hSet, settings::triggerChannel,
 			boardInfo.Channels, defaults::triggerChannel, true);
