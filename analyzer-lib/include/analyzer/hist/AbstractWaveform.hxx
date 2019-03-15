@@ -80,8 +80,8 @@ protected:
 
 	}
 
-	virtual int GetPositionMaxBins() const;
-	virtual int GetAmplitudeMaxBins() const;
+	virtual unsigned GetPositionMaxBins() const;
+	virtual unsigned GetAmplitudeMaxBins() const;
 
 private:
 

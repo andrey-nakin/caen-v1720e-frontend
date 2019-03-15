@@ -68,7 +68,8 @@ void AbstractWaveform::FillPositionHist(HistType& ph, unsigned const position,
 		unsigned const preTriggerLength) {
 
 	if (position > ph.GetXaxis()->GetXmax()) {
-		ph.SetBins(position + preTriggerLength,
+		auto const maxBins = GetPositionMaxBins();
+		ph.SetBins(maxBins == 0 ? position + preTriggerLength : maxBins,
 				-static_cast<double>(preTriggerLength), position);
 	}
 	ph.Fill(position);
@@ -106,19 +107,19 @@ void AbstractWaveform::BeginRun(int /*transition*/, int /*run*/, int /*time*/) {
 
 }
 
-int AbstractWaveform::GetPositionMaxBins() const {
+unsigned AbstractWaveform::GetPositionMaxBins() const {
 
-	return odb->odbReadInt(
+	return odb->odbReadUint32(
 			util::AnalyzerUtils::OdbKey(getOdbRootKey(), "time_hist_max_bins").c_str(),
-			0, -1);
+			0, 0);
 
 }
 
-int AbstractWaveform::GetAmplitudeMaxBins() const {
+unsigned AbstractWaveform::GetAmplitudeMaxBins() const {
 
-	return odb->odbReadInt(
+	return odb->odbReadUint32(
 			util::AnalyzerUtils::OdbKey(getOdbRootKey(), "amp_hist_max_bins").c_str(),
-			0, -1);
+			0, 0);
 
 }
 
@@ -147,8 +148,9 @@ AbstractWaveform::HistType* AbstractWaveform::CreatePositionHistogram(
 	auto const name = ConstructName(feIndex, channelNo, "TM");
 	auto const title = ConstructTitle(feIndex, channelNo, "Time");
 
+	auto const maxBins = GetPositionMaxBins();
 	auto const h = new HistType(name.c_str(), title.c_str(),
-			waveformLength + preTriggerLength,
+			maxBins == 0 ? waveformLength + preTriggerLength : maxBins,
 			-static_cast<double>(preTriggerLength), waveformLength);
 	h->SetXTitle("Channel");
 	h->SetYTitle("Count");
@@ -165,8 +167,9 @@ AbstractWaveform::HistType* AbstractWaveform::CreateAmplitudeHistogram(
 	auto const name = ConstructName(feIndex, channelNo, "AM");
 	auto const title = ConstructTitle(feIndex, channelNo, "Amplitude");
 
-	auto const h = new HistType(name.c_str(), title.c_str(), maxValue, 0,
-			maxValue);
+	auto const maxBins = GetAmplitudeMaxBins();
+	auto const h = new HistType(name.c_str(), title.c_str(),
+			maxBins == 0 ? maxValue : maxBins, 0, maxValue);
 	h->SetXTitle("Amplitude");
 	h->SetYTitle("Count");
 	push_back(h);
