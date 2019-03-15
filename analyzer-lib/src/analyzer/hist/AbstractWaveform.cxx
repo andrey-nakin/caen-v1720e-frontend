@@ -1,16 +1,17 @@
 #include <iomanip>
 #include <sstream>
-#include "analyzer/hist/AbstractWaveform.hxx"
+#include <analyzer/hist/AbstractWaveform.hxx>
+#include <analyzer/util/AnalyzerUtils.hxx>
 
 namespace analyzer {
 
 namespace hist {
 
 AbstractWaveform::AbstractWaveform(VirtualOdb* anOdb,
-		std::string const& aBaseEquipName, std::string const & aDisplayName,
-		ns_per_sample_type const aNsPerSample) :
-		odb(anOdb), baseEquipName(aBaseEquipName), displayName(aDisplayName), nsPerSample(
-				aNsPerSample) {
+		std::string const& anOdbRootKey, std::string const& aBaseEquipName,
+		std::string const & aDisplayName, ns_per_sample_type const aNsPerSample) :
+		odb(anOdb), odbRootKey(anOdbRootKey), baseEquipName(aBaseEquipName), displayName(
+				aDisplayName), nsPerSample(aNsPerSample) {
 
 }
 
@@ -102,6 +103,22 @@ void AbstractWaveform::FillPositionHist(HistType& ph, unsigned const position,
 void AbstractWaveform::BeginRun(int /*transition*/, int /*run*/, int /*time*/) {
 
 	histInitialized.clear();
+
+}
+
+int AbstractWaveform::GetPositionMaxBins() const {
+
+	return odb->odbReadInt(
+			util::AnalyzerUtils::OdbKey(getOdbRootKey(), "time_hist_max_bins").c_str(),
+			0, -1);
+
+}
+
+int AbstractWaveform::GetAmplitudeMaxBins() const {
+
+	return odb->odbReadInt(
+			util::AnalyzerUtils::OdbKey(getOdbRootKey(), "amp_hist_max_bins").c_str(),
+			0, -1);
 
 }
 

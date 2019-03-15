@@ -5,9 +5,10 @@ namespace analyzer {
 namespace hist {
 
 DigitizerWaveform::DigitizerWaveform(VirtualOdb* anOdb,
-		std::string const& aBaseEquipName, std::string const & aDisplayName,
-		ns_per_sample_type const aNsPerSample) :
-		AbstractWaveform(anOdb, aBaseEquipName, aDisplayName, aNsPerSample) {
+		std::string const& anOdbRootKey, std::string const& aBaseEquipName,
+		std::string const & aDisplayName, ns_per_sample_type const aNsPerSample) :
+		AbstractWaveform(anOdb, anOdbRootKey, aBaseEquipName, aDisplayName,
+				aNsPerSample) {
 }
 
 void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,

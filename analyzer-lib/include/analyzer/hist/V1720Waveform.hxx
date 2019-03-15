@@ -11,7 +11,7 @@ namespace hist {
 class V1720Waveform: public DigitizerWaveform {
 public:
 
-	V1720Waveform(VirtualOdb* anOdb);
+	V1720Waveform(VirtualOdb* anOdb, std::string const& anOdbRootKey);
 
 	void UpdateHistograms(TDataContainer &dataContainer) override;
 

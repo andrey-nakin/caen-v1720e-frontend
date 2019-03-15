@@ -2,7 +2,7 @@
 
 namespace util {
 
-char const* SignalInfoRawData::BANK_NAME = "SGNL";
+char const* SignalInfoRawData::BANK_NAME = "SGL0";
 
 SignalInfoRawData::SignalInfoRawData(int const bklen, int const bktype,
 		const char* const name, void * const pdata) :

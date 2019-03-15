@@ -6,8 +6,9 @@ namespace analyzer {
 
 namespace hist {
 
-V1724Waveform::V1724Waveform(VirtualOdb* const anOdb) :
-		DigitizerWaveform(anOdb, fe::caen::v1724::equipName,
+V1724Waveform::V1724Waveform(VirtualOdb* const anOdb,
+		std::string const& anOdbRootKey) :
+		DigitizerWaveform(anOdb, anOdbRootKey, fe::caen::v1724::equipName,
 				fe::caen::v1724::displayName,
 				caen::v1724::nsPerSample<ns_per_sample_type>()) {
 

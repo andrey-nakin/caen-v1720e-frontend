@@ -22,7 +22,7 @@ protected:
 	typedef math::IntOp<uint32_t, 31> TimestampOp;
 	typedef uint8_t channel_no_type;
 	typedef uint32_t wflength_type;
-	typedef util::TWaveFormRawData::difference_type distance_type;
+	typedef ::util::TWaveFormRawData::difference_type distance_type;
 
 	static constexpr bool DEF_SIGNAL_RISING = false;
 	static constexpr wflength_type DEF_SIGNAL_LENGTH = 16;
@@ -32,12 +32,12 @@ protected:
 			static_cast<channel_no_type>(-1);
 	static constexpr wflength_type MAX_POSITION = 1000000;
 
-	DigitizerWaveform(VirtualOdb* anOdb, std::string const& aBaseEquipName,
-			std::string const & aDisplayName,
+	DigitizerWaveform(VirtualOdb* anOdb, std::string const& anOdbRootKey,
+			std::string const& aBaseEquipName, std::string const & aDisplayName,
 			ns_per_sample_type const aNsPerSample);
 
 	void UpdateHistograms(TDataContainer &dataContainer,
-			util::caen::DigitizerInfoRawData const& info);
+			::util::caen::DigitizerInfoRawData const& info);
 
 private:
 
@@ -50,32 +50,33 @@ private:
 	virtual uint16_t maxSampleValue() const = 0;
 
 	channel_no_type CurrentTrigger(
-			util::caen::DigitizerInfoRawData const& info) const;
+			::util::caen::DigitizerInfoRawData const& info) const;
 
-	channel_no_type ChannelTrigger(util::caen::DigitizerInfoRawData const& info,
-			util::SignalInfoBank const* signalInfo) const;
+	channel_no_type ChannelTrigger(
+			::util::caen::DigitizerInfoRawData const& info,
+			::util::SignalInfoBank const* signalInfo) const;
 
-	std::pair<bool, util::TWaveFormRawData::value_type> HasPeaks(
-			util::TWaveFormRawData::const_iterator_type wfBegin,
-			util::TWaveFormRawData::const_iterator_type wfEnd,
-			util::SignalInfoBank const* signalInfo, wflength_type frontLength,
+	std::pair<bool, ::util::TWaveFormRawData::value_type> HasPeaks(
+			::util::TWaveFormRawData::const_iterator_type wfBegin,
+			::util::TWaveFormRawData::const_iterator_type wfEnd,
+			::util::SignalInfoBank const* signalInfo, wflength_type frontLength,
 			bool rising) const;
 
-	distance_type CalcPosition(util::caen::DigitizerInfoRawData const& info,
+	distance_type CalcPosition(::util::caen::DigitizerInfoRawData const& info,
 			distance_type wfPos, channel_no_type triggerChannel,
-			util::SignalInfoBank const* signalInfo);
+			::util::SignalInfoBank const* signalInfo);
 
-	void AnalyzeWaveform(util::caen::DigitizerInfoRawData const& info,
+	void AnalyzeWaveform(::util::caen::DigitizerInfoRawData const& info,
 			channel_no_type channelNo,
-			util::TWaveFormRawData::const_iterator_type wfBegin,
-			util::TWaveFormRawData::const_iterator_type wfEnd,
-			util::SignalInfoBank const* signalInfo);
+			::util::TWaveFormRawData::const_iterator_type wfBegin,
+			::util::TWaveFormRawData::const_iterator_type wfEnd,
+			::util::SignalInfoBank const* signalInfo);
 
 	void DetectTrigger(TDataContainer &dataContainer,
-			util::caen::DigitizerInfoRawData const& info);
+			::util::caen::DigitizerInfoRawData const& info);
 
 	static TimestampOp::value_type timestamp(
-			util::caen::DigitizerInfoRawData const& info) {
+			::util::caen::DigitizerInfoRawData const& info) {
 
 		return TimestampOp::value(info.info().timeStamp);
 

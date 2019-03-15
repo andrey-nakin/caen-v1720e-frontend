@@ -7,8 +7,8 @@
 
 namespace bwf {
 
-TAnaManager::TAnaManager(VirtualOdb* const odb) :
-		v1720Waveform(odb), v1724Waveform(odb) {
+TAnaManager::TAnaManager(VirtualOdb* const odb, std::string const& anOdbRootKey) :
+		v1720Waveform(odb, anOdbRootKey), v1724Waveform(odb, anOdbRootKey) {
 
 }
 

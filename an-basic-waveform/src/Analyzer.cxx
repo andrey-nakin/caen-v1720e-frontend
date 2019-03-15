@@ -9,9 +9,12 @@
 
 #pragma GCC diagnostic pop
 
+#include <analyzer/util/AnalyzerUtils.hxx>
 #include "TAnaManager.hxx"
 
 namespace bwf {
+
+constexpr char NAME[] = "an-basic-waveform";
 
 class Analyzer: public TRootanaEventLoop {
 
@@ -19,7 +22,7 @@ public:
 	std::unique_ptr<TAnaManager> anaManager;
 
 	Analyzer() {
-		SetOnlineName("an-basic-waveform");
+		SetOnlineName(NAME);
 		// DisableAutoMainWindow();
 		UseBatchMode();
 	}
@@ -37,7 +40,9 @@ public:
 
 	void InitManager() {
 
-		anaManager.reset(new TAnaManager(GetODB()));
+		anaManager.reset(
+				new TAnaManager(GetODB(),
+						analyzer::util::AnalyzerUtils::OdbRootKey(NAME)));
 
 	}
 

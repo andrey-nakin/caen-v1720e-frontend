@@ -10,7 +10,7 @@ namespace bwf {
 class TAnaManager {
 
 public:
-	TAnaManager(VirtualOdb* anOdb);
+	TAnaManager(VirtualOdb* anOdb, std::string const& anOdbRootKey);
 
 	int ProcessMidasEvent(TDataContainer & dataContainer);
 

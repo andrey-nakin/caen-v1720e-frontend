@@ -30,13 +30,19 @@ protected:
 
 public:
 
-	AbstractWaveform(VirtualOdb* anOdb, std::string const& aBaseEquipName,
-			std::string const & aDisplayName,
+	AbstractWaveform(VirtualOdb* anOdb, std::string const& anOdbRootKey,
+			std::string const& aBaseEquipName, std::string const & aDisplayName,
 			ns_per_sample_type const aNsPerSample);
 
 	VirtualOdb* getOdb() const {
 
 		return odb;
+
+	}
+
+	std::string const& getOdbRootKey() const {
+
+		return odbRootKey;
 
 	}
 
@@ -74,9 +80,13 @@ protected:
 
 	}
 
+	virtual int GetPositionMaxBins() const;
+	virtual int GetAmplitudeMaxBins() const;
+
 private:
 
 	VirtualOdb* const odb;
+	std::string const odbRootKey;
 	std::string const baseEquipName;
 	std::string const displayName;
 	ns_per_sample_type const nsPerSample;
