@@ -115,6 +115,7 @@ void DigitizerFrontend::doOnStopSynchronized(INT /* run_number */,
 		char* /*error */) {
 
 	// stop acquisition if previous run was not properly stopped
+	acquisitionIsOn = false;
 	closeDevice();
 
 }
