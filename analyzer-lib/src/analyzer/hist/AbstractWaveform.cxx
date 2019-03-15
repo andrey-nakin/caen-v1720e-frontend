@@ -22,15 +22,6 @@ AbstractWaveform::AbstractWaveform(VirtualOdb* anOdb,
 
 }
 
-//void AbstractWaveform::CreateHistograms() {
-//
-//	createHistograms(-1);
-//	for (INT idx = 0; idx < 100; idx++) {
-//		createHistograms(idx);
-//	}
-//
-//}
-
 AbstractWaveform::HistType& AbstractWaveform::GetWaveformHist(INT const feIndex,
 		unsigned const channelNo, unsigned const waveformLength) {
 
@@ -82,31 +73,6 @@ void AbstractWaveform::FillPositionHist(HistType& ph, unsigned const position,
 	ph.Fill(position);
 
 }
-
-//void AbstractWaveform::createHistograms(INT const feIndex) {
-//	auto const waveformLength = loadWaveformLength(feIndex);
-//	if (waveformLength == 0) {
-//		// no such equipment or wave form length is not specified
-//		return;
-//	}
-//
-//	auto const enabledChannels = loadEnabledChannels(feIndex);
-//	if (enabledChannels.empty()) {
-//		return;
-//	}
-//
-//	histograms.clear();
-//
-//	for (unsigned channelNo = 0; channelNo < enabledChannels.size();
-//			channelNo++) {
-//
-//		if (!enabledChannels[channelNo]) {
-//			continue;
-//		}
-//
-//		histograms[feIndex][channelNo] = CreateHistogram(feIndex, channelNo, waveformLength);
-//	}
-//}
 
 void AbstractWaveform::BeginRun(int /*transition*/, int /*run*/, int /*time*/) {
 
