@@ -2,58 +2,23 @@
 <html class="mcss">
 
 <head>
+
 <meta charset="UTF-8">
-<link
-	href="https://code.jquery.com/ui/1.11.4/themes/cupertino/jquery-ui.css"
-	rel="stylesheet">
-<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<title>GNEIS - Basic Waveform</title>
 
-<!--  <link rel="stylesheet" href="jquery-ui/jquery-ui.css">  -->
-<!-- <link rel="stylesheet" href="jquery-ui/jquery-ui.theme.css">
-<script type="text/javascript" src="script/jquery.min.js"></script>
-<script type="text/javascript" src="jquery-ui/jquery-ui.min.js"></script> -->
-
+<link rel="stylesheet" href="style/jquery-ui.min.css">
 <link rel="stylesheet" type="text/css" href="midas.css">
 <link rel="stylesheet" type="text/css" href="style/basic-waveform.css">
+
+<script type="text/javascript" src="script/jquery.min.js"></script>
+<script type="text/javascript" src="script/jquery-ui.min.js"></script>
 <!--  <script type="text/javascript" src="controls.js"></script>  -->
-<!--  <script type="text/javascript" src="midas.js"></script>  -->
+<script type="text/javascript" src="midas.js"></script>
 <!--  <script type="text/javascript" src="mhttpd.js"></script>  -->
 <script type="text/javascript" src="script/polyfill.js"></script>
 <script type="text/javascript" src="script/rootana-utils.js"></script>
 <script type="text/javascript" src="script/basic-waveform.js"></script>
-<script>
-    $(function () {
-        reloadFrame = function () {
-            url = '';
-            url += '&monitoring=' + escape($("#refreshPeriod").val());
-            url += '&layout=' + escape($("#layout").val());
-            console.debug(url);
-        }
 
-        $("#refreshPeriod").selectmenu({
-            change : function (event, ui) {
-                reloadFrame();
-            }
-        });
-
-        $("#layout").selectmenu({
-            change : function (event, ui) {
-                reloadFrame();
-            }
-        });
-
-        $("#accordion").accordion({
-            heightStyle : "content"
-        });
-
-        for (var i = 0; i < 8; i++) {
-            $("#bt-V1720_" + i).buttonset();
-            $("#bt-V1724_" + i).buttonset();
-        }
-    });
-</script>
-<title>GNEIS - Basic Waveform</title>
 </head>
 
 <body class="mcss">
@@ -97,11 +62,11 @@
 							<option value="horiz2">horiz2</option>
 							<option value="horiz32">horiz32</option>
 							<option value="flex">flex</option>
-							<option value="grid 2x2">grid 2x2</option>
-							<option value="grid 1x3">grid 1x3</option>
-							<option value="grid 2x3">grid 2x3</option>
-							<option value="grid 3x3">grid 3x3</option>
-							<option value="grid 4x4">grid 4x4</option>
+							<option value="grid2x2">grid 2x2</option>
+							<option value="grid1x3">grid 1x3</option>
+							<option value="grid2x3">grid 2x3</option>
+							<option value="grid3x3">grid 3x3</option>
+							<option value="grid4x4">grid 4x4</option>
 							<option value="collapsible">collapsible</option>
 							<option value="tabs">tabs</option>
 						</select>
