@@ -4,20 +4,30 @@ var bw = {
         runInfoRefreshPeriod : 1000,
     },
 
-    digitizers : {
-        V1720 : true,
-        V1724 : true
-    },
+    digitizers : {},
 
     histograms : {
-        WF : true,
-        TM : true,
-        AM : true
-
+        WF : 'WF',
+        TM : 'Time',
+        AM : 'Amp'
     },
 
     state : {
         runNumber : null
+    },
+
+    loadEqupments : function () {
+        return mjsonrpc_db_get_values([ "/Equipment" ]).then(function (rpc) {
+            var res = {};
+            var equip = rpc.result.data[0];
+            var s = '';
+            for (i in equip) {
+                if (typeof (equip[i]) === 'object') {
+                    res[i.toUpperCase()] = equip[i];
+                }
+            }
+            return res;
+        });
     },
 
     getRunNumber : function () {
@@ -86,7 +96,7 @@ var bw = {
         url = self.makeUrl(parsedUrl);
         url += '?browser=no';
         url += '&items=' + '[';
-        
+
         var firstItem = true;
         for ( var dig in self.digitizers) {
             for (var ch = 0; ch < 8; ch++) {
@@ -156,22 +166,60 @@ var bw = {
             heightStyle : "content"
         });
 
-        for (var i = 0; i < 8; i++) {
-            self.initChannel('V1720', i);
-            self.initChannel('V1724', i);
+        for ( var dig in self.digitizers) {
+            for (var i = 0; i < 8; i++) {
+                self.initChannel(dig, i);
+                self.initChannel(dig, i);
+            }
         }
+    },
+
+    initControls : function () {
+        var self = this, html = '';
+
+        for ( var dig in self.digitizers) {
+            html += '<h3>' + dig + '</h3>';
+            html += '<div>';
+
+            for (var ch = 0; ch < 8; ch++) {
+                html += '<div class="bw-row">';
+                html += '<div class="bw-cell bw-left-column">';
+                html += '<span>CH ' + ch + ':</span>';
+                html += '</div>';
+                html += '<div id="bt-' + dig + '_' + ch
+                        + '" class="bw-cell bw-right-column">';
+
+                for ( var hist in self.histograms) {
+                    html += '<input type="checkbox" id="ch-' + hist + '_' + dig
+                            + '_' + ch + '"> ';
+                    html += '<label for="ch-' + hist + '_' + dig + '_' + ch
+                            + '">' + self.histograms[hist] + '</label> ';
+                }
+
+                html += '</div>';
+                html += '</div>';
+            }
+
+            html += '</div>';
+        }
+
+        $('#accordion').html(html);
     },
 
     init : function () {
         var self = this;
 
-        self.initWidgets();
-
-        setInterval(function () {
-            self.getRunNumber().then(function (runNo) {
-                self.checkRunNumber(runNo)
-            });
-        }, self.config.runInfoRefreshPeriod);
+        self.loadEqupments().then(function (es) {
+            self.digitizers = es;
+            self.initControls();
+            self.initWidgets();
+        }).then(function () {
+            setInterval(function () {
+                self.getRunNumber().then(function (runNo) {
+                    self.checkRunNumber(runNo)
+                });
+            }, self.config.runInfoRefreshPeriod);
+        });
     }
 
 }
