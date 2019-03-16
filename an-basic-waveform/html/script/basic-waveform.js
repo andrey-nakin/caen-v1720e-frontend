@@ -2,6 +2,7 @@ var bw = {
 
     config : {
         runInfoRefreshPeriod : 1000,
+        analyzerPort : null
     },
 
     digitizers : {},
@@ -28,6 +29,21 @@ var bw = {
             }
             return res;
         });
+    },
+
+    detectAnalyzerPort : function () {
+        var self = this;
+
+        return mjsonrpc_db_get_values([ "/Programs/an-basic-waveform" ]).then(
+                function (rpc) {
+                    var proginfo = rpc.result.data[0];
+                    var cmd = proginfo["start command"];
+                    var re = /\s\-r([\d]+)/;
+                    var result = cmd.match(re);
+                    if (result) {
+                        self.config.analyzerPort = parseInt(result[1]);
+                    }
+                });
     },
 
     getRunNumber : function () {
@@ -91,7 +107,7 @@ var bw = {
         var self = this;
 
         var parsedUrl = self.parseUrl(document.location);
-        parsedUrl.port = parsedUrl.port + 1;
+        parsedUrl.port = self.config.analyzerPort || parsedUrl.port + 1;
         parsedUrl.query = '';
         url = self.makeUrl(parsedUrl);
         url += '?browser=no';
@@ -213,6 +229,8 @@ var bw = {
             self.digitizers = es;
             self.initControls();
             self.initWidgets();
+        }).then(function () {
+            return self.detectAnalyzerPort();
         }).then(function () {
             setInterval(function () {
                 self.getRunNumber().then(function (runNo) {
