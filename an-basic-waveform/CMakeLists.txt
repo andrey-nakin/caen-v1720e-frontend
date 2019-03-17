@@ -15,7 +15,9 @@ file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cxx)
 file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/include/*.hxx)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME an-basic-waveform)
+set_target_properties(${PROJECT_NAME} PROPERTIES 
+  OUTPUT_NAME an-basic-waveform
+  RESOURCE "${RESOURCE_FILES}")
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 target_link_libraries(${PROJECT_NAME} z)
 target_link_libraries(${PROJECT_NAME} pthread)
@@ -40,3 +42,4 @@ target_link_libraries(${PROJECT_NAME} MathLib)
 target_link_libraries(${PROJECT_NAME} midas)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+install(DIRECTORY resources DESTINATION $ENV{MIDASSYS})
