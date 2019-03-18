@@ -1,7 +1,21 @@
 #include "fe/Frontend.hxx"
 
+#include <midas/odb.hxx>
 #include <midas/exception.hxx>
 #include "util/FrontEndUtils.hxx"
+
+#ifndef NEED_NO_EXTERN_C
+extern "C" {
+#endif
+
+// declared in mfe.c
+extern char exp_name[];
+extern char **_argv;
+extern INT frontend_index;
+
+#ifndef NEED_NO_EXTERN_C
+}
+#endif
 
 namespace fe {
 
@@ -17,9 +31,15 @@ INT Frontend::frontendInit() {
 
 	cm_msg(MDEBUG, frontend_name, "frontend_init");
 
-	midas::Exception::setProgramName (frontend_name);
+	midas::Exception::setProgramName(frontend_name);
 
-	util::FrontEndUtils::command([this]() {doInit();});
+	util::FrontEndUtils::command([this]() {
+		if (startsForTheFirstTime()) {
+			doFirstRun();
+		}
+
+		doInit();
+	});
 
 	return SUCCESS;
 
@@ -178,6 +198,52 @@ int Frontend::doReadEvent(char* /* pevent */, int /* off */) {
 void Frontend::doOnStop(INT /* run_number */, char* /* error */) {
 
 	// null implementation
+
+}
+
+bool Frontend::startsForTheFirstTime() {
+
+	auto const startCmd = odb::getValueString(hDB, 0,
+			std::string("/Programs/") + frontend_name + "/Start command", "",
+			false);
+	return startCmd.empty();
+
+}
+
+static std::string baseFileName(std::string const& fn) {
+
+	auto const pos = fn.find_last_of("/");
+	if (pos == std::string::npos) {
+		return fn;
+	} else {
+		return std::string(fn.begin() + pos + 1, fn.end());
+	}
+
+}
+
+template<typename ValueT>
+static std::string lpad(ValueT const v, std::size_t length) {
+
+	std::string s = std::to_string(v);
+	while (s.size() < length) {
+		s = "0" + s;
+	}
+	return s;
+
+}
+
+void Frontend::doFirstRun() {
+
+	std::string const feName = frontend_name
+			+ (frontend_index < 0 ? "" : lpad(frontend_index, 2));
+
+	odb::setValue(hDB, 0, std::string("/Programs/") + feName + "/Required",
+			true);
+
+	odb::setValue(hDB, 0, std::string("/Programs/") + feName + "/Start command",
+			baseFileName(_argv[0]) + " -D -e " + exp_name
+					+ (frontend_index < 0 ?
+							"" : " -i " + std::to_string(frontend_index)));
 
 }
 

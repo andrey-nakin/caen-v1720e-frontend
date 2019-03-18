@@ -34,6 +34,28 @@ bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
 
 }
 
+void setValue(HNDLE const hDB, HNDLE const hKeyRoot, std::string const& keyName,
+		bool const value) {
+
+	INT status;
+	HNDLE hKey;
+
+	status = db_find_key(hDB, hKeyRoot, keyName.c_str(), &hKey);
+	if (DB_SUCCESS != status) {
+		throw midas::Exception(status,
+				std::string("Error finding ODB key ") + keyName);
+	}
+
+	int32_t const v = value ? 1 : 0;
+	status = db_set_data(hDB, hKey, &v, sizeof(v), 1, TID_BOOL);
+
+	if (DB_SUCCESS != status) {
+		throw midas::Exception(status,
+				std::string("Error writing ODB key ") + keyName);
+	}
+
+}
+
 std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, std::string const& initValue,
 		bool const create, std::size_t const aSize) {
@@ -113,11 +135,33 @@ std::string getValueString(HNDLE const hDB, HNDLE const hKeyRoot,
 
 }
 
+void setValue(HNDLE const hDB, HNDLE const hKeyRoot, std::string const& keyName,
+		std::string const& value) {
+
+	INT status;
+	HNDLE hKey;
+
+	status = db_find_key(hDB, hKeyRoot, keyName.c_str(), &hKey);
+	if (DB_SUCCESS != status) {
+		throw midas::Exception(status,
+				std::string("Error finding ODB key ") + keyName);
+	}
+
+	status = db_set_data(hDB, hKey, value.c_str(), value.size() + 1, 1,
+			TID_STRING);
+
+	if (DB_SUCCESS != status) {
+		throw midas::Exception(status,
+				std::string("Error writing ODB key ") + keyName);
+	}
+
+}
+
 std::vector<bool> getValueBoolV(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, std::size_t const numValues,
 		bool const defValue, bool const create) {
 
-	std::vector < int32_t > v(numValues);
+	std::vector<int32_t> v(numValues);
 	for (std::size_t i = 0; i < numValues; i++) {
 		v[i] = defValue;
 	}

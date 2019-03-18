@@ -33,7 +33,7 @@ std::vector<T> getValueV(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, std::size_t const numValues,
 		T const defValue, bool const create) {
 
-	std::vector < T > value(numValues, defValue);
+	std::vector<T> value(numValues, defValue);
 	if (numValues > 0) {
 		INT bufSize = sizeof(T) * numValues;
 		INT const status = db_get_value(hDB, hKeyRoot, keyName.c_str(),
@@ -52,6 +52,9 @@ std::vector<T> getValueV(HNDLE const hDB, HNDLE const hKeyRoot,
 bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, bool const value, bool const create);
 
+void setValue(HNDLE hDB, HNDLE hKeyRoot, std::string const& keyName,
+		bool value);
+
 std::string getValueString(HNDLE hDB, HNDLE hKeyRoot,
 		std::string const& keyName, std::string const& value, bool create,
 		std::size_t size = ODB_MAX_STRING_LENGTH);
@@ -59,6 +62,9 @@ std::string getValueString(HNDLE hDB, HNDLE hKeyRoot,
 std::string getValueString(HNDLE hDB, HNDLE hKeyRoot,
 		std::string const& keyName, std::vector<std::string> const& validValues,
 		std::size_t size = ODB_MAX_STRING_LENGTH);
+
+void setValue(HNDLE hDB, HNDLE hKeyRoot, std::string const& keyName,
+		std::string const& value);
 
 std::vector<bool> getValueBoolV(HNDLE hDB, HNDLE hKeyRoot,
 		std::string const& keyName, std::size_t numValues, bool defValue,

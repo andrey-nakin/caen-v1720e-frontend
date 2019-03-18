@@ -44,6 +44,9 @@ private:
 	virtual int doReadEvent(char* pevent, int off);
 	virtual void doOnStop(INT run_number, char* error);
 
+	virtual bool startsForTheFirstTime();
+	virtual void doFirstRun();
+
 };
 
 }
