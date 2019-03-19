@@ -54,6 +54,57 @@ var bw = {
         });
     },
 
+    getEquipStatistics : function () {
+        var self = this;
+        var keys = [], digs = [];
+        for (dig in self.digitizers) {
+            digs.push(dig);
+            keys.push('/Equipment/' + dig + '/Statistics');
+        }
+        return mjsonrpc_db_get_values(keys)
+                .then(
+                        function (rpc) {
+                            var html = '';
+
+                            if (rpc && rpc.result && rpc.result.data
+                                    && rpc.result.data.length) {
+                                for (var i = 0; i < rpc.result.data.length; i++) {
+                                    var stat = rpc.result.data[i];
+                                    var eps = stat['events per sec.'];
+                                    var epsNum = Number.parseFloat(eps);
+                                    if (!isNaN(epsNum)) {
+                                        html += '<div class="bw-row">';
+
+                                        html += '<div class="bw-cell bw-left-column">';
+                                        html += '<label class="ui-widget">'
+                                                + digs[i] + '</label>';
+                                        html += '</div>';
+
+                                        html += '<div class="bw-cell bw-right-column">';
+                                        html += '<label class="ui-widget">'
+                                                + epsNum.toFixed(1)
+                                                + ' Events/sec</label>';
+                                        html += '</div>';
+
+                                        html += '</div>';
+                                    }
+                                }
+                            }
+
+                            $('#eventInfo').html(html);
+                        });
+    },
+
+    parseNumber : function (s) {
+        if (!s) {
+            return 0;
+        }
+        if (s.substr(0, 2) == '0x') {
+            return parseInt(s.substr(2), 16);
+        }
+        return parseInt(s);
+    },
+
     loadChannelConfig : function () {
         console.debug("loadChannelConfig");
         var self = this;
@@ -64,13 +115,28 @@ var bw = {
         return mjsonrpc_db_get_values(
                 [ "/Equipment/" + $("#device").val() + "/Settings/" ]).then(
                 function (rpc) {
-                    $("#dcOffset").spinner("enable");
-                    $("#triggerThreshold").spinner("enable");
                     self.state.loadingChannelConfig = false;
 
-                    var settings = rpc.result.data[0];
-                    var cmd = settings["channel_dc_offset"];
-                    alert(cmd.length + ' ' + typeof (cmd[0]));
+                    var ch = $("#channel").val();
+                    if (ch !== '') {
+                        var settings = rpc.result.data ? rpc.result.data[0]
+                                : null;
+                        if (settings) {
+                            var dco = settings["channel_dc_offset"];
+                            if (dco && dco.length > ch) {
+                                $("#dcOffset").spinner("enable");
+                                $("#dcOffset").spinner("value",
+                                        self.parseNumber(dco[ch]));
+                            }
+
+                            var tt = settings["trigger_threshold"];
+                            if (tt && tt.length > ch) {
+                                $("#triggerThreshold").spinner("enable");
+                                $("#triggerThreshold").spinner("value",
+                                        self.parseNumber(tt[ch]));
+                            }
+                        }
+                    }
                 });
     },
 
@@ -231,6 +297,7 @@ var bw = {
             max : 65535,
             step : 10,
             page : 100,
+            disabled : true,
             change : function (event, ui) {
             }
         });
@@ -240,6 +307,7 @@ var bw = {
             max : 16383,
             step : 10,
             page : 100,
+            disabled : true,
             change : function (event, ui) {
             }
         });
@@ -301,6 +369,8 @@ var bw = {
             setInterval(function () {
                 self.getRunNumber().then(function (runNo) {
                     self.checkRunNumber(runNo)
+                }).then(function () {
+                    self.getEquipStatistics();
                 });
             }, self.config.runInfoRefreshPeriod);
         });
