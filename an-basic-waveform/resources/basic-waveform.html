@@ -35,8 +35,7 @@
 									Period:</label>
 							</div>
 							<div class="bw-cell bw-right-column">
-								<select id="refreshPeriod" style="width: 22ex"
-									onchange="bw.refreshPeriodChanged(this)">
+								<select id="refreshPeriod" style="width: 22ex">
 									<option value="100">100 ms</option>
 									<option value="250">250 ms</option>
 									<option value="500">500 ms</option>
@@ -77,6 +76,53 @@
 					<fieldset>
 						<div id="accordion">
 							<!--  placeholder for histogram checkbuttons -->
+						</div>
+					</fieldset>
+
+					<fieldset>
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<label class="ui-widget" for="device">Device:</label>
+							</div>
+							<div class="bw-cell bw-right-column">
+								<select id="device" style="width: 22ex">
+								</select>
+							</div>
+						</div>
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<label class="ui-widget" for="channel">Channel:</label>
+							</div>
+							<div class="bw-cell bw-right-column">
+								<select id="channel" style="width: 22ex">
+									<option value=""></option>
+									<option value="0">0</option>
+									<option value="1">1</option>
+									<option value="2">2</option>
+									<option value="3">3</option>
+									<option value="4">4</option>
+									<option value="5">5</option>
+									<option value="6">6</option>
+									<option value="7">7</option>
+								</select>
+							</div>
+						</div>
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<label class="ui-widget" for="dcOffset">DC Offset:</label>
+							</div>
+							<div class="bw-cell bw-right-column">
+								<input id="dcOffset" style="width: 22ex">
+							</div>
+						</div>
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<label class="ui-widget" for="triggerThreshold">Trg
+									Theshold:</label>
+							</div>
+							<div class="bw-cell bw-right-column">
+								<input id="triggerThreshold" style="width: 22ex">
+							</div>
 						</div>
 					</fieldset>
 				</div>

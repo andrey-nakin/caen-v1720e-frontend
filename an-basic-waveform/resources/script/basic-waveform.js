@@ -14,7 +14,8 @@ var bw = {
     },
 
     state : {
-        runNumber : null
+        runNumber : null,
+        loadingChannelConfig : false
     },
 
     loadEqupments : function () {
@@ -51,6 +52,35 @@ var bw = {
             var runinfo = rpc.result.data[0];
             return runinfo["run number"];
         });
+    },
+
+    loadChannelConfig : function () {
+        console.debug("loadChannelConfig");
+        var self = this;
+
+        $("#dcOffset").spinner("disable");
+        $("#triggerThreshold").spinner("disable");
+
+        return mjsonrpc_db_get_values(
+                [ "/Equipment/" + $("#device").val() + "/Settings/" ]).then(
+                function (rpc) {
+                    $("#dcOffset").spinner("enable");
+                    $("#triggerThreshold").spinner("enable");
+                    self.state.loadingChannelConfig = false;
+
+                    var settings = rpc.result.data[0];
+                    var cmd = settings["channel_dc_offset"];
+                    alert(cmd.length + ' ' + typeof (cmd[0]));
+                });
+    },
+
+    forceLoadChannelConfig : function () {
+        console.debug("forceLoadChannelConfig");
+        var self = this;
+        if (!self.state.loadingChannelConfig) {
+            self.loadChannelConfig();
+            self.state.loadingChannelConfig = true;
+        }
     },
 
     lPad : function (v, len) {
@@ -175,6 +205,42 @@ var bw = {
         $("#layout").selectmenu({
             change : function (event, ui) {
                 self.forceReloadFrame();
+            }
+        });
+
+        $("#device").selectmenu({
+            change : function (event, ui) {
+                self.forceLoadChannelConfig();
+            }
+        });
+        var html = '<option value=""></option>';
+        for (dig in self.digitizers) {
+            html += '<option value="' + dig + '">' + dig + '</option>';
+        }
+        $("#device").html(html);
+        $("#device").selectmenu("refresh");
+
+        $("#channel").selectmenu({
+            change : function (event, ui) {
+                self.forceLoadChannelConfig();
+            }
+        });
+
+        $("#dcOffset").spinner({
+            min : 0,
+            max : 65535,
+            step : 10,
+            page : 100,
+            change : function (event, ui) {
+            }
+        });
+
+        $("#triggerThreshold").spinner({
+            min : 0,
+            max : 16383,
+            step : 10,
+            page : 100,
+            change : function (event, ui) {
             }
         });
 
