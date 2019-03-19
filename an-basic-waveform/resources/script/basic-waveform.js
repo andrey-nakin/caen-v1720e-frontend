@@ -106,7 +106,6 @@ var bw = {
     },
 
     loadChannelConfig : function () {
-        console.debug("loadChannelConfig");
         var self = this;
 
         $("#dcOffset").spinner("disable");
@@ -141,7 +140,6 @@ var bw = {
     },
 
     forceLoadChannelConfig : function () {
-        console.debug("forceLoadChannelConfig");
         var self = this;
         if (!self.state.loadingChannelConfig) {
             self.loadChannelConfig();
