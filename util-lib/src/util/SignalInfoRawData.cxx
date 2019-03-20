@@ -37,8 +37,10 @@ uint32_t SignalInfoRawData::frontLength(SignalInfoBank const& si) {
 
 int SignalInfoRawData::triggerChannel(SignalInfoBank const& si) {
 
-	return si.pattern.bits.triggerChannel < 0 ?
-			-1 : si.pattern.bits.triggerChannel;
+	// TODO
+	return -1;
+//	return si.pattern.bits.triggerChannel < 0 ?
+//			-1 : si.pattern.bits.triggerChannel;
 
 }
 
@@ -50,15 +52,14 @@ int16_t SignalInfoRawData::threshold(SignalInfoBank const& si) {
 
 bool SignalInfoRawData::rising(SignalInfoBank const& si) {
 
-	return si.pattern.bits.rising ? true : false;
+	return si.pattern2.bits.rising ? true : false;
 
 }
 
-bool SignalInfoRawData::triggerDisabled(SignalInfoBank const&,
-		uint8_t const /* triggerChannel */) {
+bool SignalInfoRawData::triggerDisabled(SignalInfoBank const& si,
+		uint8_t const triggerChannel) {
 
-	// TODO
-	return false;
+	return 0 != (si.pattern.bits.disabledTriggers & (0x01 << triggerChannel));
 
 }
 

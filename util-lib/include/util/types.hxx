@@ -83,21 +83,29 @@ typedef struct
 				uint32_t frontLength;
 				union {
 					struct {
-						int32_t triggerChannel :4;
+						uint32_t timeTriggers :8;
+						uint32_t disabledTriggers :8;
 						int32_t threshold :16;
-						uint32_t rising :1;
-						uint32_t :11;	//	reserved
 					} bits;
 					uint32_t raw;
 				} pattern;
+				union {
+					struct {
+						uint32_t rising :1;
+						uint32_t :31;	//	reserved
+					} bits;
+					uint32_t raw;
+				} pattern2;
 				uint32_t maxTime;
+				uint32_t reserved;
 
 			} SignalInfoBank;
 
-			static_assert(sizeof(SignalInfoBank) == sizeof(uint32_t) * 4, "SignalInfoBank size is not correct");
+			static_assert(sizeof(SignalInfoBank) == sizeof(uint32_t) * 6, "SignalInfoBank size is not correct");
 
 			void fillSignalInfo(SignalInfoBank& bank, uint32_t length,
-					uint32_t frontLength, uint8_t triggerChannel,
-					int16_t threshold, bool rising, uint32_t maxTime);
+					uint32_t frontLength, uint8_t timeTriggers,
+					uint8_t disabledTriggers, int16_t threshold, bool rising,
+					uint32_t maxTime);
 
 			}
