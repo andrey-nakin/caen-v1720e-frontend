@@ -45,6 +45,10 @@ TEST(StatAccum, EmptyRange) {
 	auto sa = math::MakeStatAccum(src.end(), src.end());
 
 	EXPECT_EQ(0, sa.GetCount());
+	EXPECT_EQ(0, sa.GetRoughMean());
+	EXPECT_EQ(0.0, sa.GetMean());
+	EXPECT_EQ(0, sa.GetRoughVariance());
+	EXPECT_EQ(0.0, sa.GetVariance());
 
 }
 

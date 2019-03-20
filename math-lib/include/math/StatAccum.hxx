@@ -45,13 +45,14 @@ public:
 
 	value_type GetRoughMean() const {
 
-		return static_cast<value_type>((sum + counter / 2) / counter);
+		return counter > 0 ?
+				static_cast<value_type>((sum + counter / 2) / counter) : 0;
 
 	}
 
 	double GetMean() const {
 
-		return static_cast<double>(sum) / counter;
+		return counter > 0 ? static_cast<double>(sum) / counter : 0;
 
 	}
 
