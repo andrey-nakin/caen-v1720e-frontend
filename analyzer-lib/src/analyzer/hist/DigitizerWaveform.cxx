@@ -96,7 +96,7 @@ std::pair<bool, util::TWaveFormRawData::value_type> DigitizerWaveform::HasPeaks(
 		// a threshold is set for the given channel
 		auto const st = SignalInfoRawData::threshold(*signalInfo);
 		if (st == 0) {
-			// use trigger edge
+			// use trigger settings
 			return std::make_pair(true, 0);
 		} else if (st < 0) {
 			// have to calculate threshold using waveform noise level
