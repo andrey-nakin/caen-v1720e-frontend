@@ -112,10 +112,10 @@ std::pair<bool, util::TWaveFormRawData::value_type> DigitizerWaveform::HasPeaks(
 	auto const hasPeak =
 			rising ? diffStat.GetMaxValue() >= t : diffStat.GetMinValue() <= -t;
 
-	return std::pair<bool, util::TWaveFormRawData::value_type>(hasPeak, t);
+	return std::make_pair(hasPeak, t);
 }
 
-DigitizerWaveform::distance_type DigitizerWaveform::CalcPosition(
+std::pair<bool, DigitizerWaveform::distance_type> DigitizerWaveform::CalcPosition(
 		util::caen::DigitizerInfoRawData const& info, distance_type const wfPos,
 		channel_no_type const triggerChannel,
 		util::SignalInfoBank const* const signalInfo) {
@@ -134,10 +134,10 @@ DigitizerWaveform::distance_type DigitizerWaveform::CalcPosition(
 
 	auto const maxTime = signalInfo ? signalInfo->maxTime : MAX_POSITION;
 	if (result >= maxTime) {
-		return -1;	//	discard the position
+		return std::make_pair(false, 0);	//	discard the position
 	}
 
-	return result;
+	return std::make_pair(true, result);
 
 }
 
@@ -180,8 +180,8 @@ void DigitizerWaveform::AnalyzeWaveform(
 			auto const i = pf.GetNext();
 			auto const position = CalcPosition(info, std::distance(wfBegin, i),
 					triggerChannel, signalInfo);
-			if (position >= 0) {
-				FillPositionHist(ph, position, preTriggerLength);
+			if (position.first) {
+				FillPositionHist(ph, position.second, preTriggerLength);
 
 				auto const zeroLevel = math::MakeStatAccum(wfBegin, wfEnd, i,
 						i + peakLength).GetRoughMean();
