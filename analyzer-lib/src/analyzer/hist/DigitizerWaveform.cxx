@@ -95,7 +95,10 @@ std::pair<bool, util::TWaveFormRawData::value_type> DigitizerWaveform::HasPeaks(
 	if (signalInfo) {
 		// a threshold is set for the given channel
 		auto const st = SignalInfoRawData::threshold(*signalInfo);
-		if (st < 0) {
+		if (st == 0) {
+			// use trigger edge
+			return std::make_pair(true, 0);
+		} else if (st < 0) {
 			// have to calculate threshold using waveform noise level
 			t = diffStat.GetStdScaled < TWaveFormRawData::value_type
 					> (std::abs(st));
@@ -179,23 +182,52 @@ void DigitizerWaveform::AnalyzeWaveform(
 				std::distance(wfBegin, wfEnd), preTriggerLength);
 		auto &ah = GetAmplitudeHist(feIndex, channelNo, numOfSampleValues());
 
-		auto pf = math::MakePeakFinder(rising, wfBegin, wfEnd, frontLength, t,
-				peakLength);
-		while (pf.HasNext()) {
-			auto const i = pf.GetNext();
-			auto const position = CalcPosition(info, std::distance(wfBegin, i),
-					signalInfo);
-			if (position.first) {
-				FillPositionHist(ph, position.second, preTriggerLength);
-
-				auto const zeroLevel = math::MakeStatAccum(wfBegin, wfEnd, i,
-						i + peakLength).GetRoughMean();
-				decltype(zeroLevel) const ampAdjusted =
-						rising ? *i - zeroLevel : zeroLevel - *i;
-				auto const amplitude = std::min(ampAdjusted, maxSampleValue());
-				ah.Fill(amplitude);
+		if (t == 0) {
+			// do not find spikes, just use current trigger's settings
+			if (channelNo == CurrentTrigger(info)) {
+				auto const triggerPosition = wfBegin + triggers[channelNo];
+				auto const last = std::min(triggerPosition + peakLength, wfEnd);
+				auto const peak =
+						rising ?
+								std::max_element(triggerPosition, last) :
+								std::min_element(triggerPosition, last);
+				if (peak != last) {
+					AddTimeAmplitude(info, wfBegin, wfEnd, ph, ah, signalInfo,
+							preTriggerLength, peakLength, rising, peak);
+				}
+			}
+		} else {
+			auto pf = math::MakePeakFinder(rising, wfBegin, wfEnd, frontLength,
+					t, peakLength);
+			while (pf.HasNext()) {
+				AddTimeAmplitude(info, wfBegin, wfEnd, ph, ah, signalInfo,
+						preTriggerLength, peakLength, rising, pf.GetNext());
 			}
 		}
+	}
+
+}
+
+void DigitizerWaveform::AddTimeAmplitude(
+		::util::caen::DigitizerInfoRawData const& info,
+		::util::TWaveFormRawData::const_iterator_type const wfBegin,
+		::util::TWaveFormRawData::const_iterator_type const wfEnd, HistType& ph,
+		HistType& ah, ::util::SignalInfoBank const* signalInfo,
+		uint32_t const preTriggerLength, uint32_t const peakLength,
+		bool const rising,
+		::util::TWaveFormRawData::const_iterator_type const i) {
+
+	auto const position = CalcPosition(info, std::distance(wfBegin, i),
+			signalInfo);
+	if (position.first) {
+		FillPositionHist(ph, position.second, preTriggerLength);
+
+		auto const zeroLevel = math::MakeStatAccum(wfBegin, wfEnd, i,
+				i + peakLength).GetRoughMean();
+		decltype(zeroLevel) const ampAdjusted =
+				rising ? *i - zeroLevel : zeroLevel - *i;
+		auto const amplitude = std::min(ampAdjusted, maxSampleValue());
+		ah.Fill(amplitude);
 	}
 
 }

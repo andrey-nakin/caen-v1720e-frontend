@@ -75,6 +75,13 @@ private:
 	void DetectTrigger(TDataContainer &dataContainer,
 			::util::caen::DigitizerInfoRawData const& info);
 
+	void AddTimeAmplitude(::util::caen::DigitizerInfoRawData const& info,
+			::util::TWaveFormRawData::const_iterator_type wfBegin,
+			::util::TWaveFormRawData::const_iterator_type wfEnd, HistType& ph,
+			HistType& ah, ::util::SignalInfoBank const* signalInfo,
+			uint32_t preTriggerLength, uint32_t peakLength, bool rising,
+			::util::TWaveFormRawData::const_iterator_type i);
+
 	static TimestampOp::value_type timestamp(
 			::util::caen::DigitizerInfoRawData const& info) {
 
