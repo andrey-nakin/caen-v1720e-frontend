@@ -141,6 +141,20 @@ TEST(StatAccum, ExcludeGeneric) {
 
 }
 
+TEST(StatAccum, ExcludeBeginning) {
+
+	std::array<int8_t, 10> const src = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	auto sa = math::MakeStatAccum(src.begin(), src.end(), src.begin(),
+			src.begin() + 5);
+
+	EXPECT_EQ(5, sa.GetCount());
+	EXPECT_EQ(5, sa.GetMinValue());
+	EXPECT_EQ(9, sa.GetMaxValue());
+	EXPECT_NEAR(7, sa.GetMean(), 0.5e-6);
+	EXPECT_NEAR(2.5, sa.GetVariance(), 0.5e-6);
+
+}
+
 TEST(StatAccum, ExcludeBeyondEnd) {
 
 	std::array<int8_t, 10> const src = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -166,6 +180,17 @@ TEST(StatAccum, ExcludeEmpty) {
 	EXPECT_EQ(9, sa.GetMaxValue());
 	EXPECT_NEAR(4.5, sa.GetMean(), 0.5e-6);
 	EXPECT_NEAR(9.166667, sa.GetVariance(), 0.5e-6);
+
+}
+
+TEST(StatAccum, ExcludeAll) {
+
+	std::array<int8_t, 10> const src = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	auto sa = math::MakeStatAccum(src.begin(), src.end(), src.begin(),
+			src.end());
+
+	EXPECT_EQ(0, sa.GetCount());
+	EXPECT_EQ(0, sa.GetRoughMean());
 
 }
 
