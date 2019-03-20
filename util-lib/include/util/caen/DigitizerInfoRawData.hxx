@@ -27,7 +27,7 @@ public:
 
 	bool extTrigger() const;
 
-	int firstSelfTriggerChannel() const;
+	uint8_t selfTriggerChannels() const;
 
 private:
 

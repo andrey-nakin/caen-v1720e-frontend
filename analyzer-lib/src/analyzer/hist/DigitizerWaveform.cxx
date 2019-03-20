@@ -50,9 +50,13 @@ void DigitizerWaveform::UpdateHistograms(TDataContainer &dataContainer,
 DigitizerWaveform::channel_no_type DigitizerWaveform::CurrentTrigger(
 		util::caen::DigitizerInfoRawData const& info) const {
 
-	auto const ch = info.firstSelfTriggerChannel();
-	if (ch >= 0 && ch < static_cast<int>(numOfChannels())) {
-		return ch;
+	auto const chMask = info.selfTriggerChannels();
+	if (chMask != 0) {
+		for (channel_type ch = 0, last = numOfChannels(); ch < last; ch++) {
+			if (info.selfTrigger(ch)) {
+				return ch;
+			}
+		}
 	}
 
 	return EXT_TRIGGER;
