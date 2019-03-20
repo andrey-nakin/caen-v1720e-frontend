@@ -117,9 +117,9 @@ std::pair<bool, util::TWaveFormRawData::value_type> DigitizerWaveform::HasPeaks(
 
 std::pair<bool, DigitizerWaveform::distance_type> DigitizerWaveform::CalcPosition(
 		util::caen::DigitizerInfoRawData const& info, distance_type const wfPos,
-		channel_no_type const triggerChannel,
 		util::SignalInfoBank const* const signalInfo) {
 
+	auto const triggerChannel = ChannelTrigger(info, signalInfo);
 	auto result = wfPos;
 
 	if (triggers.count(triggerChannel) > 0) {
@@ -172,7 +172,6 @@ void DigitizerWaveform::AnalyzeWaveform(
 				signalInfo ?
 						SignalInfoRawData::length(*signalInfo) :
 						DEF_SIGNAL_LENGTH;
-		auto const triggerChannel = ChannelTrigger(info, signalInfo);
 		auto const feIndex = frontendIndex(info.info().frontendIndex);
 		auto const preTriggerLength =
 				info.hasTriggerSettings() ? info.preTriggerLength() : 0;
@@ -185,7 +184,7 @@ void DigitizerWaveform::AnalyzeWaveform(
 		while (pf.HasNext()) {
 			auto const i = pf.GetNext();
 			auto const position = CalcPosition(info, std::distance(wfBegin, i),
-					triggerChannel, signalInfo);
+					signalInfo);
 			if (position.first) {
 				FillPositionHist(ph, position.second, preTriggerLength);
 

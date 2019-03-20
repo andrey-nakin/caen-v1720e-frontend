@@ -64,7 +64,6 @@ private:
 
 	std::pair<bool, distance_type> CalcPosition(
 			::util::caen::DigitizerInfoRawData const& info, distance_type wfPos,
-			channel_no_type triggerChannel,
 			::util::SignalInfoBank const* signalInfo);
 
 	void AnalyzeWaveform(::util::caen::DigitizerInfoRawData const& info,
