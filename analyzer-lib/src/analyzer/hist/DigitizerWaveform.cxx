@@ -59,23 +59,6 @@ DigitizerWaveform::channel_no_type DigitizerWaveform::CurrentTrigger(
 
 }
 
-DigitizerWaveform::channel_no_type DigitizerWaveform::ChannelTrigger(
-		util::caen::DigitizerInfoRawData const& info,
-		util::SignalInfoBank const* const signalInfo) const {
-
-	using util::SignalInfoRawData;
-
-	if (signalInfo) {
-		auto const ch = SignalInfoRawData::triggerChannel(*signalInfo);
-		if (ch >= 0 && ch < static_cast<int>(numOfChannels())) {
-			return ch;
-		}
-	}
-
-	return CurrentTrigger(info);
-
-}
-
 std::pair<bool, util::TWaveFormRawData::value_type> DigitizerWaveform::HasPeaks(
 		util::TWaveFormRawData::const_iterator_type const wfBegin,
 		util::TWaveFormRawData::const_iterator_type const wfEnd,
@@ -122,17 +105,32 @@ std::pair<bool, DigitizerWaveform::distance_type> DigitizerWaveform::CalcPositio
 		util::caen::DigitizerInfoRawData const& info, distance_type const wfPos,
 		util::SignalInfoBank const* const signalInfo) {
 
-	auto const triggerChannel = ChannelTrigger(info, signalInfo);
+	using util::SignalInfoRawData;
+
 	auto result = wfPos;
 
-	if (triggers.count(triggerChannel) > 0) {
-		result -= triggers[triggerChannel];
+	auto const curTrg = CurrentTrigger(info);
+	if (curTrg != EXT_TRIGGER && triggers.count(curTrg) > 0) {
+		result -= triggers[curTrg];
+	}
 
-		auto const curTrg = CurrentTrigger(info);
-		if (triggerChannel != curTrg) {
-			result += timestampDiff(triggerTimestamps[triggerChannel],
-					timestamp(info)) * samplesPerTimeTick() - triggers[curTrg];
+	if (signalInfo && SignalInfoRawData::timeTriggers(*signalInfo)) {
+		distance_type tm = 0;
+
+		for (channel_type ch = 0, last = numOfChannels(); ch < last; ch++) {
+			if (SignalInfoRawData::timeTrigger(*signalInfo, ch)) {
+				if (triggers.count(ch) > 0) {
+					distance_type dist = timestampDiff(triggerTimestamps[ch],
+							timestamp(info)) * samplesPerTimeTick()
+							- triggers[ch];
+					if (!tm || tm > dist) {
+						tm = dist;
+					}
+				}
+			}
 		}
+
+		result += tm;
 	}
 
 	auto const maxTime = signalInfo ? signalInfo->maxTime : MAX_POSITION;

@@ -35,12 +35,9 @@ uint32_t SignalInfoRawData::frontLength(SignalInfoBank const& si) {
 
 }
 
-int SignalInfoRawData::triggerChannel(SignalInfoBank const& si) {
+uint8_t SignalInfoRawData::timeTriggers(SignalInfoBank const& si) {
 
-	// TODO
-	return -1;
-//	return si.pattern.bits.triggerChannel < 0 ?
-//			-1 : si.pattern.bits.triggerChannel;
+	return si.pattern.bits.timeTriggers;
 
 }
 
@@ -60,6 +57,13 @@ bool SignalInfoRawData::triggerDisabled(SignalInfoBank const& si,
 		uint8_t const triggerChannel) {
 
 	return 0 != (si.pattern.bits.disabledTriggers & (0x01 << triggerChannel));
+
+}
+
+bool SignalInfoRawData::timeTrigger(SignalInfoBank const& si,
+		uint8_t const channel) {
+
+	return 0 != (si.pattern.bits.timeTriggers & (0x01 << channel));
 
 }
 

@@ -52,10 +52,6 @@ private:
 	channel_no_type CurrentTrigger(
 			::util::caen::DigitizerInfoRawData const& info) const;
 
-	channel_no_type ChannelTrigger(
-			::util::caen::DigitizerInfoRawData const& info,
-			::util::SignalInfoBank const* signalInfo) const;
-
 	std::pair<bool, ::util::TWaveFormRawData::value_type> HasPeaks(
 			::util::TWaveFormRawData::const_iterator_type wfBegin,
 			::util::TWaveFormRawData::const_iterator_type wfEnd,
