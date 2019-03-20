@@ -150,6 +150,12 @@ void DigitizerWaveform::AnalyzeWaveform(
 
 	using util::SignalInfoRawData;
 
+	if (signalInfo
+			&& SignalInfoRawData::triggerDisabled(*signalInfo,
+					CurrentTrigger(info))) {
+		return;
+	}
+
 	auto const frontLength =
 			signalInfo ?
 					SignalInfoRawData::frontLength(*signalInfo) :

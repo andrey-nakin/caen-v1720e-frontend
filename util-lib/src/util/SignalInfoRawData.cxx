@@ -54,4 +54,12 @@ bool SignalInfoRawData::rising(SignalInfoBank const& si) {
 
 }
 
+bool SignalInfoRawData::triggerDisabled(SignalInfoBank const&,
+		uint8_t const /* triggerChannel */) {
+
+	// TODO
+	return false;
+
+}
+
 }

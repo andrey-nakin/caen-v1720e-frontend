@@ -20,6 +20,7 @@ public:
 	static int triggerChannel(SignalInfoBank const&);
 	static int16_t threshold(SignalInfoBank const&);
 	static bool rising(SignalInfoBank const&);
+	static bool triggerDisabled(SignalInfoBank const&, uint8_t triggerChannel);
 
 };
 
