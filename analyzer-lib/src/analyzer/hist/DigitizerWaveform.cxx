@@ -167,8 +167,6 @@ void DigitizerWaveform::AnalyzeWaveform(
 						SignalInfoRawData::length(*signalInfo) :
 						DEF_SIGNAL_LENGTH;
 		auto const triggerChannel = ChannelTrigger(info, signalInfo);
-		auto const wfStat = math::MakeStatAccum(wfBegin, wfEnd);
-		auto const zeroLevel = wfStat.GetRoughMean();
 		auto const feIndex = frontendIndex(info.info().frontendIndex);
 		auto const preTriggerLength =
 				info.hasTriggerSettings() ? info.preTriggerLength() : 0;
@@ -185,6 +183,8 @@ void DigitizerWaveform::AnalyzeWaveform(
 			if (position >= 0) {
 				FillPositionHist(ph, position, preTriggerLength);
 
+				auto const zeroLevel = math::MakeStatAccum(wfBegin, wfEnd, i,
+						i + peakLength).GetRoughMean();
 				decltype(zeroLevel) const ampAdjusted =
 						rising ? *i - zeroLevel : zeroLevel - *i;
 				auto const amplitude = std::min(ampAdjusted, maxSampleValue());
