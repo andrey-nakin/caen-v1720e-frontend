@@ -1,5 +1,4 @@
 #include "fe/Frontend.hxx"
-
 #include <midas/odb.hxx>
 #include <midas/exception.hxx>
 #include "util/FrontEndUtils.hxx"
@@ -110,7 +109,6 @@ INT Frontend::pollEvent(INT const /* source */, INT const /* count */,
 
 	if (!result) {
 		doNoData();
-		doYield();
 	}
 
 	return result && !test;
@@ -144,43 +142,43 @@ INT Frontend::onStop(INT const run_number, char* const error) {
 
 void Frontend::doInit() {
 
-	// null implementation
+// null implementation
 
 }
 
 void Frontend::doExit() {
 
-	// null implementation
+// null implementation
 
 }
 
 void Frontend::doBeginOfRun(INT /* run_number */, char* /* error */) {
 
-	// null implementation
+// null implementation
 
 }
 
 void Frontend::doEndOfRun(INT /* run_number */, char* /* error */) {
 
-	// null implementation
+// null implementation
 
 }
 
 void Frontend::doPauseRun(INT /* run_number */, char* /* error */) {
 
-	// null implementation
+// null implementation
 
 }
 
 void Frontend::doResumeRun(INT /* run_number */, char* /* error */) {
 
-	// null implementation
+// null implementation
 
 }
 
 void Frontend::doLoop() {
 
-	// null implementation
+// null implementation
 
 }
 
@@ -198,7 +196,7 @@ int Frontend::doReadEvent(char* /* pevent */, int /* off */) {
 
 void Frontend::doOnStop(INT /* run_number */, char* /* error */) {
 
-	// null implementation
+// null implementation
 
 }
 
@@ -250,13 +248,13 @@ void Frontend::doFirstRun() {
 
 void Frontend::doNoData() {
 
-	ss_sleep(equipment[0].info.period);
+	ss_sleep(getSleepPeriod());
 
 }
 
-void Frontend::doYield() {
+unsigned Frontend::getSleepPeriod() {
 
-	// null implementation
+	return equipment[0].info.period;
 
 }
 

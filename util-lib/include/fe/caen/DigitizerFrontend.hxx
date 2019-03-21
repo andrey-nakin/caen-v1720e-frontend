@@ -28,6 +28,7 @@ constexpr bool triggerChannel = false;
 constexpr uint32_t triggerThreshold = 1000;
 constexpr bool triggerRaisingPolarity = false;
 constexpr bool testMode = false;
+constexpr uint64_t yieldPeriod = 250;
 
 namespace channel {
 
@@ -95,6 +96,7 @@ protected:
 	DigitizerFrontend();
 
 	std::atomic_bool acquisitionIsOn;
+	uint64_t prevYieldTime;
 	std::unique_ptr<::caen::Device> device;
 	CAEN_DGTZ_BoardInfo_t boardInfo;
 	uint32_t preTriggerLength;
@@ -107,7 +109,8 @@ protected:
 	std::vector<uint32_t> signalLengths;
 	std::vector<bool> signalRisingPolarities;
 	std::vector<int16_t> signalThresholds;
-	std::vector<uint32_t> signalMaxTimes;bool testMode;
+	std::vector<uint32_t> signalMaxTimes;
+	bool testMode;
 
 	virtual uint32_t getMaxRecordLength() const = 0;
 	virtual uint32_t getMaxSampleValue() const = 0;
@@ -134,7 +137,7 @@ private:
 	int doPollSynchronized() override;
 	int doReadEventSynchronized(char* pevent, int off) override;
 	void doOnStopSynchronized(INT run_number, char* error) override;
-	void doYieldSynchronized() override;
+	void doLoopSynchronized() override;
 
 	virtual ::caen::Handle connect();
 	virtual void checkBoardInfo(CAEN_DGTZ_BoardInfo_t const& boardInfo);
@@ -153,6 +156,7 @@ private:
 
 	virtual int parseEvent(char* pevent, CAEN_DGTZ_EventInfo_t const& eventInfo,
 			CAEN_DGTZ_UINT16_EVENT_t const& event);
+	virtual void configureInRuntime(::caen::Handle& hDevice);
 
 };
 

@@ -53,13 +53,6 @@ void SynchronizedFrontend::doLoop() {
 
 }
 
-void SynchronizedFrontend::doYield() {
-
-	std::lock_guard<decltype(mutex)> lock(mutex);
-	doYieldSynchronized();
-
-}
-
 int SynchronizedFrontend::doPoll() {
 
 	std::lock_guard<decltype(mutex)> lock(mutex);
@@ -123,12 +116,6 @@ void SynchronizedFrontend::doResumeRunSynchronized(INT /* run_number */,
 void SynchronizedFrontend::doLoopSynchronized() {
 
 	// null implementation
-}
-
-void SynchronizedFrontend::doYieldSynchronized() {
-
-	// null implementation
-
 }
 
 int SynchronizedFrontend::doPollSynchronized() {

@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstring>
 #include <sstream>
 #include <fe/caen/DigitizerFrontend.hxx>
@@ -15,7 +16,7 @@ namespace fe {
 namespace caen {
 
 DigitizerFrontend::DigitizerFrontend() :
-		acquisitionIsOn(false) {
+		acquisitionIsOn(false), prevYieldTime(0) {
 
 }
 
@@ -121,44 +122,21 @@ void DigitizerFrontend::doOnStopSynchronized(INT /* run_number */,
 
 }
 
-void DigitizerFrontend::doYieldSynchronized() {
+static uint64_t systemTime() {
+
+	auto const now = std::chrono::system_clock::now();
+	auto const duration = now.time_since_epoch();
+	return std::chrono::duration_cast < std::chrono::milliseconds
+			> (duration).count();
+}
+
+void DigitizerFrontend::doLoopSynchronized() {
 
 	if (testMode && device) {
-		auto& hDevice = device->getHandle();
-
-		auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
-
-		auto const currentDcOffsets = odb::getValueUInt16V(hDB, hSet,
-				settings::channelDcOffset, boardInfo.Channels,
-				defaults::channel::dcOffset, true);
-		if (!util::VectorComparator::equal(currentDcOffsets, dcOffsets)) {
-			dcOffsets = currentDcOffsets;
-
-			for (std::size_t ch = 0; ch < boardInfo.Channels; ch++) {
-				if (dcOffsets.size() >= ch) {
-					hDevice.hCommand("setting channel DC offset",
-							[this, ch](int handle) {
-								return CAEN_DGTZ_SetChannelDCOffset(handle, ch, dcOffsets[ch]);
-							});
-				}
-			}
-		}
-
-		auto const currentTriggerThreshold = odb::getValueUInt32V(hDB, hSet,
-				settings::triggerThreshold, boardInfo.Channels,
-				defaults::triggerThreshold, true);
-		if (!util::VectorComparator::equal(currentTriggerThreshold,
-				triggerThreshold)) {
-			triggerThreshold = currentTriggerThreshold;
-
-			for (std::size_t ch = 0; ch < boardInfo.Channels; ch++) {
-				if (triggerThreshold.size() >= ch) {
-					hDevice.hCommand("setting channel trigger threshold",
-							[this, ch](int handle) {
-								return CAEN_DGTZ_SetChannelTriggerThreshold(handle, ch, triggerThreshold[ch]);
-							});
-				}
-			}
+		auto const now = systemTime();
+		if (now - prevYieldTime >= defaults::yieldPeriod) {
+			configureInRuntime(device->getHandle());
+			prevYieldTime = now;
 		}
 	}
 
@@ -534,6 +512,45 @@ uint32_t DigitizerFrontend::channelMask(std::vector<bool> const& channelState) {
 	}
 
 	return channelMask;
+
+}
+
+void DigitizerFrontend::configureInRuntime(::caen::Handle& hDevice) {
+
+	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
+
+	auto const currentDcOffsets = odb::getValueUInt16V(hDB, hSet,
+			settings::channelDcOffset, boardInfo.Channels,
+			defaults::channel::dcOffset, true);
+	if (!util::VectorComparator::equal(currentDcOffsets, dcOffsets)) {
+		dcOffsets = currentDcOffsets;
+
+		for (std::size_t ch = 0; ch < boardInfo.Channels; ch++) {
+			if (dcOffsets.size() >= ch) {
+				hDevice.hCommand("setting channel DC offset",
+						[this, ch](int handle) {
+							return CAEN_DGTZ_SetChannelDCOffset(handle, ch, dcOffsets[ch]);
+						});
+			}
+		}
+	}
+
+	auto const currentTriggerThreshold = odb::getValueUInt32V(hDB, hSet,
+			settings::triggerThreshold, boardInfo.Channels,
+			defaults::triggerThreshold, true);
+	if (!util::VectorComparator::equal(currentTriggerThreshold,
+			triggerThreshold)) {
+		triggerThreshold = currentTriggerThreshold;
+
+		for (std::size_t ch = 0; ch < boardInfo.Channels; ch++) {
+			if (triggerThreshold.size() >= ch) {
+				hDevice.hCommand("setting channel trigger threshold",
+						[this, ch](int handle) {
+							return CAEN_DGTZ_SetChannelTriggerThreshold(handle, ch, triggerThreshold[ch]);
+						});
+			}
+		}
+	}
 
 }
 

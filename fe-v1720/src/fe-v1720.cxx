@@ -11,7 +11,7 @@ const char *frontend_name = "fe-" EQUIP_NAME;
 const char *frontend_file_name = __FILE__;
 
 /* frontend_loop is called periodically if this variable is TRUE    */
-BOOL frontend_call_loop = FALSE;
+BOOL frontend_call_loop = TRUE;
 
 /* a frontend status page is displayed with this frequency in ms */
 INT display_period = 1000;
