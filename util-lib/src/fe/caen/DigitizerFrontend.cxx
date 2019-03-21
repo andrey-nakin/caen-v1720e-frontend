@@ -120,6 +120,14 @@ void DigitizerFrontend::doOnStopSynchronized(INT /* run_number */,
 
 }
 
+void DigitizerFrontend::doYieldSynchronized() {
+
+	if (testMode) {
+		// TODO
+	}
+
+}
+
 ::caen::Handle DigitizerFrontend::connect() {
 
 	// save reference to settings tree
@@ -331,6 +339,9 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 	hDevice.hCommand("setting acquisition mode", [](int handle) {
 		return CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED);
 	});
+
+	testMode = odb::getValueBool(hDB, hSet, settings::testMode,
+			defaults::testMode, true);
 
 }
 

@@ -27,6 +27,7 @@ constexpr uint32_t recordLength = 1024;
 constexpr bool triggerChannel = false;
 constexpr uint32_t triggerThreshold = 1000;
 constexpr bool triggerRaisingPolarity = false;
+constexpr bool testMode = false;
 
 namespace channel {
 
@@ -72,6 +73,7 @@ constexpr char channelDcOffset[] = "channel_dc_offset";
 constexpr char triggerChannel[] = "trigger_channel";
 constexpr char triggerThreshold[] = "trigger_threshold";
 constexpr char triggerRaisingPolarity[] = "trigger_raising_polarity";
+constexpr char testMode[] = "test_mode";
 
 namespace signal {
 
@@ -105,7 +107,7 @@ protected:
 	std::vector<uint32_t> signalLengths;
 	std::vector<bool> signalRisingPolarities;
 	std::vector<int16_t> signalThresholds;
-	std::vector<uint32_t> signalMaxTimes;
+	std::vector<uint32_t> signalMaxTimes;bool testMode;
 
 	virtual uint32_t getMaxRecordLength() const = 0;
 	virtual uint32_t getMaxSampleValue() const = 0;
@@ -132,6 +134,7 @@ private:
 	int doPollSynchronized() override;
 	int doReadEventSynchronized(char* pevent, int off) override;
 	void doOnStopSynchronized(INT run_number, char* error) override;
+	void doYieldSynchronized() override;
 
 	virtual ::caen::Handle connect();
 	virtual void checkBoardInfo(CAEN_DGTZ_BoardInfo_t const& boardInfo);

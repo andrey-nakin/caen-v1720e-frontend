@@ -15,6 +15,7 @@ private:
 	void doPauseRun(INT run_number, char* error) override;
 	void doResumeRun(INT run_number, char* error) override;
 	void doLoop() override;
+	void doYield() override;
 	int doPoll() override;
 	int doReadEvent(char* pevent, int off) override;
 	void doOnStop(INT run_number, char* error) override;
@@ -27,6 +28,7 @@ private:
 	virtual void doPauseRunSynchronized(INT run_number, char* error);
 	virtual void doResumeRunSynchronized(INT run_number, char* error);
 	virtual void doLoopSynchronized();
+	virtual void doYieldSynchronized();
 	virtual int doPollSynchronized();
 	virtual int doReadEventSynchronized(char* pevent, int off);
 	virtual void doOnStopSynchronized(INT run_number, char* error);

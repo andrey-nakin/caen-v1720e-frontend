@@ -40,6 +40,7 @@ private:
 	virtual void doResumeRun(INT run_number, char* error);
 	virtual void doLoop();
 	virtual void doNoData();
+	virtual void doYield();
 	virtual int doPoll();
 	virtual int doReadEvent(char* pevent, int off);
 	virtual void doOnStop(INT run_number, char* error);

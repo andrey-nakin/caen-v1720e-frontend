@@ -110,6 +110,7 @@ INT Frontend::pollEvent(INT const /* source */, INT const /* count */,
 
 	if (!result) {
 		doNoData();
+		doYield();
 	}
 
 	return result && !test;
@@ -250,6 +251,12 @@ void Frontend::doFirstRun() {
 void Frontend::doNoData() {
 
 	ss_sleep(equipment[0].info.period);
+
+}
+
+void Frontend::doYield() {
+
+	// null implementation
 
 }
 
