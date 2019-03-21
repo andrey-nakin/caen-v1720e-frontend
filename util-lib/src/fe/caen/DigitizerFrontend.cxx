@@ -93,6 +93,7 @@ void DigitizerFrontend::doResumeRunSynchronized(INT /* run_number */,
 
 int DigitizerFrontend::doPollSynchronized() {
 
+	doLoopSynchronized();
 	return acquisitionIsOn.load(std::memory_order_relaxed)
 			&& device->hasNextEvent() ? TRUE : FALSE;
 

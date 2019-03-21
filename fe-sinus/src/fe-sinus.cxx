@@ -60,7 +60,7 @@ int readEvent(char *pevent, int off);
 
 EQUIPMENT equipment[] = { { EQUIP_NAME, { EVID, (1 << EVID), /* event ID, trigger mask */
 "SYSTEM", /* event buffer */
-EQ_PERIODIC, /* equipment type */
+EQ_MULTITHREAD, /* equipment type */
 0, /* event source */
 "MIDAS", /* format */
 TRUE, /* enabled */
@@ -137,13 +137,12 @@ private:
 	}
 
 	void configureInRuntime() {
-
 		auto const hSet = util::FrontEndUtils::settingsKey(EQUIP_NAME);
 		auto const currentDcOffsets = odb::getValueUInt16V(hDB, hSet,
 				"channel_dc_offset", NUM_OF_CHANNELS,
 				defaults::channel::dcOffset, true);
-		if (util::VectorComparator::equal(currentDcOffsets, dcOffsets)) {
-			cm_msg(MDEBUG, frontend_name, "DC offset changed");
+		if (!util::VectorComparator::equal(currentDcOffsets, dcOffsets)) {
+			cm_msg(MINFO, frontend_name, "DC offset changed");
 			dcOffsets = currentDcOffsets;
 		}
 
@@ -294,6 +293,8 @@ protected:
 
 	int doPollSynchronized() override {
 
+		doLoopSynchronized();
+		ss_sleep(equipment[0].info.period);
 		return TRUE;
 
 	}
@@ -314,6 +315,7 @@ protected:
 
 	void doLoopSynchronized() override {
 		auto const now = msTime();
+
 		if (now - prevYieldTime >= defaults::yieldPeriod) {
 			configureInRuntime();
 			prevYieldTime = now;
