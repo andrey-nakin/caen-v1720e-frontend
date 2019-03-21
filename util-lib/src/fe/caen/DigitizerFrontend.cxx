@@ -123,6 +123,12 @@ void DigitizerFrontend::doOnStopSynchronized(INT /* run_number */,
 void DigitizerFrontend::doYieldSynchronized() {
 
 	if (testMode) {
+		auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
+
+		auto const currentDcOffsets = odb::getValueUInt16V(hDB, hSet,
+				settings::channelDcOffset, boardInfo.Channels,
+				defaults::channel::dcOffset, true);
+
 		// TODO
 	}
 
