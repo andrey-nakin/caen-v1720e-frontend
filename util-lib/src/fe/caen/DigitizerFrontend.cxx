@@ -7,6 +7,7 @@
 #include <util/TDcOffsetRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
 #include <util/SignalInfoRawData.hxx>
+#include <util/VectorComparator.hxx>
 #include <midas/odb.hxx>
 
 namespace fe {
@@ -122,14 +123,44 @@ void DigitizerFrontend::doOnStopSynchronized(INT /* run_number */,
 
 void DigitizerFrontend::doYieldSynchronized() {
 
-	if (testMode) {
+	if (testMode && device) {
+		auto& hDevice = device->getHandle();
+
 		auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
 
 		auto const currentDcOffsets = odb::getValueUInt16V(hDB, hSet,
 				settings::channelDcOffset, boardInfo.Channels,
 				defaults::channel::dcOffset, true);
+		if (!util::VectorComparator::equal(currentDcOffsets, dcOffsets)) {
+			dcOffsets = currentDcOffsets;
 
-		// TODO
+			for (std::size_t ch = 0; ch < boardInfo.Channels; ch++) {
+				if (dcOffsets.size() >= ch) {
+					hDevice.hCommand("setting channel DC offset",
+							[this, ch](int handle) {
+								return CAEN_DGTZ_SetChannelDCOffset(handle, ch, dcOffsets[ch]);
+							});
+				}
+			}
+		}
+
+		auto const currentTriggerThreshold = odb::getValueUInt32V(hDB, hSet,
+				settings::triggerThreshold, boardInfo.Channels,
+				defaults::triggerThreshold, true);
+		if (!util::VectorComparator::equal(currentTriggerThreshold,
+				triggerThreshold)) {
+			triggerThreshold = currentTriggerThreshold;
+
+			for (std::size_t ch = 0; ch < boardInfo.Channels; ch++) {
+				if (triggerThreshold.size() >= ch) {
+					hDevice.hCommand("setting channel trigger threshold",
+							[this, ch](int handle) {
+								return CAEN_DGTZ_SetChannelTriggerThreshold(handle, ch, triggerThreshold[ch]);
+							});
+				}
+			}
+
+		}
 	}
 
 }
