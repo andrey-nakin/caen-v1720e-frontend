@@ -6,6 +6,7 @@
 #include <util/TDcOffsetRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
 #include <util/caen/V1720InfoRawData.hxx>
+#include <util/VectorComparator.hxx>
 #include <midas/odb.hxx>
 #include "defaults.hxx"
 
@@ -85,12 +86,13 @@ class SinusFrontend: public fe::SynchronizedFrontend {
 public:
 
 	SinusFrontend() :
-			acquisitionIsOn(false) {
+			acquisitionIsOn(false), prevYieldTime(0) {
 	}
 
 private:
 
 	std::atomic_bool acquisitionIsOn;
+	uint64_t prevYieldTime;
 	uint32_t recordLength = 0;
 	midas_thread_t readoutThread;
 	std::mutex readingMutex;
@@ -134,7 +136,28 @@ private:
 
 	}
 
-	uint64_t nanoTime() {
+	void configureInRuntime() {
+
+		auto const hSet = util::FrontEndUtils::settingsKey(EQUIP_NAME);
+		auto const currentDcOffsets = odb::getValueUInt16V(hDB, hSet,
+				"channel_dc_offset", NUM_OF_CHANNELS,
+				defaults::channel::dcOffset, true);
+		if (util::VectorComparator::equal(currentDcOffsets, dcOffsets)) {
+			cm_msg(MDEBUG, frontend_name, "DC offset changed");
+			dcOffsets = currentDcOffsets;
+		}
+
+	}
+
+	static uint64_t msTime() {
+
+		auto const now = std::chrono::system_clock::now();
+		auto const duration = now.time_since_epoch();
+		return std::chrono::duration_cast < std::chrono::milliseconds
+				> (duration).count();
+	}
+
+	static uint64_t nanoTime() {
 
 		std::chrono::time_point < std::chrono::system_clock > now =
 				std::chrono::system_clock::now();
@@ -287,6 +310,14 @@ protected:
 
 		return result;
 
+	}
+
+	void doLoopSynchronized() override {
+		auto const now = msTime();
+		if (now - prevYieldTime >= defaults::yieldPeriod) {
+			configureInRuntime();
+			prevYieldTime = now;
+		}
 	}
 
 };

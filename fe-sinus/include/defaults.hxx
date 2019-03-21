@@ -9,6 +9,7 @@ namespace defaults {
 constexpr uint8_t numOfChannels = 8;
 constexpr uint32_t recordLength = 1024;
 constexpr uint32_t dFrequency = 250000000;
+constexpr uint64_t yieldPeriod = 250;
 
 namespace channel {
 
