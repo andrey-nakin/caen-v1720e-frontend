@@ -159,7 +159,6 @@ void DigitizerFrontend::doYieldSynchronized() {
 							});
 				}
 			}
-
 		}
 	}
 
