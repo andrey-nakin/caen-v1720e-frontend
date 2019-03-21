@@ -6,6 +6,7 @@ var bw = {
     },
 
     digitizers : {},
+    digitizerTestModes : {},
 
     histograms : {
         WF : 'WF',
@@ -30,6 +31,24 @@ var bw = {
                 }
             }
             return res;
+        });
+    },
+
+    loadTestModes : function () {
+        var self = this, paths = [], digs = [];
+        for (dig in self.digitizers) {
+            digs.push(dig);
+            paths.push("/Equipment/" + dig + "/Settings");
+        }
+        return mjsonrpc_db_get_values(paths).then(function (rpc) {
+            var res = {};
+            for (var i = 0; i < rpc.result.data.length; i++) {
+                var s = rpc.result.data[i];
+                var tm = s["test_mode"];
+                if (tm) {
+                    self.digitizerTestModes[digs[i]] = true;
+                }
+            }
         });
     },
 
@@ -349,12 +368,19 @@ var bw = {
                 self.forceLoadChannelConfig();
             }
         });
-        var html = '<option value=""></option>';
-        for (dig in self.digitizers) {
+        var html = '<option value=""></option>', num = 0;
+        for (dig in self.digitizerTestModes) {
             html += '<option value="' + dig + '">' + dig + '</option>';
+            num++;
         }
         $("#device").html(html);
         $("#device").selectmenu("refresh");
+
+        if (num > 0) {
+            $('#deviceSetup').show();
+        } else {
+            $('#deviceSetup').hide();
+        }
 
         $("#channel").selectmenu({
             change : function (event, ui) {
@@ -439,6 +465,9 @@ var bw = {
 
         self.loadEqupments().then(function (es) {
             self.digitizers = es;
+        }).then(function () {
+            return self.loadTestModes();
+        }).then(function () {
             self.initControls();
             self.initWidgets();
         }).then(function () {
