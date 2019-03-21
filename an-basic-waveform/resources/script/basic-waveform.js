@@ -15,7 +15,8 @@ var bw = {
 
     state : {
         runNumber : null,
-        loadingChannelConfig : false
+        loadingChannelConfig : false,
+        configuringChannel : false
     },
 
     loadEqupments : function () {
@@ -83,7 +84,7 @@ var bw = {
                                         html += '<div class="bw-cell bw-right-column">';
                                         html += '<label class="ui-widget">'
                                                 + epsNum.toFixed(1)
-                                                + ' Events/sec</label>';
+                                                + ' events/sec</label>';
                                         html += '</div>';
 
                                         html += '</div>';
@@ -105,14 +106,18 @@ var bw = {
         return parseInt(s);
     },
 
+    channelSettingsKey : function (propName) {
+        return "/Equipment/" + $("#device").val() + "/Settings/"
+                + (propName ? propName : "");
+    },
+
     loadChannelConfig : function () {
         var self = this;
 
         $("#dcOffset").spinner("disable");
         $("#triggerThreshold").spinner("disable");
 
-        return mjsonrpc_db_get_values(
-                [ "/Equipment/" + $("#device").val() + "/Settings/" ]).then(
+        return mjsonrpc_db_get_values([ self.channelSettingsKey() ]).then(
                 function (rpc) {
                     self.state.loadingChannelConfig = false;
 
@@ -144,6 +149,73 @@ var bw = {
         if (!self.state.loadingChannelConfig) {
             self.loadChannelConfig();
             self.state.loadingChannelConfig = true;
+        }
+    },
+
+    configureChannel : function () {
+        console.debug("configureChannel " + $("#dcOffset").spinner("value")
+                + ' ' + $("#triggerThreshold").spinner("value"));
+        var self = this, v, paths = [], values = [], ch = $("#channel").val()
+
+        return mjsonrpc_db_get_values([ self.channelSettingsKey() ])
+                .then(
+                        function (rpc) {
+                            var settings = rpc.result.data ? rpc.result.data[0]
+                                    : null;
+                            if (settings) {
+                                var dco = settings["channel_dc_offset"];
+                                if (dco && dco.length > ch) {
+                                    v = parseInt($("#dcOffset")
+                                            .spinner("value"));
+                                    if (!isNaN(v) && v >= 0) {
+                                        paths
+                                                .push(self
+                                                        .channelSettingsKey("channel_dc_offset"));
+                                        dco[ch] = v;
+                                        values.push(dco);
+                                    }
+                                }
+
+                                var tt = settings["trigger_threshold"];
+                                if (tt && tt.length > ch) {
+                                    v = parseInt($("#triggerThreshold")
+                                            .spinner("value"));
+                                    if (!isNaN(v) && v >= 0) {
+                                        paths
+                                                .push(self
+                                                        .channelSettingsKey("trigger_threshold"));
+                                        tt[ch] = v;
+                                        values.push(tt);
+                                    }
+                                }
+                            }
+                        })
+                .then(
+                        function () {
+                            console.debug('values=' + values);
+                            if (paths.length > 0) {
+                                return mjsonrpc_db_paste(paths, values)
+                                        .then(
+                                                function (rpc) {
+                                                    self.state.configuringChannel = false;
+                                                });
+                            } else {
+                                self.state.configuringChannel = false;
+                                return new Promise(function (resolve) {
+                                    resolve();
+                                });
+                            }
+                        });
+    },
+
+    forceConfigureChannel : function () {
+        console.debug("forceConfigureChannel");
+
+        var self = this;
+
+        if (!self.state.configuringChannel) {
+            self.configureChannel();
+            self.state.configuringChannel = true;
         }
     },
 
@@ -293,20 +365,28 @@ var bw = {
         $("#dcOffset").spinner({
             min : 0,
             max : 65535,
-            step : 10,
+            step : 1,
             page : 100,
             disabled : true,
             change : function (event, ui) {
+                self.forceConfigureChannel();
+            },
+            spin : function (event, ui) {
+                self.forceConfigureChannel();
             }
         });
 
         $("#triggerThreshold").spinner({
             min : 0,
             max : 16383,
-            step : 10,
+            step : 1,
             page : 100,
             disabled : true,
             change : function (event, ui) {
+                self.forceConfigureChannel();
+            },
+            spin : function (event, ui) {
+                self.forceConfigureChannel();
             }
         });
 
