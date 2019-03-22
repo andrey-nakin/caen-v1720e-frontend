@@ -62,7 +62,7 @@ AbstractWaveform::HistType& AbstractWaveform::GetAmplitudeHist(
 
 }
 
-void AbstractWaveform::FillPositionHist(HistType& ph, unsigned const position,
+void AbstractWaveform::FillPositionHist(HistType& ph, int const position,
 		unsigned const preTriggerLength) {
 
 	if (position > ph.GetXaxis()->GetXmax()) {

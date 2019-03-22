@@ -67,7 +67,7 @@ protected:
 	HistType& GetAmplitudeHist(INT feIndex, unsigned channelNo,
 			unsigned maxValue);
 
-	void FillPositionHist(HistType& hist, unsigned position,
+	void FillPositionHist(HistType& hist, int position,
 			unsigned preTriggerLength);
 
 	template<class InputIt>
