@@ -325,15 +325,15 @@ var bw = {
         var self = this;
         if (self.state.runNumber !== runNo) {
             self.state.runNumber = runNo;
-            self.forceReloadFrame();
+            self.forceReloadFrame(1000);
         }
     },
 
-    forceReloadFrame : function () {
+    forceReloadFrame : function (delay) {
         var self = this;
         setTimeout(function () {
             self.reloadFrame();
-        });
+        }, delay);
     },
 
     initChannel : function (dig, ch) {
