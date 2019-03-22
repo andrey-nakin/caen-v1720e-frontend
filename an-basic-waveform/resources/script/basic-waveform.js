@@ -413,6 +413,9 @@ var bw = {
         });
 
         $("#triggerThreshold").change(function () {
+            if (this.select) {
+                this.select();
+            }
             self.forceConfigureChannel();
         });
 
