@@ -3,7 +3,11 @@ body {
 }
 
 fieldset {
-	margin-bottom: 0.5em;
+	margin-bottom: 1.0em;
+}
+
+fieldset legend {
+	font-weight: bold;
 }
 
 #mmain {
