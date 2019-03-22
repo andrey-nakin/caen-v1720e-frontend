@@ -391,6 +391,10 @@ var bw = {
             }
         });
 
+        $("#dcOffset").change(function () {
+            self.forceConfigureChannel();
+        });
+
         $("#dcOffset").spinner({
             min : 0,
             max : 65535,
@@ -403,6 +407,10 @@ var bw = {
             spin : function (event, ui) {
                 self.forceConfigureChannel();
             }
+        });
+
+        $("#triggerThreshold").change(function () {
+            self.forceConfigureChannel();
         });
 
         $("#triggerThreshold").spinner({
