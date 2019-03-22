@@ -392,6 +392,9 @@ var bw = {
         });
 
         $("#dcOffset").change(function () {
+            if (this.select) {
+                this.select();
+            }
             self.forceConfigureChannel();
         });
 
