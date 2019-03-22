@@ -57,15 +57,9 @@ bool DigitizerInfoRawData::extTrigger() const {
 
 }
 
-int DigitizerInfoRawData::firstSelfTriggerChannel() const {
+bool DigitizerInfoRawData::hasSelfTriggers() const {
 
-	for (int ch = 0; ch < 8; ch++) {
-		if (selfTrigger(ch)) {
-			return ch;
-		}
-	}
-
-	return -1;
+	return info().pattern.bits.channelTrigger != 0;
 
 }
 

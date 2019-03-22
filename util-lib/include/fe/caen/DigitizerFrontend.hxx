@@ -34,12 +34,18 @@ namespace channel {
 
 constexpr bool enabled = true;
 constexpr uint16_t dcOffset = 0x8000;
-constexpr uint32_t signalFrontLength = 3;
-constexpr uint32_t signalLength = 16;
-constexpr bool signalRisingPolarity = false;
-constexpr int8_t signalTriggerChannel = -1;
-constexpr int16_t signalThreshold = -7;
-constexpr uint32_t signalMaxTime = 1000000;
+
+namespace signal {
+
+constexpr uint32_t frontLength = 3;
+constexpr uint32_t length = 16;
+constexpr bool risingPolarity = false;
+constexpr uint8_t timeTriggers = 0;
+constexpr uint8_t disabledTriggers = 0;
+constexpr int16_t threshold = -7;
+constexpr uint32_t maxTime = 1000000;
+
+}
 
 }
 
@@ -79,7 +85,8 @@ constexpr char testMode[] = "test_mode";
 namespace signal {
 
 constexpr char signal[] = "Signal/";
-constexpr char triggerChannel[] = "trigger_channel";
+constexpr char timeTriggers[] = "time_triggers";
+constexpr char disabledTriggers[] = "disabled_triggers";
 constexpr char frontLength[] = "front_length";
 constexpr char length[] = "length";
 constexpr char risingPolarity[] = "rising_polarity";
@@ -104,7 +111,7 @@ protected:
 	std::vector<bool> triggerChannel;
 	std::vector<uint32_t> triggerThreshold;
 	std::vector<bool> triggerRaisingPolarity;
-	std::vector<int8_t> signalTriggerChannel;
+	std::vector<uint8_t> signalTimeTriggers, signalDisabledTriggers;
 	std::vector<uint32_t> signalFrontLengths;
 	std::vector<uint32_t> signalLengths;
 	std::vector<bool> signalRisingPolarities;

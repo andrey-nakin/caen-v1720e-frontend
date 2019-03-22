@@ -36,15 +36,23 @@ public:
 		sum2 += v * v;
 	}
 
+	bool operator==(StatAccum const& oth) const {
+
+		return counter == oth.counter && sum == oth.sum && sum2 == oth.sum2
+				&& minv == oth.minv && maxv == oth.maxv;
+
+	}
+
 	value_type GetRoughMean() const {
 
-		return static_cast<value_type>((sum + counter / 2) / counter);
+		return counter > 0 ?
+				static_cast<value_type>((sum + counter / 2) / counter) : 0;
 
 	}
 
 	double GetMean() const {
 
-		return static_cast<double>(sum) / counter;
+		return counter > 0 ? static_cast<double>(sum) / counter : 0;
 
 	}
 
@@ -113,7 +121,26 @@ template<class AccumT = int64_t, class InputIt>
 StatAccum<AccumT, InputIt> MakeStatAccum(InputIt const begin,
 		InputIt const end) {
 
-	return std::for_each(begin, end, StatAccum<AccumT, InputIt>());
+	return std::distance(begin, end) > 0 ?
+			std::for_each(begin, end, StatAccum<AccumT, InputIt>()) :
+			StatAccum<AccumT, InputIt>();
+
+}
+
+template<class AccumT = int64_t, class InputIt>
+StatAccum<AccumT, InputIt> MakeStatAccum(InputIt const begin, InputIt const end,
+		StatAccum<AccumT, InputIt> const init) {
+
+	return std::distance(begin, end) > 0 ?
+			std::for_each(begin, end, init) : init;
+
+}
+
+template<class AccumT = int64_t, class InputIt>
+StatAccum<AccumT, InputIt> MakeStatAccum(InputIt const begin, InputIt const end,
+		InputIt const excludeBegin, InputIt const excludeEnd) {
+
+	return MakeStatAccum(excludeEnd, end, MakeStatAccum(begin, excludeBegin));
 
 }
 

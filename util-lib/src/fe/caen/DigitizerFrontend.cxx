@@ -208,22 +208,25 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 	std::string const signalKey = settings::signal::signal;
 	signalFrontLengths = odb::getValueUInt32V(hDB, hSet,
 			signalKey + settings::signal::frontLength, boardInfo.Channels,
-			defaults::channel::signalFrontLength, true);
+			defaults::channel::signal::frontLength, true);
 	signalLengths = odb::getValueUInt32V(hDB, hSet,
 			signalKey + settings::signal::length, boardInfo.Channels,
-			defaults::channel::signalLength, true);
+			defaults::channel::signal::length, true);
 	signalRisingPolarities = odb::getValueBoolV(hDB, hSet,
 			signalKey + settings::signal::risingPolarity, boardInfo.Channels,
-			defaults::channel::signalRisingPolarity, true);
-	signalTriggerChannel = odb::getValueInt8V(hDB, hSet,
-			signalKey + settings::signal::triggerChannel, boardInfo.Channels,
-			defaults::channel::signalTriggerChannel, true);
+			defaults::channel::signal::risingPolarity, true);
+	signalTimeTriggers = odb::getValueUInt8V(hDB, hSet,
+			signalKey + settings::signal::timeTriggers, boardInfo.Channels,
+			defaults::channel::signal::timeTriggers, true);
+	signalDisabledTriggers = odb::getValueUInt8V(hDB, hSet,
+			signalKey + settings::signal::disabledTriggers, boardInfo.Channels,
+			defaults::channel::signal::disabledTriggers, true);
 	signalThresholds = odb::getValueInt16V(hDB, hSet,
 			signalKey + settings::signal::threshold, boardInfo.Channels,
-			defaults::channel::signalThreshold, true);
+			defaults::channel::signal::threshold, true);
 	signalMaxTimes = odb::getValueUInt32V(hDB, hSet,
 			signalKey + settings::signal::maxTime, boardInfo.Channels,
-			defaults::channel::signalMaxTime, true);
+			defaults::channel::signal::maxTime, true);
 
 	triggerChannel = odb::getValueBoolV(hDB, hSet, settings::triggerChannel,
 			boardInfo.Channels, defaults::triggerChannel, true);
@@ -451,8 +454,9 @@ void DigitizerFrontend::storeSignalInfoBank(char* pevent) {
 			(void**) &pdata);
 	for (unsigned i = 0; i < boardInfo.Channels; i++) {
 		util::fillSignalInfo(*pdata, signalLengths[i], signalFrontLengths[i],
-				signalTriggerChannel[i], signalThresholds[i],
-				signalRisingPolarities[i], signalMaxTimes[i]);
+				signalTimeTriggers[i], signalDisabledTriggers[i],
+				signalThresholds[i], signalRisingPolarities[i],
+				signalMaxTimes[i]);
 		pdata++;
 	}
 	bk_close(pevent, pdata);

@@ -52,18 +52,14 @@ private:
 	channel_no_type CurrentTrigger(
 			::util::caen::DigitizerInfoRawData const& info) const;
 
-	channel_no_type ChannelTrigger(
-			::util::caen::DigitizerInfoRawData const& info,
-			::util::SignalInfoBank const* signalInfo) const;
-
 	std::pair<bool, ::util::TWaveFormRawData::value_type> HasPeaks(
 			::util::TWaveFormRawData::const_iterator_type wfBegin,
 			::util::TWaveFormRawData::const_iterator_type wfEnd,
 			::util::SignalInfoBank const* signalInfo, wflength_type frontLength,
 			bool rising) const;
 
-	distance_type CalcPosition(::util::caen::DigitizerInfoRawData const& info,
-			distance_type wfPos, channel_no_type triggerChannel,
+	std::pair<bool, distance_type> CalcPosition(
+			::util::caen::DigitizerInfoRawData const& info, distance_type wfPos,
 			::util::SignalInfoBank const* signalInfo);
 
 	void AnalyzeWaveform(::util::caen::DigitizerInfoRawData const& info,
@@ -74,6 +70,13 @@ private:
 
 	void DetectTrigger(TDataContainer &dataContainer,
 			::util::caen::DigitizerInfoRawData const& info);
+
+	void AddTimeAmplitude(::util::caen::DigitizerInfoRawData const& info,
+			::util::TWaveFormRawData::const_iterator_type wfBegin,
+			::util::TWaveFormRawData::const_iterator_type wfEnd, HistType& ph,
+			HistType& ah, ::util::SignalInfoBank const* signalInfo,
+			uint32_t preTriggerLength, uint32_t peakLength, bool rising,
+			::util::TWaveFormRawData::const_iterator_type i);
 
 	static TimestampOp::value_type timestamp(
 			::util::caen::DigitizerInfoRawData const& info) {

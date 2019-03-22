@@ -17,9 +17,11 @@ public:
 
 	static uint32_t length(SignalInfoBank const&);
 	static uint32_t frontLength(SignalInfoBank const&);
-	static int triggerChannel(SignalInfoBank const&);
+	static uint8_t timeTriggers(SignalInfoBank const&);
 	static int16_t threshold(SignalInfoBank const&);
 	static bool rising(SignalInfoBank const&);
+	static bool triggerDisabled(SignalInfoBank const&, uint8_t triggerChannel);
+	static bool timeTrigger(SignalInfoBank const&, uint8_t triggerChannel);
 
 };
 

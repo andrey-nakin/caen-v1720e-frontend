@@ -27,7 +27,7 @@ public:
 
 	bool extTrigger() const;
 
-	int firstSelfTriggerChannel() const;
+	bool hasSelfTriggers() const;
 
 private:
 
