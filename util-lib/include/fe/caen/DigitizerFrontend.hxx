@@ -163,6 +163,7 @@ private:
 
 	virtual int parseEvent(char* pevent, CAEN_DGTZ_EventInfo_t const& eventInfo,
 			CAEN_DGTZ_UINT16_EVENT_t const& event);
+	void checkTestMode();
 	virtual void configureInRuntime(::caen::Handle& hDevice);
 
 };

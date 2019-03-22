@@ -93,7 +93,8 @@ void DigitizerFrontend::doResumeRunSynchronized(INT /* run_number */,
 
 int DigitizerFrontend::doPollSynchronized() {
 
-	doLoopSynchronized();
+	checkTestMode();
+
 	return acquisitionIsOn.load(std::memory_order_relaxed)
 			&& device->hasNextEvent() ? TRUE : FALSE;
 
@@ -133,13 +134,7 @@ static uint64_t systemTime() {
 
 void DigitizerFrontend::doLoopSynchronized() {
 
-	if (testMode && device) {
-		auto const now = systemTime();
-		if (now - prevYieldTime >= defaults::yieldPeriod) {
-			configureInRuntime(device->getHandle());
-			prevYieldTime = now;
-		}
-	}
+	checkTestMode();
 
 }
 
@@ -517,6 +512,18 @@ uint32_t DigitizerFrontend::channelMask(std::vector<bool> const& channelState) {
 	}
 
 	return channelMask;
+
+}
+
+void DigitizerFrontend::checkTestMode() {
+
+	if (testMode && device) {
+		auto const now = systemTime();
+		if (now - prevYieldTime >= defaults::yieldPeriod) {
+			configureInRuntime(device->getHandle());
+			prevYieldTime = now;
+		}
+	}
 
 }
 
