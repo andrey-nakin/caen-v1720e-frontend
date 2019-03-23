@@ -21,6 +21,35 @@ var bw = {
         configuringChannelQueued : false
     },
 
+    loadExperiment : function () {
+        var self = this;
+        return mjsonrpc_db_get_values([ "/Experiment" ]).then(function (rpc) {
+            self.config.experiment = rpc.result.data[0];
+            self.updateExperimentInfo();
+            self.updateRunInfo();
+        });
+    },
+
+    updateExperimentInfo : function () {
+        var self = this;
+        document.title = self.config.experiment['name'] + ' - '
+                + document.title;
+    },
+
+    updateRunInfo : function () {
+        var self = this, s = '';
+        if (self.config.experiment && self.config.experiment['name']) {
+            s = 'Exp ' + self.config.experiment['name'];
+        }
+        if (self.state.runNumber) {
+            if (s) {
+                s += ' / ';
+            }
+            s += 'run #' + self.state.runNumber;
+        }
+        $('#runInfo').text(s);
+    },
+
     loadEqupments : function () {
         return mjsonrpc_db_get_values([ "/Equipment" ]).then(function (rpc) {
             var res = {};
@@ -69,8 +98,11 @@ var bw = {
     },
 
     getRunNumber : function () {
+        var self = this;
+
         return mjsonrpc_db_get_values([ "/Runinfo" ]).then(function (rpc) {
             var runinfo = rpc.result.data[0];
+            self.config.run = rpc.result.data;
             return runinfo["run number"];
         });
     },
@@ -329,6 +361,7 @@ var bw = {
         if (self.state.runNumber !== runNo) {
             self.state.runNumber = runNo;
             self.forceReloadFrame(1000);
+            self.updateRunInfo();
         }
     },
 
@@ -480,7 +513,9 @@ var bw = {
     init : function () {
         var self = this;
 
-        self.loadEqupments().then(function (es) {
+        self.loadExperiment().then(function () {
+            return self.loadEqupments();
+        }).then(function (es) {
             self.digitizers = es;
         }).then(function () {
             return self.loadTestModes();
