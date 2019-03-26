@@ -1,9 +1,9 @@
 var nu = {
 
     parseNumber : function (s) {
-    	if (typeof(s) === 'number') {
-    		return s;
-    	}
+        if (typeof (s) === 'number') {
+            return s;
+        }
         if (!s) {
             return 0;
         }
@@ -20,5 +20,5 @@ var nu = {
         }
         return result;
     }
-    
+
 };

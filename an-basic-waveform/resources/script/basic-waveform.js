@@ -51,21 +51,10 @@ var bw = {
     },
 
     loadTestModes : function () {
-        var self = this, paths = [], digs = [];
-        for (dig in self.digitizers) {
-            digs.push(dig);
-            paths.push("/Equipment/" + dig + "/Settings");
-        }
-        return mjsonrpc_db_get_values(paths).then(function (rpc) {
-            var res = {};
-            for (var i = 0; i < rpc.result.data.length; i++) {
-                var s = rpc.result.data[i];
-                var tm = s["test_mode"];
-                if (tm) {
-                    self.digitizerTestModes[digs[i]] = true;
-                }
-            }
-        });
+        return odb.loadBooleanSettings(self.digitizers, "test_mode").then(
+                function (data) {
+                    self.digitizerTestModes = data;
+                });
     },
 
     detectAnalyzerPort : function () {
@@ -85,7 +74,10 @@ var bw = {
 
     getEquipStatistics : function () {
         var self = this;
-        return odb.loadEqupmentStatistics(self.digitizers).then(function(data) {
+        return odb
+                .loadEqupmentStatistics(self.digitizers)
+                .then(
+                        function (data) {
                             var html = '';
 
                             for (var i = 0; i < data.data.length; i++) {
@@ -115,11 +107,19 @@ var bw = {
     },
 
     channelSettingsKey : function (propName) {
-    	var ch = $("#channel").val();
-    	if (ch) {
-    		ch = ch.split(':')[0];
-    	}
+        var ch = $("#channel").val();
+        if (ch) {
+            ch = ch.split(':')[0];
+        }
         return odb.getEquipmentSettingsKey(ch, propName);
+    },
+
+    getCurrentChannelNo : function () {
+        var s = $("#channel").val();
+        if (s) {
+            return parseInt(ch.split(':')[1]);
+        }
+        return null;
     },
 
     loadChannelConfig : function () {
@@ -133,9 +133,8 @@ var bw = {
                 function (rpc) {
                     self.state.loadingChannelConfig = false;
 
-                    var ch = $("#channel").val();
-                    if (ch !== '') {
-                    	ch = parseInt(ch.split(':')[1]);
+                    var ch = self.getCurrentChannelNo();
+                    if (!isNaN(ch)) {
                         var settings = rpc.result.data ? rpc.result.data[0]
                                 : null;
                         if (settings) {
@@ -152,7 +151,7 @@ var bw = {
                                 $("#triggerThreshold").spinner("value",
                                         nu.parseNumber(tt[ch]));
                             }
-                            
+
                             var st = settings["signal"].threshold;
                             if (st && st.length > ch) {
                                 $("#signalThreshold").spinner("enable");
@@ -173,7 +172,8 @@ var bw = {
     },
 
     getChannelConfigurationFromWidgets : function (rpc) {
-        var self = this, v, paths = [], values = [], ch = parseInt($("#channel").val().split(':')[1]);
+        var self = this, v, paths = [], values = [], ch = self
+                .getCurrentChannelNo();
         var settings = rpc.result.data ? rpc.result.data[0] : null;
 
         if (!isNaN(ch) && settings) {
@@ -196,7 +196,7 @@ var bw = {
                     values.push(tt);
                 }
             }
-            
+
             var st = settings["signal"].threshold;
             if (st && st.length > ch) {
                 v = parseInt($("#signalThreshold").spinner("value"));
@@ -376,12 +376,13 @@ var bw = {
         });
         var html = '<option value=""></option>', num = 0;
         for (dig in self.digitizerTestModes) {
-			html += '<optgroup label="' + dig + '">';
-			for (var ch  = 0; ch < 8; ch++) {
-				html += '<option value="' + dig + ':' + ch + '">' + dig + ' / ' + ch + '</option>';
-			}
+            html += '<optgroup label="' + dig + '">';
+            for (var ch = 0; ch < 8; ch++) {
+                html += '<option value="' + dig + ':' + ch + '">' + dig + ' / '
+                        + ch + '</option>';
+            }
             num++;
-			html += '</optgroup>';
+            html += '</optgroup>';
         }
         $("#channel").html(html);
         $("#channel").selectmenu("refresh");
