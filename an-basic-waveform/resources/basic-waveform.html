@@ -21,9 +21,9 @@
 <script type="text/javascript" src="script/number-utils.js"></script>
 <script type="text/javascript" src="script/basic-waveform.js"></script>
 <script type="text/javascript">
-$(document).ready(function () {
-    bw.init();
-});
+    $(document).ready(function () {
+        bw.init();
+    });
 </script>
 
 </head>
@@ -113,7 +113,8 @@ $(document).ready(function () {
 						</div>
 						<div class="bw-row">
 							<div class="bw-cell bw-left-column">
-								<label class="ui-widget" for="dcOffset">DC Offset:</label>
+								<label class="ui-widget bw-disabled" for="dcOffset"
+									id="dcOffsetLabel">DC Offset:</label>
 							</div>
 							<div class="bw-cell bw-right-column">
 								<input id="dcOffset" style="width: 12ex">
@@ -121,8 +122,8 @@ $(document).ready(function () {
 						</div>
 						<div class="bw-row">
 							<div class="bw-cell bw-left-column">
-								<label class="ui-widget" for="triggerThreshold">Trigger
-									Theshold:</label>
+								<label class="ui-widget bw-disabled" for="triggerThreshold"
+									id="triggerThresholdLabel">Trigger Theshold:</label>
 							</div>
 							<div class="bw-cell bw-right-column">
 								<input id="triggerThreshold" style="width: 12ex">
@@ -130,8 +131,8 @@ $(document).ready(function () {
 						</div>
 						<div class="bw-row">
 							<div class="bw-cell bw-left-column">
-								<label class="ui-widget" for="signalThreshold">Signal
-									Theshold:</label>
+								<label class="ui-widget bw-disabled" for="signalThreshold"
+									id="signalThresholdLabel">Signal Theshold:</label>
 							</div>
 							<div class="bw-cell bw-right-column">
 								<input id="signalThreshold" style="width: 12ex">

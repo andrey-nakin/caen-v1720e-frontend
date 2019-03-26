@@ -53,3 +53,7 @@ fieldset legend {
 .bw-template {
 	display: none;
 }
+
+label.bw-disabled {
+	color: #aaa;
+}

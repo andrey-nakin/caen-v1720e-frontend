@@ -51,6 +51,7 @@ var bw = {
     },
 
     loadTestModes : function () {
+        var self = this;
         return odb.loadBooleanSettings(self.digitizers, "test_mode").then(
                 function (data) {
                     self.digitizerTestModes = data;
@@ -117,7 +118,7 @@ var bw = {
     getCurrentChannelNo : function () {
         var s = $("#channel").val();
         if (s) {
-            return parseInt(ch.split(':')[1]);
+            return parseInt(s.split(':')[1]);
         }
         return null;
     },
@@ -126,41 +127,55 @@ var bw = {
         var self = this;
 
         $("#dcOffset").spinner("disable");
+        $("#dcOffsetLabel").addClass("bw-disabled");
+
         $("#triggerThreshold").spinner("disable");
+        $("#triggerThresholdLabel").addClass("bw-disabled");
+
         $("#signalThreshold").spinner("disable");
+        $("#signalThresholdLabel").addClass("bw-disabled");
 
-        return mjsonrpc_db_get_values([ self.channelSettingsKey() ]).then(
-                function (rpc) {
-                    self.state.loadingChannelConfig = false;
+        return mjsonrpc_db_get_values([ self.channelSettingsKey() ])
+                .then(
+                        function (rpc) {
+                            self.state.loadingChannelConfig = false;
 
-                    var ch = self.getCurrentChannelNo();
-                    if (!isNaN(ch)) {
-                        var settings = rpc.result.data ? rpc.result.data[0]
-                                : null;
-                        if (settings) {
-                            var dco = settings["channel_dc_offset"];
-                            if (dco && dco.length > ch) {
-                                $("#dcOffset").spinner("enable");
-                                $("#dcOffset").spinner("value",
-                                        nu.parseNumber(dco[ch]));
+                            var ch = self.getCurrentChannelNo();
+                            if (!isNaN(ch)) {
+                                var settings = rpc.result.data ? rpc.result.data[0]
+                                        : null;
+                                if (settings) {
+                                    var dco = settings["channel_dc_offset"];
+                                    if (dco && dco.length > ch) {
+                                        $("#dcOffset").spinner("enable");
+                                        $("#dcOffset").spinner("value",
+                                                nu.parseNumber(dco[ch]));
+                                        $("#dcOffsetLabel").removeClass(
+                                                "bw-disabled");
+                                    }
+
+                                    var tt = settings["trigger_threshold"];
+                                    if (tt && tt.length > ch) {
+                                        $("#triggerThreshold")
+                                                .spinner("enable");
+                                        $("#triggerThreshold").spinner("value",
+                                                nu.parseNumber(tt[ch]));
+                                        $("#triggerThresholdLabel")
+                                                .removeClass("bw-disabled");
+                                    }
+
+                                    var st = settings["signal"] ? settings["signal"].threshold
+                                            : null;
+                                    if (st && st.length > ch) {
+                                        $("#signalThreshold").spinner("enable");
+                                        $("#signalThreshold").spinner("value",
+                                                nu.parseNumber(st[ch]));
+                                        $("#signalThresholdLabel").removeClass(
+                                                "bw-disabled");
+                                    }
+                                }
                             }
-
-                            var tt = settings["trigger_threshold"];
-                            if (tt && tt.length > ch) {
-                                $("#triggerThreshold").spinner("enable");
-                                $("#triggerThreshold").spinner("value",
-                                        nu.parseNumber(tt[ch]));
-                            }
-
-                            var st = settings["signal"].threshold;
-                            if (st && st.length > ch) {
-                                $("#signalThreshold").spinner("enable");
-                                $("#signalThreshold").spinner("value",
-                                        nu.parseNumber(st[ch]));
-                            }
-                        }
-                    }
-                });
+                        });
     },
 
     forceLoadChannelConfig : function () {
@@ -197,7 +212,7 @@ var bw = {
                 }
             }
 
-            var st = settings["signal"].threshold;
+            var st = settings["signal"] ? settings["signal"].threshold : null;
             if (st && st.length > ch) {
                 v = parseInt($("#signalThreshold").spinner("value"));
                 if (!isNaN(v) && v >= -100) {
