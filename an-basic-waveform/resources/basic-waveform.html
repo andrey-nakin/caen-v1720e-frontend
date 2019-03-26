@@ -17,7 +17,14 @@
 <!--  <script type="text/javascript" src="mhttpd.js"></script>  -->
 <script type="text/javascript" src="script/polyfill.js"></script>
 <script type="text/javascript" src="script/rootana-utils.js"></script>
+<script type="text/javascript" src="script/odb.js"></script>
+<script type="text/javascript" src="script/number-utils.js"></script>
 <script type="text/javascript" src="script/basic-waveform.js"></script>
+<script type="text/javascript">
+$(document).ready(function () {
+    bw.init();
+});
+</script>
 
 </head>
 
@@ -97,28 +104,10 @@
 						<legend class="ui-widget">Device Setup</legend>
 						<div class="bw-row">
 							<div class="bw-cell bw-left-column">
-								<label class="ui-widget" for="device">Device:</label>
-							</div>
-							<div class="bw-cell bw-right-column">
-								<select id="device" style="width: 22ex">
-								</select>
-							</div>
-						</div>
-						<div class="bw-row">
-							<div class="bw-cell bw-left-column">
 								<label class="ui-widget" for="channel">Channel:</label>
 							</div>
 							<div class="bw-cell bw-right-column">
 								<select id="channel" style="width: 22ex">
-									<option value=""></option>
-									<option value="0">0</option>
-									<option value="1">1</option>
-									<option value="2">2</option>
-									<option value="3">3</option>
-									<option value="4">4</option>
-									<option value="5">5</option>
-									<option value="6">6</option>
-									<option value="7">7</option>
 								</select>
 							</div>
 						</div>
@@ -137,6 +126,15 @@
 							</div>
 							<div class="bw-cell bw-right-column">
 								<input id="triggerThreshold" style="width: 12ex">
+							</div>
+						</div>
+						<div class="bw-row">
+							<div class="bw-cell bw-left-column">
+								<label class="ui-widget" for="signalThreshold">Signal
+									Theshold:</label>
+							</div>
+							<div class="bw-cell bw-right-column">
+								<input id="signalThreshold" style="width: 12ex">
 							</div>
 						</div>
 					</fieldset>

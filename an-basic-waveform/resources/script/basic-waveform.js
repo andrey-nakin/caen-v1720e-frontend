@@ -23,8 +23,8 @@ var bw = {
 
     loadExperiment : function () {
         var self = this;
-        return mjsonrpc_db_get_values([ "/Experiment" ]).then(function (rpc) {
-            self.config.experiment = rpc.result.data[0];
+        return odb.loadExperiment().then(function (exp) {
+            self.config.experiment = exp;
             self.updateExperimentInfo();
             self.updateRunInfo();
         });
@@ -48,20 +48,6 @@ var bw = {
             s += 'run #' + self.state.runNumber;
         }
         $('#runInfo').text(s);
-    },
-
-    loadEqupments : function () {
-        return mjsonrpc_db_get_values([ "/Equipment" ]).then(function (rpc) {
-            var res = {};
-            var equip = rpc.result.data[0];
-            var s = '';
-            for (i in equip) {
-                if (typeof (equip[i]) === 'object') {
-                    res[i.toUpperCase()] = equip[i];
-                }
-            }
-            return res;
-        });
     },
 
     loadTestModes : function () {
@@ -97,50 +83,30 @@ var bw = {
                 });
     },
 
-    getRunNumber : function () {
-        var self = this;
-
-        return mjsonrpc_db_get_values([ "/Runinfo" ]).then(function (rpc) {
-            var runinfo = rpc.result.data[0];
-            self.config.run = rpc.result.data;
-            return runinfo["run number"];
-        });
-    },
-
     getEquipStatistics : function () {
         var self = this;
-        var keys = [], digs = [];
-        for (dig in self.digitizers) {
-            digs.push(dig);
-            keys.push('/Equipment/' + dig + '/Statistics');
-        }
-        return mjsonrpc_db_get_values(keys)
-                .then(
-                        function (rpc) {
+        return odb.loadEqupmentStatistics(self.digitizers).then(function(data) {
                             var html = '';
 
-                            if (rpc && rpc.result && rpc.result.data
-                                    && rpc.result.data.length) {
-                                for (var i = 0; i < rpc.result.data.length; i++) {
-                                    var stat = rpc.result.data[i];
-                                    var eps = stat['events per sec.'];
-                                    var epsNum = Number.parseFloat(eps);
-                                    if (!isNaN(epsNum)) {
-                                        html += '<div class="bw-row">';
+                            for (var i = 0; i < data.data.length; i++) {
+                                var stat = data.data[i];
+                                var eps = stat['events per sec.'];
+                                var epsNum = Number.parseFloat(eps);
+                                if (!isNaN(epsNum)) {
+                                    html += '<div class="bw-row">';
 
-                                        html += '<div class="bw-cell bw-left-column">';
-                                        html += '<label class="ui-widget">'
-                                                + digs[i] + '</label>';
-                                        html += '</div>';
+                                    html += '<div class="bw-cell bw-left-column">';
+                                    html += '<label class="ui-widget">'
+                                            + data.digs[i] + '</label>';
+                                    html += '</div>';
 
-                                        html += '<div class="bw-cell bw-right-column">';
-                                        html += '<label class="ui-widget">'
-                                                + epsNum.toFixed(1)
-                                                + ' events/sec</label>';
-                                        html += '</div>';
+                                    html += '<div class="bw-cell bw-right-column">';
+                                    html += '<label class="ui-widget">'
+                                            + epsNum.toFixed(1)
+                                            + ' events/sec</label>';
+                                    html += '</div>';
 
-                                        html += '</div>';
-                                    }
+                                    html += '</div>';
                                 }
                             }
 
@@ -148,19 +114,12 @@ var bw = {
                         });
     },
 
-    parseNumber : function (s) {
-        if (!s) {
-            return 0;
-        }
-        if (s.substr(0, 2) == '0x') {
-            return parseInt(s.substr(2), 16);
-        }
-        return parseInt(s);
-    },
-
     channelSettingsKey : function (propName) {
-        return "/Equipment/" + $("#device").val() + "/Settings/"
-                + (propName ? propName : "");
+    	var ch = $("#channel").val();
+    	if (ch) {
+    		ch = ch.split(':')[0];
+    	}
+        return odb.getEquipmentSettingsKey(ch, propName);
     },
 
     loadChannelConfig : function () {
@@ -168,6 +127,7 @@ var bw = {
 
         $("#dcOffset").spinner("disable");
         $("#triggerThreshold").spinner("disable");
+        $("#signalThreshold").spinner("disable");
 
         return mjsonrpc_db_get_values([ self.channelSettingsKey() ]).then(
                 function (rpc) {
@@ -175,6 +135,7 @@ var bw = {
 
                     var ch = $("#channel").val();
                     if (ch !== '') {
+                    	ch = parseInt(ch.split(':')[1]);
                         var settings = rpc.result.data ? rpc.result.data[0]
                                 : null;
                         if (settings) {
@@ -182,14 +143,21 @@ var bw = {
                             if (dco && dco.length > ch) {
                                 $("#dcOffset").spinner("enable");
                                 $("#dcOffset").spinner("value",
-                                        self.parseNumber(dco[ch]));
+                                        nu.parseNumber(dco[ch]));
                             }
 
                             var tt = settings["trigger_threshold"];
                             if (tt && tt.length > ch) {
                                 $("#triggerThreshold").spinner("enable");
                                 $("#triggerThreshold").spinner("value",
-                                        self.parseNumber(tt[ch]));
+                                        nu.parseNumber(tt[ch]));
+                            }
+                            
+                            var st = settings["signal"].threshold;
+                            if (st && st.length > ch) {
+                                $("#signalThreshold").spinner("enable");
+                                $("#signalThreshold").spinner("value",
+                                        nu.parseNumber(st[ch]));
                             }
                         }
                     }
@@ -205,10 +173,10 @@ var bw = {
     },
 
     getChannelConfigurationFromWidgets : function (rpc) {
-        var self = this, v, paths = [], values = [], ch = $("#channel").val();
+        var self = this, v, paths = [], values = [], ch = parseInt($("#channel").val().split(':')[1]);
         var settings = rpc.result.data ? rpc.result.data[0] : null;
 
-        if (settings) {
+        if (!isNaN(ch) && settings) {
             var dco = settings["channel_dc_offset"];
             if (dco && dco.length > ch) {
                 v = parseInt($("#dcOffset").spinner("value"));
@@ -226,6 +194,16 @@ var bw = {
                     paths.push(self.channelSettingsKey("trigger_threshold"));
                     tt[ch] = v;
                     values.push(tt);
+                }
+            }
+            
+            var st = settings["signal"].threshold;
+            if (st && st.length > ch) {
+                v = parseInt($("#signalThreshold").spinner("value"));
+                if (!isNaN(v) && v >= -100) {
+                    paths.push(self.channelSettingsKey("signal/threshold"));
+                    st[ch] = v;
+                    values.push(st);
                 }
             }
         }
@@ -273,16 +251,8 @@ var bw = {
         }
     },
 
-    lPad : function (v, len) {
-        var result = '' + v;
-        while (result.length < len) {
-            result = '0' + result;
-        }
-        return result;
-    },
-
     itemName : function (hist) {
-        return 'Files/output' + this.lPad(this.state.runNumber, 8) + '.root/'
+        return 'Files/output' + nu.lPad(this.state.runNumber, 8) + '.root/'
                 + hist;
     },
 
@@ -399,30 +369,28 @@ var bw = {
             }
         });
 
-        $("#device").selectmenu({
+        $("#channel").selectmenu({
             change : function (event, ui) {
                 self.forceLoadChannelConfig();
             }
         });
         var html = '<option value=""></option>', num = 0;
         for (dig in self.digitizerTestModes) {
-            html += '<option value="' + dig + '">' + dig + '</option>';
+			html += '<optgroup label="' + dig + '">';
+			for (var ch  = 0; ch < 8; ch++) {
+				html += '<option value="' + dig + ':' + ch + '">' + dig + ' / ' + ch + '</option>';
+			}
             num++;
+			html += '</optgroup>';
         }
-        $("#device").html(html);
-        $("#device").selectmenu("refresh");
+        $("#channel").html(html);
+        $("#channel").selectmenu("refresh");
 
         if (num > 0) {
             $('#deviceSetup').show();
         } else {
             $('#deviceSetup').hide();
         }
-
-        $("#channel").selectmenu({
-            change : function (event, ui) {
-                self.forceLoadChannelConfig();
-            }
-        });
 
         $("#dcOffset").change(function () {
             if (this.select) {
@@ -454,6 +422,27 @@ var bw = {
 
         $("#triggerThreshold").spinner({
             min : 0,
+            max : 16383,
+            step : 1,
+            page : 100,
+            disabled : true,
+            change : function (event, ui) {
+                self.forceConfigureChannel();
+            },
+            spin : function (event, ui) {
+                self.forceConfigureChannel();
+            }
+        });
+
+        $("#signalThreshold").change(function () {
+            if (this.select) {
+                this.select();
+            }
+            self.forceConfigureChannel();
+        });
+
+        $("#signalThreshold").spinner({
+            min : -100,
             max : 16383,
             step : 1,
             page : 100,
@@ -514,7 +503,7 @@ var bw = {
         var self = this;
 
         self.loadExperiment().then(function () {
-            return self.loadEqupments();
+            return odb.loadEqupmentList();
         }).then(function (es) {
             self.digitizers = es;
         }).then(function () {
@@ -526,7 +515,7 @@ var bw = {
             return self.detectAnalyzerPort();
         }).then(function () {
             setInterval(function () {
-                self.getRunNumber().then(function (runNo) {
+                odb.loadRunNumber().then(function (runNo) {
                     self.checkRunNumber(runNo)
                 }).then(function () {
                     self.getEquipStatistics();
@@ -536,7 +525,3 @@ var bw = {
     }
 
 }
-
-$(document).ready(function () {
-    bw.init();
-});
