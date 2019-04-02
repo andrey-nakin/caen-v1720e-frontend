@@ -2,6 +2,8 @@
 #include <memory>
 #include <vector>
 #include <cstring>
+#include <sstream>
+#include <fstream>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -28,8 +30,15 @@ public:
 		UseBatchMode();
 	}
 
-	void BeginRun(int const transition, int const run, int const time)
+	void BeginRun(int /* transition */, int const run, int /* time */)
 			override {
+
+		std::stringstream s;
+		converter->ConstructFileName(s, run);
+
+		std::string filename = s.str();
+		dest = std::unique_ptr < std::ostream
+				> (new std::ofstream(filename, converter->FileMode()));
 
 	}
 
@@ -40,7 +49,11 @@ public:
 
 	}
 
-	void EndRun(int const transition, int const run, int const time) override {
+	void EndRun(int /* transition */, int /* run */, int /* time */) override {
+
+		if (dest) {
+			dest = nullptr;
+		}
 
 	}
 

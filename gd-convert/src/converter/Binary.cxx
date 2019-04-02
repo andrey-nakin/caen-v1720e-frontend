@@ -15,6 +15,18 @@ void Binary::ProcessMidasEvent(std::ostream& dest,
 
 }
 
+std::string Binary::FileExtension() const {
+
+	return ".data";
+
+}
+
+std::ios_base::openmode Binary::FileMode() const {
+
+	return std::ios_base::out | std::ios::binary;
+
+}
+
 }
 
 }

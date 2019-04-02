@@ -17,6 +17,9 @@ public:
 	void ProcessMidasEvent(std::ostream& dest, TDataContainer & dataContainer)
 			override;
 
+	std::string FileExtension() const override;
+	std::ios_base::openmode FileMode() const override;
+
 };
 
 }
