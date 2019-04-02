@@ -29,7 +29,7 @@ if(BUILD_ANALYZERS)
 endif()
 
 if(BUILD_UTILS)
-#  add_subdirectory(gd-convert)
+  add_subdirectory(gd-convert)
 endif()
 
 if(BUILD_EXAMPLES)
