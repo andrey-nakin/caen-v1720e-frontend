@@ -4,6 +4,7 @@
 #include <vector>
 #include <Converter.hxx>
 #include <util/caen/DigitizerInfoRawData.hxx>
+#include <math/IntOp.hxx>
 
 namespace gdc {
 
@@ -15,6 +16,9 @@ class Binary: public Converter {
 	static constexpr std::size_t waveformTail = 50;
 	static constexpr std::size_t seriesSize = 100;
 	static constexpr std::size_t seriesFillerSize = 23;
+	static constexpr uint64_t picosecsInANanoSec = 1000;
+
+	typedef math::IntOp<uint32_t, 31> TimestampOp;
 
 public:
 
@@ -32,6 +36,7 @@ public:
 private:
 
 	unsigned eventCounter;
+	uint32_t seriesStartTimeStamp;
 	std::vector<uint8_t> waveformFiller, seriesFiller;
 
 	void ProcessMidasEvent(std::ostream& dest, TDataContainer& dataContainer,
@@ -39,6 +44,7 @@ private:
 	void WriteWaveform(std::ostream& dest, TDataContainer& dataContainer,
 			util::caen::DigitizerInfoRawData const& info, uint8_t channel,
 			int bitmove);
+	uint64_t CalcTimestamp(util::caen::DigitizerInfoRawData const& info);
 
 };
 

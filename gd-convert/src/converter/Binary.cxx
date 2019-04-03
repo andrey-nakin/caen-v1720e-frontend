@@ -10,7 +10,7 @@ namespace gdc {
 namespace converter {
 
 Binary::Binary() :
-		eventCounter(0) {
+		eventCounter(0), seriesStartTimeStamp(0) {
 
 	waveformFiller.resize(waveformSize);
 	seriesFiller.resize(seriesFillerSize);
@@ -68,8 +68,7 @@ void Binary::ProcessMidasEvent(std::ostream& dest,
 
 	static uint32_t indexFirstPoint = 0;
 	static double horPos = 0;
-	uint64_t const timeStamp = static_cast<uint64_t>(1000)
-			* (info.info().timeStamp & 0x7fffffff);
+	uint64_t const timeStamp = CalcTimestamp(info);
 	static uint16_t filler1 = 1;
 	static uint64_t waveformLength = waveformSize + 1;
 	static uint8_t waveformEnd = 0;
@@ -87,6 +86,7 @@ void Binary::ProcessMidasEvent(std::ostream& dest,
 
 	if (++eventCounter % seriesSize == 0) {
 		dest.write((char*) &seriesFiller[0], seriesFiller.size());
+		seriesStartTimeStamp = 0;
 	}
 
 }
@@ -133,6 +133,18 @@ void Binary::WriteWaveform(std::ostream& dest, TDataContainer& dataContainer,
 	}
 
 	dest.write((char*) &waveformFiller[0], waveformFiller.size());
+
+}
+
+uint64_t Binary::CalcTimestamp(util::caen::DigitizerInfoRawData const& info) {
+
+	if (seriesStartTimeStamp == 0) {
+		seriesStartTimeStamp = TimestampOp::value(info.info().timeStamp);
+		return 0;
+	} else {
+		return picosecsInANanoSec
+				* TimestampOp::sub(info.info().timeStamp, seriesStartTimeStamp);
+	}
 
 }
 
