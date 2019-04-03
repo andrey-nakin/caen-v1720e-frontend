@@ -31,6 +31,7 @@ public:
 
 private:
 
+	unsigned eventCounter;
 	std::vector<uint8_t> waveformFiller, seriesFiller;
 
 	void ProcessMidasEvent(std::ostream& dest, TDataContainer& dataContainer,

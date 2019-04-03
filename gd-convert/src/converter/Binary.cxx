@@ -9,7 +9,8 @@ namespace gdc {
 
 namespace converter {
 
-Binary::Binary() {
+Binary::Binary() :
+		eventCounter(0) {
 
 	waveformFiller.resize(waveformSize);
 	seriesFiller.resize(seriesFillerSize);
@@ -82,6 +83,10 @@ void Binary::ProcessMidasEvent(std::ostream& dest,
 		dest.write((char*) &waveformLength, sizeof(waveformLength));
 		WriteWaveform(dest, dataContainer, info, channel, bitmove);
 		dest.write((char*) &waveformEnd, sizeof(waveformEnd));
+	}
+
+	if (++eventCounter % seriesSize == 0) {
+		dest.write((char*) &seriesFiller[0], seriesFiller.size());
 	}
 
 }
