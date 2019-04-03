@@ -28,6 +28,7 @@ public:
 	Main() {
 		SetOnlineName("gd-convert");
 		UseBatchMode();
+		DisableRootOutput();
 	}
 
 	void BeginRun(int /* transition */, int const run, int /* time */)
