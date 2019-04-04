@@ -10,6 +10,7 @@
 #include <TRootanaEventLoop.hxx>
 #include <analyzer/exception/CommandLineException.hxx>
 #include <converter/Binary.hxx>
+#include <converter/Simple.hxx>
 
 #pragma GCC diagnostic pop
 
@@ -77,6 +78,8 @@ private:
 		if (s && *s) {
 			if (converter::Binary::Name() == s) {
 				return std::unique_ptr < Converter > (new converter::Binary);
+			} else if (converter::Simple::Name() == s) {
+				return std::unique_ptr < Converter > (new converter::Simple);
 			} else {
 				// unknown format
 				throw analyzer::exception::CommandLineException()
