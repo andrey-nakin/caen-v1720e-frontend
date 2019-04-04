@@ -69,6 +69,12 @@ DigitizerInfoRawData::timestamp_type DigitizerInfoRawData::timeStamp() const {
 
 }
 
+int DigitizerInfoRawData::frontendIndex() const {
+
+	return static_cast<int>(info().frontendIndex);
+
+}
+
 }
 
 }

@@ -10,13 +10,20 @@ namespace gdc {
 
 namespace converter {
 
-Simple::Simple() {
+Simple::Simple() :
+		currentRun(0) {
 
 }
 
 std::string Simple::Name() {
 
 	return "simple";
+
+}
+
+void Simple::BeginRun(int /* transition */, int const run, int /* time */) {
+
+	currentRun = run;
 
 }
 
@@ -53,9 +60,9 @@ void Simple::ProcessMidasEvent(TDataContainer& dataContainer,
 
 	std::ofstream dest(ConstructName(info));
 
-	std::size_t recordLength;
+	std::size_t recordLength = 10;
 
-	dest << "# INFO";
+	dest << "#\tINFO";
 	for (uint8_t ch = 0; ch < 8; ch++) {
 		dest << "\tCH" << static_cast<int>(ch);
 
@@ -71,6 +78,53 @@ void Simple::ProcessMidasEvent(TDataContainer& dataContainer,
 	dest << "\n";
 
 	for (std::size_t i = 0; i < recordLength; i++) {
+
+		switch (i) {
+		case 0:
+			dest << "Type\t" << info.GetName();
+			break;
+
+		case 1:
+			dest << "BoardId\t" << info.info().boardId;
+			break;
+
+		case 2:
+			dest << "ChannelMask\t" << info.info().channelMask;
+			break;
+
+		case 3:
+			dest << "EventCounter\t" << info.info().eventCounter;
+			break;
+
+		case 4:
+			dest << "FrontendIndex\t" << info.frontendIndex();
+			break;
+
+		case 5:
+			dest << "TimeStamp\t" << info.timeStampDifferenceInSamples(0);
+			break;
+
+		case 6:
+			dest << "TimeStampNs\t" << info.timeStampDifferenceInNs(0);
+			break;
+
+		case 7:
+			dest << "PreTriggerLength\t" << info.info().preTriggerLength;
+			break;
+
+		case 8:
+			dest << "RecordLength\t" << recordLength;
+			break;
+
+		case 9:
+			dest << "BitsInSample\t"
+					<< static_cast<int>(info.sampleWidthInBits());
+			break;
+
+		default:
+			dest << "\t-";
+		}
+
 		for (uint8_t ch = 0; ch < 8; ch++) {
 			dest << '\t';
 
@@ -94,8 +148,8 @@ std::string Simple::ConstructName(
 		util::caen::DigitizerInfoRawData const& info) {
 
 	std::stringstream s;
-	s << "event" << std::setfill('0') << std::setw(6)
-			<< info.info().eventCounter << ".txt";
+	s << "run" << std::setfill('0') << std::setw(5) << currentRun << ".event"
+			<< std::setw(9) << info.info().eventCounter << ".txt";
 	return s.str();
 
 }

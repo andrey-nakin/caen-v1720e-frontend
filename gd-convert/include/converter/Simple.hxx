@@ -15,9 +15,12 @@ public:
 
 	static std::string Name();
 
+	void BeginRun(int transition, int run, int time) override;
 	void ProcessMidasEvent(TDataContainer& dataContainer) override;
 
 private:
+
+	int currentRun;
 
 	void ProcessMidasEvent(TDataContainer& dataContainer,
 			util::caen::DigitizerInfoRawData const& info);

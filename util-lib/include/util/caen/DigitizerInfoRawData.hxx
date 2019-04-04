@@ -52,6 +52,8 @@ public:
 
 	virtual uint8_t sampleWidthInBits() const = 0;
 
+	int frontendIndex() const;
+
 private:
 
 	InfoBank infoBank;
