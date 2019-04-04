@@ -13,6 +13,8 @@ public:
 
 	static const char* bankName();
 
+	uint64_t timeStampDifferenceInNs(timestamp_type ts) const override;
+
 };
 
 }

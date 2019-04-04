@@ -1,4 +1,5 @@
 #include <util/caen/V1724InfoRawData.hxx>
+#include <caen/v1724.hxx>
 
 namespace util {
 
@@ -14,6 +15,15 @@ V1724InfoRawData::V1724InfoRawData(int const bklen, int const bktype,
 const char* V1724InfoRawData::bankName() {
 
 	return V1724InfoBankName;
+
+}
+
+uint64_t V1724InfoRawData::timeStampDifferenceInNs(
+		timestamp_type const ts) const {
+
+	return TimestampOp::sub(timeStamp(), ts)
+			* ::caen::v1724::SAMPLES_PER_TIME_TICK
+			* ::caen::v1724::nsPerSample();
 
 }
 
