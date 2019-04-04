@@ -26,7 +26,7 @@ uint64_t V1724InfoRawData::timeStampDifferenceInNs(
 }
 
 uint64_t V1724InfoRawData::timeStampDifferenceInSamples(
-		timestamp_type ts) const {
+		timestamp_type const ts) const {
 
 	return static_cast<uint64_t>(TimestampOp::sub(timeStamp(), ts))
 			* ::caen::v1724::SAMPLES_PER_TIME_TICK;
