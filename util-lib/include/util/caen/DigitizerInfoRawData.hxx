@@ -10,9 +10,13 @@ namespace util {
 namespace caen {
 
 class DigitizerInfoRawData: public TGenericData {
+protected:
+
+	typedef math::IntOp<uint32_t, 31> TimestampOp;
+
 public:
 
-	typedef uint32_t timestamp_type;
+	typedef TimestampOp::value_type timestamp_type;
 
 	DigitizerInfoRawData(int bklen, int bktype, const char* name, void *pdata);
 	DigitizerInfoRawData(DigitizerInfoRawData const&) = delete;
@@ -47,10 +51,6 @@ public:
 	virtual uint64_t timeStampDifferenceInSamples(timestamp_type ts) const = 0;
 
 	virtual uint8_t sampleWidthInBits() const = 0;
-
-protected:
-
-	typedef math::IntOp<uint32_t, 31> TimestampOp;
 
 private:
 

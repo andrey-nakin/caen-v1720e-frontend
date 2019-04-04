@@ -123,9 +123,9 @@ std::pair<bool, DigitizerWaveform::distance_type> DigitizerWaveform::CalcPositio
 		for (channel_type ch = 0, last = numOfChannels(); ch < last; ch++) {
 			if (SignalInfoRawData::timeTrigger(*signalInfo, ch)) {
 				if (triggers.count(ch) > 0) {
-					auto const dist = timestampDiff(triggerTimestamps[ch],
-							timestamp(info)) * samplesPerTimeTick()
-							- triggers[ch];
+					auto const dist =
+							static_cast<distance_type>(info.timeStampDifferenceInSamples(
+									triggerTimestamps[ch])) - triggers[ch];
 					if (!tm || tm > dist) {
 						tm = dist;
 					}
@@ -241,7 +241,7 @@ void DigitizerWaveform::DetectTrigger(TDataContainer &dataContainer,
 
 	auto const trigCh = CurrentTrigger(info);
 	triggers[trigCh] = 0;
-	triggerTimestamps[trigCh] = timestamp(info);
+	triggerTimestamps[trigCh] = info.timeStamp();
 
 	if (!info.extTrigger() && info.channelIncluded(trigCh)) {
 		auto const triggerInfo = dataContainer.GetEventData < TriggerInfoRawData
