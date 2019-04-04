@@ -43,7 +43,6 @@ private:
 	std::map<channel_no_type, distance_type> triggers;
 	std::map<channel_no_type, timestamp_type> triggerTimestamps;
 
-	virtual unsigned samplesPerTimeTick() const = 0;
 	virtual channel_no_type numOfChannels() const = 0;
 	virtual unsigned numOfSampleValues() const = 0;
 	virtual uint16_t maxSampleValue() const = 0;
