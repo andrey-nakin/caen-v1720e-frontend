@@ -17,10 +17,12 @@ public:
 
 	void BeginRun(int transition, int run, int time) override;
 	void ProcessMidasEvent(TDataContainer& dataContainer) override;
+	void Configure(std::vector<char*>& args) override;
 
 private:
 
 	int currentRun;
+	uint16_t triggerMask;
 
 	void ProcessMidasEvent(TDataContainer& dataContainer,
 			util::caen::DigitizerInfoRawData const& info);

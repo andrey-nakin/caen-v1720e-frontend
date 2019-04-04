@@ -115,6 +115,8 @@ private:
 			converter = std::move(DefaultConverter());
 		}
 
+		converter->Configure(arguments);
+
 		return arguments;
 
 	}

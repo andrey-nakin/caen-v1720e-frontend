@@ -1,17 +1,31 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+#include <cstring>
 #include <util/caen/V1720InfoRawData.hxx>
 #include <util/caen/V1724InfoRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
+#include <util/TriggerInfoRawData.hxx>
 #include <converter/Simple.hxx>
 
 namespace gdc {
 
 namespace converter {
 
+namespace cmd {
+
+constexpr char triggerMask[] = "-tm";
+
+}
+
+static bool StartsWith(const char* const s, const char* const substr) {
+
+	return s == std::strstr(s, substr);
+
+}
+
 Simple::Simple() :
-		currentRun(0) {
+		currentRun(0), triggerMask(0xffff) {
 
 }
 
@@ -53,14 +67,35 @@ void Simple::ProcessMidasEvent(TDataContainer & dataContainer) {
 
 }
 
+void Simple::Configure(std::vector<char*>& args) {
+
+	for (std::size_t i = 0; i < args.size();) {
+		if (StartsWith(args[i], cmd::triggerMask)) {
+			triggerMask = std::stoi(args[i] + std::strlen(cmd::triggerMask));
+			args.erase(args.begin() + i);
+		} else {
+			i++;
+		}
+	}
+
+}
+
 void Simple::ProcessMidasEvent(TDataContainer& dataContainer,
 		util::caen::DigitizerInfoRawData const& info) {
 
 	using util::TWaveFormRawData;
+	using util::TriggerInfoRawData;
+
+	if (0 == (info.info().pattern.bits.channelTrigger & triggerMask)) {
+		return;
+	}
 
 	std::ofstream dest(ConstructName(info));
 
-	std::size_t recordLength = 10;
+	auto const trgInfo = dataContainer.GetEventData < TriggerInfoRawData
+			> (TriggerInfoRawData::bankName());
+
+	std::size_t recordLength = 19;
 
 	dest << "#\tINFO";
 	for (uint8_t ch = 0; ch < 8; ch++) {
@@ -75,6 +110,16 @@ void Simple::ProcessMidasEvent(TDataContainer& dataContainer,
 		}
 
 	}
+
+	if (trgInfo) {
+		for (TriggerInfoRawData::channelno_type trgCh = 0; trgCh < 8; trgCh++) {
+			auto const trgChInf = trgInfo->channelInfo(trgCh);
+			if (trgChInf) {
+				dest << "\tTRG" << static_cast<int>(trgCh);
+			}
+		}
+	}
+
 	dest << "\n";
 
 	for (std::size_t i = 0; i < recordLength; i++) {
@@ -121,6 +166,24 @@ void Simple::ProcessMidasEvent(TDataContainer& dataContainer,
 					<< static_cast<int>(info.sampleWidthInBits());
 			break;
 
+		case 10:
+		case 11:
+		case 12:
+		case 13:
+		case 14:
+		case 15:
+		case 16:
+		case 17: {
+			auto const trgCh = i - 10;
+			dest << "TrgCh" << trgCh << "\t"
+					<< (info.selfTrigger(trgCh) ? "TRUE" : "FALSE");
+		}
+			break;
+
+		case 18:
+			dest << "TrgExt\t" << (info.extTrigger() ? "TRUE" : "FALSE");
+			break;
+
 		default:
 			dest << "\t-";
 		}
@@ -139,6 +202,28 @@ void Simple::ProcessMidasEvent(TDataContainer& dataContainer,
 			}
 
 		}
+
+		if (trgInfo) {
+			for (TriggerInfoRawData::channelno_type trgCh = 0; trgCh < 8;
+					trgCh++) {
+				auto const trgChInf = trgInfo->channelInfo(trgCh);
+				if (trgChInf) {
+					dest << '\t';
+					switch (i) {
+					case 0:
+						dest << static_cast<int>(trgInfo->channel(*trgChInf));
+						break;
+					case 1:
+						dest << trgInfo->threshold(*trgChInf);
+						break;
+					case 2:
+						dest << (trgInfo->rising(*trgChInf) ? "TRUE" : "FALSE");
+						break;
+					}
+				}
+			}
+		}
+
 		dest << "\n";
 	}
 

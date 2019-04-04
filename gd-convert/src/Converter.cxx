@@ -20,4 +20,10 @@ void Converter::EndRun(int /* transition */, int /* run */, int /* time */) {
 
 }
 
+void Converter::Configure(std::vector<char*>& /* args */) {
+
+	// null implementation
+
+}
+
 }

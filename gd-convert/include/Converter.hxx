@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
 #include <TDataContainer.hxx>
 
 namespace gdc {
@@ -18,6 +19,8 @@ public:
 	virtual void BeginRun(int transition, int run, int time);
 	virtual void EndRun(int transition, int run, int time);
 	virtual void ProcessMidasEvent(TDataContainer& dataContainer) = 0;
+
+	virtual void Configure(std::vector<char*>& args);
 
 };
 
