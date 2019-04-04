@@ -6,18 +6,18 @@
 namespace gdc {
 
 class Converter {
+
+	Converter(Converter const&) = delete;
+	Converter& operator=(Converter const&) = delete;
+
 public:
 
 	Converter();
-	Converter(Converter const&) = delete;
 	virtual ~Converter();
 
-	virtual void ProcessMidasEvent(std::ostream& dest,
-			TDataContainer& dataContainer) = 0;
-
-	virtual void ConstructFileName(std::ostream& dest, int run) const;
-	virtual std::string FileExtension() const = 0;
-	virtual std::ios_base::openmode FileMode() const;
+	virtual void BeginRun(int transition, int run, int time);
+	virtual void EndRun(int transition, int run, int time);
+	virtual void ProcessMidasEvent(TDataContainer& dataContainer) = 0;
 
 };
 

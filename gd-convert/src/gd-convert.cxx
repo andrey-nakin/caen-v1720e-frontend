@@ -3,7 +3,6 @@
 #include <vector>
 #include <cstring>
 #include <sstream>
-#include <fstream>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -31,30 +30,23 @@ public:
 		DisableRootOutput();
 	}
 
-	void BeginRun(int /* transition */, int const run, int /* time */)
+	void BeginRun(int const transition, int const run, int const time)
 			override {
 
-		std::stringstream s;
-		converter->ConstructFileName(s, run);
-
-		std::string filename = s.str();
-		dest = std::unique_ptr < std::ostream
-				> (new std::ofstream(filename, converter->FileMode()));
+		converter->BeginRun(transition, run, time);
 
 	}
 
 	bool ProcessMidasEvent(TDataContainer & dataContainer) {
 
-		converter->ProcessMidasEvent(*dest, dataContainer);
+		converter->ProcessMidasEvent(dataContainer);
 		return true;
 
 	}
 
-	void EndRun(int /* transition */, int /* run */, int /* time */) override {
+	void EndRun(int const transition, int const run, int const time) override {
 
-		if (dest) {
-			dest = nullptr;
-		}
+		converter->EndRun(transition, run, time);
 
 	}
 
@@ -73,7 +65,6 @@ public:
 private:
 
 	std::unique_ptr<Converter> converter;
-	std::unique_ptr<std::ostream> dest;
 
 	static bool StartsWith(const char* const s, const char* const substr) {
 

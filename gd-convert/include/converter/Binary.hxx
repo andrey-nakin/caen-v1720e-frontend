@@ -2,15 +2,15 @@
 
 #include <string>
 #include <vector>
-#include <Converter.hxx>
 #include <util/caen/DigitizerInfoRawData.hxx>
 #include <math/IntOp.hxx>
+#include "FilePerRun.hxx"
 
 namespace gdc {
 
 namespace converter {
 
-class Binary: public Converter {
+class Binary: public FilePerRun {
 
 	static constexpr std::size_t waveformSize = 1000;
 	static constexpr std::size_t waveformTail = 50;

@@ -1,4 +1,3 @@
-#include <iomanip>
 #include <Converter.hxx>
 
 namespace gdc {
@@ -9,16 +8,15 @@ Converter::Converter() {
 Converter::~Converter() {
 }
 
-void Converter::ConstructFileName(std::ostream& dest, int const run) const {
+void Converter::BeginRun(int /* transition */, int /* run */, int /* time */) {
 
-	dest << "run" << std::setfill('0') << std::setw(5) << run
-			<< FileExtension();
+	// null implementation
 
 }
 
-std::ios_base::openmode Converter::FileMode() const {
+void Converter::EndRun(int /* transition */, int /* run */, int /* time */) {
 
-	return std::ios_base::out;
+	// null implementation
 
 }
 
