@@ -32,7 +32,7 @@ void Binary::ProcessMidasEvent(std::ostream& dest,
 		auto const v1720Info = dataContainer.GetEventData < V1720InfoRawData
 				> (V1720InfoRawData::bankName());
 		if (v1720Info) {
-			ProcessMidasEvent(dest, dataContainer, *v1720Info, 4);
+			ProcessMidasEvent(dest, dataContainer, *v1720Info);
 			return;
 		}
 	}
@@ -43,7 +43,7 @@ void Binary::ProcessMidasEvent(std::ostream& dest,
 		auto const v1724Info = dataContainer.GetEventData < V1724InfoRawData
 				> (V1724InfoRawData::bankName());
 		if (v1724Info) {
-			ProcessMidasEvent(dest, dataContainer, *v1724Info, 6);
+			ProcessMidasEvent(dest, dataContainer, *v1724Info);
 			return;
 		}
 	}
@@ -64,7 +64,7 @@ std::ios_base::openmode Binary::FileMode() const {
 
 void Binary::ProcessMidasEvent(std::ostream& dest,
 		TDataContainer& dataContainer,
-		util::caen::DigitizerInfoRawData const& info, int const bitmove) {
+		util::caen::DigitizerInfoRawData const& info) {
 
 	static uint32_t indexFirstPoint = 0;
 	static double horPos = 0;
@@ -80,7 +80,7 @@ void Binary::ProcessMidasEvent(std::ostream& dest,
 		dest.write((char*) &timeStamp, sizeof(timeStamp));
 		dest.write((char*) &filler1, sizeof(filler1));
 		dest.write((char*) &waveformLength, sizeof(waveformLength));
-		WriteWaveform(dest, dataContainer, info, channel, bitmove);
+		WriteWaveform(dest, dataContainer, info, channel);
 		dest.write((char*) &waveformEnd, sizeof(waveformEnd));
 	}
 
@@ -92,8 +92,7 @@ void Binary::ProcessMidasEvent(std::ostream& dest,
 }
 
 void Binary::WriteWaveform(std::ostream& dest, TDataContainer& dataContainer,
-		util::caen::DigitizerInfoRawData const& info, uint8_t const channel,
-		int const bitmove) {
+		util::caen::DigitizerInfoRawData const& info, uint8_t const channel) {
 
 	using util::TWaveFormRawData;
 
@@ -108,6 +107,7 @@ void Binary::WriteWaveform(std::ostream& dest, TDataContainer& dataContainer,
 				auto const wfLast =
 						numOfSamples <= waveformSize ?
 								wfEnd : std::next(wfBegin, waveformSize);
+				int const bitmove = info.sampleWidthInBits() - 8;
 
 				std::for_each(wfBegin, wfLast,
 						[&dest, bitmove](TWaveFormRawData::value_type sample) {
