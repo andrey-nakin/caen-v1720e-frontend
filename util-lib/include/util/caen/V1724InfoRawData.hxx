@@ -15,6 +15,8 @@ public:
 
 	uint64_t timeStampDifferenceInNs(timestamp_type ts) const override;
 
+	uint64_t timeStampDifferenceInSamples(timestamp_type ts) const override;
+
 	uint8_t sampleWidthInBits() const override;
 
 };

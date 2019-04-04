@@ -34,7 +34,7 @@ public:
 private:
 
 	unsigned eventCounter;
-	uint32_t seriesStartTimeStamp;
+	util::caen::DigitizerInfoRawData::timestamp_type seriesStartTimeStamp;
 	std::vector<uint8_t> waveformFiller, seriesFiller;
 
 	void ProcessMidasEvent(std::ostream& dest, TDataContainer& dataContainer,

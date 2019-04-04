@@ -36,7 +36,16 @@ public:
 
 	timestamp_type timeStamp() const;
 
+	/**
+	 * to_nanosecs(<this timestamp> - <ts>)
+	 */
 	virtual uint64_t timeStampDifferenceInNs(timestamp_type ts) const = 0;
+
+	/**
+	 * to_num_of_samples(<this timestamp> - <ts>)
+	 */
+	virtual uint64_t timeStampDifferenceInSamples(timestamp_type ts) const = 0;
+
 	virtual uint8_t sampleWidthInBits() const = 0;
 
 protected:
