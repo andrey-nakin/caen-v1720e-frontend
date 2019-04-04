@@ -18,8 +18,6 @@ class Binary: public Converter {
 	static constexpr std::size_t seriesFillerSize = 23;
 	static constexpr uint64_t picosecsInANanoSec = 1000;
 
-	typedef math::IntOp<uint32_t, 31> TimestampOp;
-
 public:
 
 	Binary();
@@ -40,11 +38,11 @@ private:
 	std::vector<uint8_t> waveformFiller, seriesFiller;
 
 	void ProcessMidasEvent(std::ostream& dest, TDataContainer& dataContainer,
-			util::caen::DigitizerInfoRawData const& info, int bitmove, int tickToNs);
+			util::caen::DigitizerInfoRawData const& info, int bitmove);
 	void WriteWaveform(std::ostream& dest, TDataContainer& dataContainer,
 			util::caen::DigitizerInfoRawData const& info, uint8_t channel,
 			int bitmove);
-	uint64_t CalcTimestamp(util::caen::DigitizerInfoRawData const& info, int tickToNs);
+	uint64_t CalcTimestamp(util::caen::DigitizerInfoRawData const& info);
 
 };
 

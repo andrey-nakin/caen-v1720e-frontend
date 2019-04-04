@@ -27,6 +27,12 @@ uint64_t V1724InfoRawData::timeStampDifferenceInNs(
 
 }
 
+uint8_t V1724InfoRawData::sampleWidthInBits() const {
+
+	return ::caen::v1724::SAMPLE_WIDTH_IN_BITS;
+
+}
+
 }
 
 }

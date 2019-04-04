@@ -37,6 +37,7 @@ public:
 	timestamp_type timeStamp() const;
 
 	virtual uint64_t timeStampDifferenceInNs(timestamp_type ts) const = 0;
+	virtual uint8_t sampleWidthInBits() const = 0;
 
 protected:
 

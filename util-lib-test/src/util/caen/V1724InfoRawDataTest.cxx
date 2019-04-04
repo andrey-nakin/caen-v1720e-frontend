@@ -75,6 +75,14 @@ TEST(V1724InfoRawData, TimeStampDifferenceInNs) {
 	}
 }
 
+TEST(V1724InfoRawData, SampleWidthInBits) {
+
+	InfoBank bank;
+	V1724InfoRawData const e(sizeof(bank), TID_DWORD, V1724InfoRawData::bankName(), &bank);
+	EXPECT_EQ(14, e.sampleWidthInBits());
+
+}
+
 }
 
 }
