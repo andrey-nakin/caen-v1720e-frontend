@@ -13,6 +13,9 @@ public:
 
 	static const char* bankName();
 
+	/**
+	 * to_nanosecs(<this timestamp> - <ts>)
+	 */
 	uint64_t timeStampDifferenceInNs(timestamp_type ts) const override;
 
 };

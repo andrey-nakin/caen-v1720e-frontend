@@ -21,7 +21,7 @@ const char* V1720InfoRawData::bankName() {
 uint64_t V1720InfoRawData::timeStampDifferenceInNs(
 		timestamp_type const ts) const {
 
-	return TimestampOp::sub(timeStamp(), ts)
+	return static_cast<uint64_t>(TimestampOp::sub(timeStamp(), ts))
 			* ::caen::v1720::SAMPLES_PER_TIME_TICK
 			* ::caen::v1720::nsPerSample();
 
