@@ -15,6 +15,7 @@ namespace converter {
 namespace cmd {
 
 constexpr char triggerMask[] = "-tm";
+constexpr char events[] = "-e";
 
 }
 
@@ -25,7 +26,7 @@ static bool StartsWith(const char* const s, const char* const substr) {
 }
 
 Simple::Simple() :
-		currentRun(0), triggerMask(0xffff) {
+		currentRun(0), triggerMask(0xffff), eventCounter(0), maxEvents(0) {
 
 }
 
@@ -41,7 +42,7 @@ void Simple::BeginRun(int /* transition */, int const run, int /* time */) {
 
 }
 
-void Simple::ProcessMidasEvent(TDataContainer & dataContainer) {
+bool Simple::ProcessMidasEvent(TDataContainer & dataContainer) {
 
 	{
 		using util::caen::V1720InfoRawData;
@@ -49,8 +50,7 @@ void Simple::ProcessMidasEvent(TDataContainer & dataContainer) {
 		auto const v1720Info = dataContainer.GetEventData < V1720InfoRawData
 				> (V1720InfoRawData::bankName());
 		if (v1720Info) {
-			ProcessMidasEvent(dataContainer, *v1720Info);
-			return;
+			return ProcessMidasEvent(dataContainer, *v1720Info);
 		}
 	}
 
@@ -60,10 +60,11 @@ void Simple::ProcessMidasEvent(TDataContainer & dataContainer) {
 		auto const v1724Info = dataContainer.GetEventData < V1724InfoRawData
 				> (V1724InfoRawData::bankName());
 		if (v1724Info) {
-			ProcessMidasEvent(dataContainer, *v1724Info);
-			return;
+			return ProcessMidasEvent(dataContainer, *v1724Info);
 		}
 	}
+
+	return true;
 
 }
 
@@ -72,22 +73,29 @@ void Simple::Configure(std::vector<char*>& args) {
 	for (std::size_t i = 0; i < args.size();) {
 		if (StartsWith(args[i], cmd::triggerMask)) {
 			triggerMask = std::stoi(args[i] + std::strlen(cmd::triggerMask));
-			args.erase(args.begin() + i);
+		} else if (StartsWith(args[i], cmd::events)) {
+			maxEvents = std::stoi(args[i] + std::strlen(cmd::events));
 		} else {
 			i++;
+			continue;
 		}
+		args.erase(args.begin() + i);
 	}
 
 }
 
-void Simple::ProcessMidasEvent(TDataContainer& dataContainer,
+bool Simple::ProcessMidasEvent(TDataContainer& dataContainer,
 		util::caen::DigitizerInfoRawData const& info) {
 
 	using util::TWaveFormRawData;
 	using util::TriggerInfoRawData;
 
+	if (maxEvents > 0 && maxEvents <= eventCounter) {
+		return false;
+	}
+
 	if (0 == (info.info().pattern.bits.channelTrigger & triggerMask)) {
-		return;
+		return true;
 	}
 
 	std::ofstream dest(ConstructName(info));
@@ -226,6 +234,9 @@ void Simple::ProcessMidasEvent(TDataContainer& dataContainer,
 
 		dest << "\n";
 	}
+
+	++eventCounter;
+	return true;
 
 }
 

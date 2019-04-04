@@ -15,9 +15,9 @@ public:
 
 	void BeginRun(int transition, int run, int time) override;
 	void EndRun(int transition, int run, int time) override;
-	void ProcessMidasEvent(TDataContainer& dataContainer) override;
+	bool ProcessMidasEvent(TDataContainer& dataContainer) override;
 
-	virtual void ProcessMidasEvent(std::ostream& dest,
+	virtual bool ProcessMidasEvent(std::ostream& dest,
 			TDataContainer& dataContainer) = 0;
 
 	virtual void ConstructFileName(std::ostream& dest, int run) const;

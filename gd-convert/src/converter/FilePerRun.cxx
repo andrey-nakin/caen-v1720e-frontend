@@ -25,9 +25,9 @@ void FilePerRun::EndRun(int /* transition */, int /* run */, int /* time */) {
 
 }
 
-void FilePerRun::ProcessMidasEvent(TDataContainer& dataContainer) {
+bool FilePerRun::ProcessMidasEvent(TDataContainer& dataContainer) {
 
-	ProcessMidasEvent(*dest, dataContainer);
+	return ProcessMidasEvent(*dest, dataContainer);
 
 }
 

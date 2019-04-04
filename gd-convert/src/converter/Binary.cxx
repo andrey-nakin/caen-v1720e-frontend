@@ -23,7 +23,7 @@ std::string Binary::Name() {
 
 }
 
-void Binary::ProcessMidasEvent(std::ostream& dest,
+bool Binary::ProcessMidasEvent(std::ostream& dest,
 		TDataContainer & dataContainer) {
 
 	{
@@ -33,7 +33,7 @@ void Binary::ProcessMidasEvent(std::ostream& dest,
 				> (V1720InfoRawData::bankName());
 		if (v1720Info) {
 			ProcessMidasEvent(dest, dataContainer, *v1720Info);
-			return;
+			return true;
 		}
 	}
 
@@ -44,9 +44,11 @@ void Binary::ProcessMidasEvent(std::ostream& dest,
 				> (V1724InfoRawData::bankName());
 		if (v1724Info) {
 			ProcessMidasEvent(dest, dataContainer, *v1724Info);
-			return;
+			return true;
 		}
 	}
+
+	return true;
 
 }
 

@@ -40,8 +40,7 @@ public:
 
 	bool ProcessMidasEvent(TDataContainer & dataContainer) {
 
-		converter->ProcessMidasEvent(dataContainer);
-		return true;
+		return converter->ProcessMidasEvent(dataContainer);
 
 	}
 

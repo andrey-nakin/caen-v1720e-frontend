@@ -18,7 +18,7 @@ public:
 
 	virtual void BeginRun(int transition, int run, int time);
 	virtual void EndRun(int transition, int run, int time);
-	virtual void ProcessMidasEvent(TDataContainer& dataContainer) = 0;
+	virtual bool ProcessMidasEvent(TDataContainer& dataContainer) = 0;
 
 	virtual void Configure(std::vector<char*>& args);
 

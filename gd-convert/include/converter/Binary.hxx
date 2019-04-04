@@ -25,7 +25,7 @@ public:
 
 	static std::string Name();
 
-	void ProcessMidasEvent(std::ostream& dest, TDataContainer& dataContainer)
+	bool ProcessMidasEvent(std::ostream& dest, TDataContainer& dataContainer)
 			override;
 
 	std::string FileExtension() const override;
