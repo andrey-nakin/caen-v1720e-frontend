@@ -4,6 +4,8 @@
 #include <util/caen/V1724InfoRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
 #include <math/StatAccum.hxx>
+#include <caen/v1720.hxx>
+#include <caen/v1724.hxx>
 
 namespace gdc {
 
@@ -32,7 +34,9 @@ void Binary::ProcessMidasEvent(std::ostream& dest,
 		auto const v1720Info = dataContainer.GetEventData < V1720InfoRawData
 				> (V1720InfoRawData::bankName());
 		if (v1720Info) {
-			ProcessMidasEvent(dest, dataContainer, *v1720Info, 4);
+			ProcessMidasEvent(dest, dataContainer, *v1720Info, 4,
+					caen::v1720::nsPerSample()
+							* caen::v1720::SAMPLES_PER_TIME_TICK);
 			return;
 		}
 	}
@@ -43,7 +47,9 @@ void Binary::ProcessMidasEvent(std::ostream& dest,
 		auto const v1724Info = dataContainer.GetEventData < V1724InfoRawData
 				> (V1724InfoRawData::bankName());
 		if (v1724Info) {
-			ProcessMidasEvent(dest, dataContainer, *v1724Info, 6);
+			ProcessMidasEvent(dest, dataContainer, *v1724Info, 6,
+					caen::v1724::nsPerSample()
+							* caen::v1724::SAMPLES_PER_TIME_TICK);
 			return;
 		}
 	}
@@ -64,11 +70,12 @@ std::ios_base::openmode Binary::FileMode() const {
 
 void Binary::ProcessMidasEvent(std::ostream& dest,
 		TDataContainer& dataContainer,
-		util::caen::DigitizerInfoRawData const& info, int const bitmove) {
+		util::caen::DigitizerInfoRawData const& info, int const bitmove,
+		int const tickToNs) {
 
 	static uint32_t indexFirstPoint = 0;
 	static double horPos = 0;
-	uint64_t const timeStamp = CalcTimestamp(info);
+	uint64_t const timeStamp = CalcTimestamp(info, tickToNs);
 	static uint16_t filler1 = 1;
 	static uint64_t waveformLength = waveformSize + 1;
 	static uint8_t waveformEnd = 0;
@@ -136,13 +143,14 @@ void Binary::WriteWaveform(std::ostream& dest, TDataContainer& dataContainer,
 
 }
 
-uint64_t Binary::CalcTimestamp(util::caen::DigitizerInfoRawData const& info) {
+uint64_t Binary::CalcTimestamp(util::caen::DigitizerInfoRawData const& info,
+		int const tickToNs) {
 
 	if (seriesStartTimeStamp == 0) {
 		seriesStartTimeStamp = TimestampOp::value(info.info().timeStamp);
 		return 0;
 	} else {
-		return picosecsInANanoSec
+		return picosecsInANanoSec * tickToNs
 				* TimestampOp::sub(info.info().timeStamp, seriesStartTimeStamp);
 	}
 

@@ -21,7 +21,7 @@ constexpr unsigned SAMPLES_PER_TIME_TICK = 1;
 /**
  * Number of nanoseconds per one sample
  */
-template<typename T>
+template<typename T = unsigned>
 constexpr T nsPerSample() {
 
 	return 10;

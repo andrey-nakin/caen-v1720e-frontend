@@ -40,11 +40,11 @@ private:
 	std::vector<uint8_t> waveformFiller, seriesFiller;
 
 	void ProcessMidasEvent(std::ostream& dest, TDataContainer& dataContainer,
-			util::caen::DigitizerInfoRawData const& info, int bitmove);
+			util::caen::DigitizerInfoRawData const& info, int bitmove, int tickToNs);
 	void WriteWaveform(std::ostream& dest, TDataContainer& dataContainer,
 			util::caen::DigitizerInfoRawData const& info, uint8_t channel,
 			int bitmove);
-	uint64_t CalcTimestamp(util::caen::DigitizerInfoRawData const& info);
+	uint64_t CalcTimestamp(util::caen::DigitizerInfoRawData const& info, int tickToNs);
 
 };
 
