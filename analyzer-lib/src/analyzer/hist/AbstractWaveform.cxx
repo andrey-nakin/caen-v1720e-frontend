@@ -1,9 +1,7 @@
 #include <iomanip>
 #include <sstream>
-#include <TMidasOnline.h>
 #include <analyzer/hist/AbstractWaveform.hxx>
 #include <analyzer/util/AnalyzerUtils.hxx>
-#include <midas/odb.hxx>
 
 namespace analyzer {
 
@@ -79,26 +77,14 @@ void AbstractWaveform::FillPositionHist(HistType& ph, int const position,
 void AbstractWaveform::BeginRun(int /*transition*/, int /*run*/, int /*time*/) {
 
 	histInitialized.clear();
-	setResetHistogramsFlag();
 
 }
 
-void AbstractWaveform::UpdateHistograms(TDataContainer& /* dataContainer */) {
+void AbstractWaveform::ResetAllHistograms() {
 
-	auto midasOdb = dynamic_cast<TMidasOnline*>(odb);
-	if (midasOdb) {
-		auto const key = util::AnalyzerUtils::OdbKey(getOdbRootKey(),
-				settings::resetHistograms);
-		auto const doReset = midasOdb->odbReadBool(key.c_str(), 0, false);
-		if (doReset) {
-			for (unsigned i = 0; i < size(); i++) {
-				auto h = GetHistogram(i);
-				h->Reset();
-			}
-
-		}
-
-		setResetHistogramsFlag();
+	for (unsigned i = 0; i < size(); i++) {
+		auto h = GetHistogram(i);
+		h->Reset();
 	}
 
 }
@@ -253,17 +239,6 @@ std::string AbstractWaveform::ConstructTitle(INT const feIndex,
 	}
 	s << ", Channel #" << channelNo;
 	return s.str();
-
-}
-
-void AbstractWaveform::setResetHistogramsFlag(bool value) {
-
-	auto midasOdb = dynamic_cast<TMidasOnline*>(odb);
-	if (midasOdb) {
-		auto const key = util::AnalyzerUtils::OdbKey(getOdbRootKey(),
-				settings::resetHistograms);
-		::odb::setValue(midasOdb->fDB, 0, key, value);
-	}
 
 }
 

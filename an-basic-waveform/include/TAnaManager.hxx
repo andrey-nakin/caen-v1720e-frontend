@@ -7,6 +7,12 @@
 
 namespace bwf {
 
+namespace settings {
+
+constexpr char resetHistograms[] = "reset_histograms";
+
+}
+
 class TAnaManager {
 
 public:
@@ -20,8 +26,12 @@ public:
 
 private:
 
+	VirtualOdb* odb;
+	std::string odbRootKey;
 	analyzer::hist::V1720Waveform v1720Waveform;
 	analyzer::hist::V1724Waveform v1724Waveform;
+
+	void setResetHistogramsFlag(bool value = false);
 
 };
 

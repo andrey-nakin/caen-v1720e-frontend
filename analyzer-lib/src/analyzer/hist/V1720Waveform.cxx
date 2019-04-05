@@ -16,8 +16,6 @@ V1720Waveform::V1720Waveform(VirtualOdb* const anOdb,
 
 void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
-	AbstractWaveform::UpdateHistograms(dataContainer);
-
 	using util::caen::V1720InfoRawData;
 
 	auto const v1720Info = dataContainer.GetEventData < V1720InfoRawData

@@ -23,7 +23,6 @@ namespace hist {
 
 namespace settings {
 
-constexpr char resetHistograms[] = "reset_histograms";
 constexpr char timeHistMaxBins[] = "time_hist_max_bins";
 constexpr char ampHistMaxBins[] = "amp_hist_max_bins";
 
@@ -63,7 +62,8 @@ public:
 //	void CreateHistograms();
 
 	virtual void BeginRun(int transition, int run, int time);
-	void UpdateHistograms(TDataContainer &dataContainer) override;
+
+	void ResetAllHistograms();
 
 protected:
 
@@ -126,8 +126,6 @@ private:
 			const char* name);
 	virtual std::string ConstructTitle(INT feIndex, unsigned channelNo,
 			const char* title);
-
-	void setResetHistogramsFlag(bool value = false);
 
 };
 
