@@ -166,6 +166,10 @@ private:
 	void checkTestMode();
 	virtual void configureInRuntime(::caen::Handle& hDevice);
 
+	std::vector<uint16_t> loadDcOffsets(HNDLE hSet) const;
+	std::vector<uint32_t> loadTriggerThreshold(HNDLE hSet) const;
+	std::vector<int16_t> loadSignalThresholds(HNDLE hSet) const;
+
 };
 
 }

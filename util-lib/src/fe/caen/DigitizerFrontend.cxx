@@ -197,8 +197,7 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 			settings::enabledChannels, boardInfo.Channels,
 			defaults::channel::enabled, true);
 
-	dcOffsets = odb::getValueUInt16V(hDB, hSet, settings::channelDcOffset,
-			boardInfo.Channels, defaults::channel::dcOffset, true);
+	dcOffsets = loadDcOffsets(hSet);
 
 	std::string const signalKey = settings::signal::signal;
 	signalFrontLengths = odb::getValueUInt32V(hDB, hSet,
@@ -216,9 +215,7 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 	signalDisabledTriggers = odb::getValueUInt8V(hDB, hSet,
 			signalKey + settings::signal::disabledTriggers, boardInfo.Channels,
 			defaults::channel::signal::disabledTriggers, true);
-	signalThresholds = odb::getValueInt16V(hDB, hSet,
-			signalKey + settings::signal::threshold, boardInfo.Channels,
-			defaults::channel::signal::threshold, true);
+	signalThresholds = loadSignalThresholds(hSet);
 	signalMaxTimes = odb::getValueUInt32V(hDB, hSet,
 			signalKey + settings::signal::maxTime, boardInfo.Channels,
 			defaults::channel::signal::maxTime, true);
@@ -234,9 +231,7 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 		);
 	});
 
-	triggerThreshold = odb::getValueUInt32V(hDB, hSet,
-			settings::triggerThreshold, boardInfo.Channels,
-			defaults::triggerThreshold, true);
+	triggerThreshold = loadTriggerThreshold(hSet);
 
 	triggerRaisingPolarity = odb::getValueBoolV(hDB, hSet,
 			settings::triggerRaisingPolarity, boardInfo.Channels,
@@ -531,11 +526,9 @@ void DigitizerFrontend::configureInRuntime(::caen::Handle& hDevice) {
 
 	auto const hSet = util::FrontEndUtils::settingsKey(equipment[0].name);
 
-	auto const currentDcOffsets = odb::getValueUInt16V(hDB, hSet,
-			settings::channelDcOffset, boardInfo.Channels,
-			defaults::channel::dcOffset, true);
+	auto const currentDcOffsets = loadDcOffsets(hSet);
 	if (!util::VectorComparator::equal(currentDcOffsets, dcOffsets)) {
-		dcOffsets = currentDcOffsets;
+		dcOffsets = std::move(currentDcOffsets);
 
 		for (std::size_t ch = 0; ch < boardInfo.Channels; ch++) {
 			if (dcOffsets.size() >= ch) {
@@ -547,12 +540,10 @@ void DigitizerFrontend::configureInRuntime(::caen::Handle& hDevice) {
 		}
 	}
 
-	auto const currentTriggerThreshold = odb::getValueUInt32V(hDB, hSet,
-			settings::triggerThreshold, boardInfo.Channels,
-			defaults::triggerThreshold, true);
+	auto const currentTriggerThreshold = loadTriggerThreshold(hSet);
 	if (!util::VectorComparator::equal(currentTriggerThreshold,
 			triggerThreshold)) {
-		triggerThreshold = currentTriggerThreshold;
+		triggerThreshold = std::move(currentTriggerThreshold);
 
 		for (std::size_t ch = 0; ch < boardInfo.Channels; ch++) {
 			if (triggerThreshold.size() >= ch) {
@@ -564,14 +555,36 @@ void DigitizerFrontend::configureInRuntime(::caen::Handle& hDevice) {
 		}
 	}
 
-	std::string const signalKey = settings::signal::signal;
-	auto const currentSignalThreshold = odb::getValueInt16V(hDB, hSet,
-			signalKey + settings::signal::threshold, boardInfo.Channels,
-			defaults::channel::signal::threshold, true);
+	auto const currentSignalThreshold = loadSignalThresholds(hSet);
 	if (!util::VectorComparator::equal(currentSignalThreshold,
 			signalThresholds)) {
-		signalThresholds = currentSignalThreshold;
+		signalThresholds = std::move(currentSignalThreshold);
 	}
+
+}
+
+std::vector<uint16_t> DigitizerFrontend::loadDcOffsets(HNDLE const hSet) const {
+
+	return odb::getValueUInt16V(hDB, hSet, settings::channelDcOffset,
+			boardInfo.Channels, defaults::channel::dcOffset, true);
+
+}
+
+std::vector<uint32_t> DigitizerFrontend::loadTriggerThreshold(
+		HNDLE const hSet) const {
+
+	return odb::getValueUInt32V(hDB, hSet, settings::triggerThreshold,
+			boardInfo.Channels, defaults::triggerThreshold, true);
+
+}
+
+std::vector<int16_t> DigitizerFrontend::loadSignalThresholds(
+		HNDLE const hSet) const {
+
+	std::string const signalKey = settings::signal::signal;
+	return odb::getValueInt16V(hDB, hSet,
+			signalKey + settings::signal::threshold, boardInfo.Channels,
+			defaults::channel::signal::threshold, true);
 
 }
 
