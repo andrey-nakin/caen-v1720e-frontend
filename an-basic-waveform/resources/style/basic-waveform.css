@@ -81,6 +81,6 @@ label.bw-toggle-button span.ui-checkboxradio-icon {
 	width: 21ex;
 }
 
-#controlPanel input {
+#controlPanel input[type=text] {
 	width: 15ex;
 }

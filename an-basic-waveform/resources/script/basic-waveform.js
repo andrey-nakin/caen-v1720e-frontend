@@ -245,6 +245,8 @@ var bw = {
 
     writeChannelConfiguration : function (data) {
         if (data.paths.length > 0) {
+            console.debug(data.paths);
+            console.debug(data.values);
             return mjsonrpc_db_paste(data.paths, data.values);
         }
     },
@@ -371,6 +373,11 @@ var bw = {
         }, delay);
     },
 
+    resetAllHistograms : function () {
+        mjsonrpc_db_paste([ '/Analyzer/an-basic-waveform/reset_histograms' ],
+                [ true ]);
+    },
+
     initChannel : function (dig, ch) {
         var self = this;
 
@@ -399,6 +406,11 @@ var bw = {
                 self.forceReloadFrame();
             }
         });
+
+        $("#resetAllHist").button({});
+        $("#resetAllHist").click(function () {
+            self.resetAllHistograms();
+        })
 
         $("#channel").selectmenu({
             width : null,

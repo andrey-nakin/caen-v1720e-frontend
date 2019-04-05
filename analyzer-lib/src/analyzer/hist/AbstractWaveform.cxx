@@ -79,6 +79,7 @@ void AbstractWaveform::FillPositionHist(HistType& ph, int const position,
 void AbstractWaveform::BeginRun(int /*transition*/, int /*run*/, int /*time*/) {
 
 	histInitialized.clear();
+	setResetHistogramsFlag();
 
 }
 
@@ -97,7 +98,7 @@ void AbstractWaveform::UpdateHistograms(TDataContainer& /* dataContainer */) {
 
 		}
 
-		::odb::setValue(midasOdb->fDB, 0, key, false);
+		setResetHistogramsFlag();
 	}
 
 }
@@ -105,16 +106,16 @@ void AbstractWaveform::UpdateHistograms(TDataContainer& /* dataContainer */) {
 unsigned AbstractWaveform::GetPositionMaxBins() const {
 
 	return odb->odbReadUint32(
-			util::AnalyzerUtils::OdbKey(getOdbRootKey(), "time_hist_max_bins").c_str(),
-			0, 0);
+			util::AnalyzerUtils::OdbKey(getOdbRootKey(),
+					settings::timeHistMaxBins).c_str(), 0, 0);
 
 }
 
 unsigned AbstractWaveform::GetAmplitudeMaxBins() const {
 
 	return odb->odbReadUint32(
-			util::AnalyzerUtils::OdbKey(getOdbRootKey(), "amp_hist_max_bins").c_str(),
-			0, 0);
+			util::AnalyzerUtils::OdbKey(getOdbRootKey(),
+					settings::ampHistMaxBins).c_str(), 0, 0);
 
 }
 
@@ -252,6 +253,17 @@ std::string AbstractWaveform::ConstructTitle(INT const feIndex,
 	}
 	s << ", Channel #" << channelNo;
 	return s.str();
+
+}
+
+void AbstractWaveform::setResetHistogramsFlag(bool value) {
+
+	auto midasOdb = dynamic_cast<TMidasOnline*>(odb);
+	if (midasOdb) {
+		auto const key = util::AnalyzerUtils::OdbKey(getOdbRootKey(),
+				settings::resetHistograms);
+		::odb::setValue(midasOdb->fDB, 0, key, value);
+	}
 
 }
 
