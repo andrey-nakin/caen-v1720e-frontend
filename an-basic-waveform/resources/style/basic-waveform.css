@@ -11,20 +11,35 @@ fieldset legend {
 }
 
 #mmain {
-	width: 99%;
-	height: 99%;
+	padding: 0px;
+	height: 100%;
 }
 
 #controlPanel {
+	position: fixed;
+	f-loat: left;
 	width: 55ex;
+	height: 100%;
+	overflow-y: scroll;
+	width: 55ex;
+	padding: 4px;
 }
 
 #chartPanel {
+	position: absolute;
+	margin-left: 58ex;
+	left: 0px;
+	top: 0px;
+	height: 98%;
+	overflow-y: hidden;
+}
+
+#chartPart {
 	height: 100%;
 }
 
 #frame {
-	width: 100%;
+	width: 99%;
 	height: 100%;
 }
 
@@ -56,4 +71,12 @@ fieldset legend {
 
 label.bw-disabled {
 	color: #aaa;
+}
+
+label.bw-toggle-button span.ui-checkboxradio-icon {
+	display: none;
+}
+
+select {
+	width: 22ex;
 }

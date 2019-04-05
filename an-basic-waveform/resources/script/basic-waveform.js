@@ -123,11 +123,45 @@ var bw = {
         return null;
     },
 
+    setChannelWidgetValues : function (ch, settings) {
+        var dco = settings["channel_dc_offset"];
+        if (dco && dco.length > ch) {
+            $("#dcOffset").spinner("enable");
+            $("#dcOffset").spinner("value", nu.parseNumber(dco[ch]));
+            $("#dcOffsetLabel").removeClass("bw-disabled");
+        }
+
+        var tc = settings["trigger_channel"];
+        if (tc && tc.length > ch) {
+            $("#triggerChannel").checkboxradio("enable");
+            $("#triggerChannel").prop('checked', tc[ch]).checkboxradio(
+                    'refresh');
+            $("#triggerChannelLabel").removeClass("bw-disabled");
+        }
+
+        var tt = settings["trigger_threshold"];
+        if (tt && tt.length > ch) {
+            $("#triggerThreshold").spinner("enable");
+            $("#triggerThreshold").spinner("value", nu.parseNumber(tt[ch]));
+            $("#triggerThresholdLabel").removeClass("bw-disabled");
+        }
+
+        var st = settings["signal"] ? settings["signal"].threshold : null;
+        if (st && st.length > ch) {
+            $("#signalThreshold").spinner("enable");
+            $("#signalThreshold").spinner("value", nu.parseNumber(st[ch]));
+            $("#signalThresholdLabel").removeClass("bw-disabled");
+        }
+    },
+
     loadChannelConfig : function () {
         var self = this;
 
         $("#dcOffset").spinner("disable");
         $("#dcOffsetLabel").addClass("bw-disabled");
+
+        $("#triggerChannel").checkboxradio("disable");
+        $("#triggerChannelLabel").addClass("bw-disabled");
 
         $("#triggerThreshold").spinner("disable");
         $("#triggerThresholdLabel").addClass("bw-disabled");
@@ -135,47 +169,19 @@ var bw = {
         $("#signalThreshold").spinner("disable");
         $("#signalThresholdLabel").addClass("bw-disabled");
 
-        return mjsonrpc_db_get_values([ self.channelSettingsKey() ])
-                .then(
-                        function (rpc) {
-                            self.state.loadingChannelConfig = false;
+        return mjsonrpc_db_get_values([ self.channelSettingsKey() ]).then(
+                function (rpc) {
+                    self.state.loadingChannelConfig = false;
 
-                            var ch = self.getCurrentChannelNo();
-                            if (!isNaN(ch)) {
-                                var settings = rpc.result.data ? rpc.result.data[0]
-                                        : null;
-                                if (settings) {
-                                    var dco = settings["channel_dc_offset"];
-                                    if (dco && dco.length > ch) {
-                                        $("#dcOffset").spinner("enable");
-                                        $("#dcOffset").spinner("value",
-                                                nu.parseNumber(dco[ch]));
-                                        $("#dcOffsetLabel").removeClass(
-                                                "bw-disabled");
-                                    }
-
-                                    var tt = settings["trigger_threshold"];
-                                    if (tt && tt.length > ch) {
-                                        $("#triggerThreshold")
-                                                .spinner("enable");
-                                        $("#triggerThreshold").spinner("value",
-                                                nu.parseNumber(tt[ch]));
-                                        $("#triggerThresholdLabel")
-                                                .removeClass("bw-disabled");
-                                    }
-
-                                    var st = settings["signal"] ? settings["signal"].threshold
-                                            : null;
-                                    if (st && st.length > ch) {
-                                        $("#signalThreshold").spinner("enable");
-                                        $("#signalThreshold").spinner("value",
-                                                nu.parseNumber(st[ch]));
-                                        $("#signalThresholdLabel").removeClass(
-                                                "bw-disabled");
-                                    }
-                                }
-                            }
-                        });
+                    var ch = self.getCurrentChannelNo();
+                    if (!isNaN(ch)) {
+                        var settings = rpc.result.data ? rpc.result.data[0]
+                                : null;
+                        if (settings) {
+                            self.setChannelWidgetValues(ch, settings);
+                        }
+                    }
+                });
     },
 
     forceLoadChannelConfig : function () {
@@ -200,6 +206,14 @@ var bw = {
                     dco[ch] = v;
                     values.push(dco);
                 }
+            }
+
+            var val = settings["trigger_channel"];
+            if (val && val.length > ch) {
+                v = $("#triggerChannel").is(':checked');
+                paths.push(self.channelSettingsKey("trigger_channel"));
+                val[ch] = v;
+                values.push(val);
             }
 
             var tt = settings["trigger_threshold"];
@@ -360,7 +374,7 @@ var bw = {
     initChannel : function (dig, ch) {
         var self = this;
 
-        $('#bt-' + dig + '_' + ch).buttonset();
+        $('#bt-' + dig + '_' + ch).controlgroup();
 
         for ( var hist in self.histograms) {
             self.histButton(dig, ch, hist).bind('change', function () {
@@ -373,18 +387,21 @@ var bw = {
         var self = this;
 
         $("#refreshPeriod").selectmenu({
+            width : null,
             change : function (event, ui) {
                 self.forceReloadFrame();
             }
         });
 
         $("#layout").selectmenu({
+            width : null,
             change : function (event, ui) {
                 self.forceReloadFrame();
             }
         });
 
         $("#channel").selectmenu({
+            width : null,
             change : function (event, ui) {
                 self.forceLoadChannelConfig();
             }
@@ -428,6 +445,13 @@ var bw = {
                 self.forceConfigureChannel();
             }
         });
+
+        $("#triggerChannel").checkboxradio({
+            icon : true,
+            disabled : true
+        }).bind('change', function () {
+            self.forceConfigureChannel();
+        })
 
         $("#triggerThreshold").change(function () {
             if (this.select) {
@@ -502,7 +526,8 @@ var bw = {
                     html += '<input type="checkbox" id="ch-' + hist + '_' + dig
                             + '_' + ch + '"> ';
                     html += '<label for="ch-' + hist + '_' + dig + '_' + ch
-                            + '">' + self.histograms[hist] + '</label> ';
+                            + '" class="bw-toggle-button">'
+                            + self.histograms[hist] + '</label> ';
                 }
 
                 html += '</div>';

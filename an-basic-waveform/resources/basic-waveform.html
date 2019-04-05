@@ -29,129 +29,179 @@
 </head>
 
 <body class="mcss">
-	<table id="mmain">
-		<tr height="100%">
-			<td valign="top">
+	<!--  <div id="mmain"> -->
+	<div class="mtable" id="controlPanel" class="widget">
 
-				<div class="mtable" id="controlPanel" class="widget">
-
-					<fieldset class="ui-widget-content">
-						<legend class="ui-widget" id="runInfo">Events</legend>
-						<div id="eventInfo">
-							<div class="bw-row">
-								<div class="bw-cell bw-left-column">
-									<label class="ui-widget">V1720</label>
-								</div>
-								<div class="bw-cell bw-right-column">
-									<label class="ui-widget">0 events/sec</label>
-								</div>
-							</div>
-						</div>
-					</fieldset>
-
-					<fieldset class="ui-widget-content">
-						<legend class="ui-widget">Control</legend>
-						<div class="bw-row">
-							<div class="bw-cell bw-left-column">
-								<label class="ui-widget" for="refreshPeriod">Refresh
-									Period:</label>
-							</div>
-							<div class="bw-cell bw-right-column">
-								<select id="refreshPeriod" style="width: 22ex">
-									<option value="100">100 ms</option>
-									<option value="250">250 ms</option>
-									<option value="500">500 ms</option>
-									<option value="1000" selected>1 s</option>
-									<option value="5000">5 s</option>
-									<option value="10000">10 s</option>
-									<option value="">None</option>
-								</select>
-							</div>
-						</div>
-						<div class="bw-row">
-							<div class="bw-cell bw-left-column">
-								<label class="ui-widget" for="layout">Layout:</label>
-							</div>
-							<div class="bw-cell bw-right-column">
-								<select id="layout" style="width: 22ex">
-									<option value="simple" selected>simple</option>
-									<option value="vert2">vert2</option>
-									<option value="vert3">vert3</option>
-									<option value="vert231">vert231</option>
-									<option value="horiz2">horiz2</option>
-									<option value="horiz32">horiz32</option>
-									<option value="flex">flex</option>
-									<option value="grid2x2">grid 2x2</option>
-									<option value="grid1x3">grid 1x3</option>
-									<option value="grid2x3">grid 2x3</option>
-									<option value="grid3x3">grid 3x3</option>
-									<option value="grid4x4">grid 4x4</option>
-									<option value="collapsible">collapsible</option>
-									<option value="tabs">tabs</option>
-								</select>
-							</div>
-						</div>
-					</fieldset>
-
-					<fieldset class="ui-widget-content">
-						<legend class="ui-widget">Histograms</legend>
-						<div id="accordion">
-							<!--  placeholder for histogram checkbuttons -->
-						</div>
-					</fieldset>
-
-					<fieldset id="deviceSetup" class="ui-widget-content">
-						<legend class="ui-widget">Device Setup</legend>
-						<div class="bw-row">
-							<div class="bw-cell bw-left-column">
-								<label class="ui-widget" for="channel">Channel:</label>
-							</div>
-							<div class="bw-cell bw-right-column">
-								<select id="channel" style="width: 22ex">
-								</select>
-							</div>
-						</div>
-						<div class="bw-row">
-							<div class="bw-cell bw-left-column">
-								<label class="ui-widget bw-disabled" for="dcOffset"
-									id="dcOffsetLabel">DC Offset:</label>
-							</div>
-							<div class="bw-cell bw-right-column">
-								<input id="dcOffset" style="width: 12ex">
-							</div>
-						</div>
-						<div class="bw-row">
-							<div class="bw-cell bw-left-column">
-								<label class="ui-widget bw-disabled" for="triggerThreshold"
-									id="triggerThresholdLabel">Trigger Theshold:</label>
-							</div>
-							<div class="bw-cell bw-right-column">
-								<input id="triggerThreshold" style="width: 12ex">
-							</div>
-						</div>
-						<div class="bw-row">
-							<div class="bw-cell bw-left-column">
-								<label class="ui-widget bw-disabled" for="signalThreshold"
-									id="signalThresholdLabel">Signal Theshold:</label>
-							</div>
-							<div class="bw-cell bw-right-column">
-								<input id="signalThreshold" style="width: 12ex">
-							</div>
-						</div>
-					</fieldset>
+		<fieldset class="ui-widget-content">
+			<legend class="ui-widget" id="runInfo">Events</legend>
+			<div id="eventInfo">
+				<div class="bw-row">
+					<div class="bw-cell bw-left-column">
+						<label class="ui-widget">V1720</label>
+					</div>
+					<div class="bw-cell bw-right-column">
+						<label class="ui-widget">0 events/sec</label>
+					</div>
 				</div>
-			</td>
+			</div>
+		</fieldset>
 
-			<td width="100%">
-
-				<div class="mtable" id="chartPanel">
-					<iframe id="frame"> </iframe>
+		<fieldset class="ui-widget-content">
+			<legend class="ui-widget">Control</legend>
+			<div class="bw-row">
+				<div class="bw-cell bw-left-column">
+					<label class="ui-widget" for="refreshPeriod">Refresh
+						Period:</label>
 				</div>
+				<div class="bw-cell bw-right-column">
+					<select id="refreshPeriod">
+						<option value="100">100 ms</option>
+						<option value="250">250 ms</option>
+						<option value="500">500 ms</option>
+						<option value="1000" selected>1 s</option>
+						<option value="5000">5 s</option>
+						<option value="10000">10 s</option>
+						<option value="">None</option>
+					</select>
+				</div>
+			</div>
+			<div class="bw-row">
+				<div class="bw-cell bw-left-column">
+					<label class="ui-widget" for="layout">Layout:</label>
+				</div>
+				<div class="bw-cell bw-right-column">
+					<select id="layout">
+						<option value="simple" selected>simple</option>
+						<option value="vert2">vert2</option>
+						<option value="vert3">vert3</option>
+						<option value="vert231">vert231</option>
+						<option value="horiz2">horiz2</option>
+						<option value="horiz32">horiz32</option>
+						<option value="flex">flex</option>
+						<option value="grid2x2">grid 2x2</option>
+						<option value="grid1x3">grid 1x3</option>
+						<option value="grid2x3">grid 2x3</option>
+						<option value="grid3x3">grid 3x3</option>
+						<option value="grid4x4">grid 4x4</option>
+						<option value="collapsible">collapsible</option>
+						<option value="tabs">tabs</option>
+					</select>
+				</div>
+			</div>
+		</fieldset>
 
-			</td>
-		</tr>
+		<fieldset class="ui-widget-content">
+			<legend class="ui-widget">Histograms</legend>
+			<div id="accordion">
+				<!--  placeholder for histogram checkbuttons -->
+			</div>
+		</fieldset>
 
-	</table>
+		<fieldset id="deviceSetup" class="ui-widget-content">
+			<legend class="ui-widget">Device Setup</legend>
+			<div class="bw-row">
+				<div class="bw-cell bw-left-column">
+					<label class="ui-widget" for="channel">Channel:</label>
+				</div>
+				<div class="bw-cell bw-right-column">
+					<select id="channel">
+					</select>
+				</div>
+			</div>
+			<div class="bw-row">
+				<div class="bw-cell bw-left-column">
+					<label class="ui-widget bw-disabled" for="dcOffset"
+						id="dcOffsetLabel">DC Offset:</label>
+				</div>
+				<div class="bw-cell bw-right-column">
+					<input id="dcOffset" style="width: 12ex">
+				</div>
+			</div>
+			<div class="bw-row">
+				<div class="bw-cell bw-left-column">
+					<label class="ui-widget bw-disabled" for="triggerChannel1"
+						id="triggerChannelLabel">Trigger:</label>
+				</div>
+				<div class="bw-cell bw-right-column">
+					<label for="triggerChannel">Trigger Channel</label> <input
+						id="triggerChannel" type="checkbox">
+				</div>
+			</div>
+			<div class="bw-row">
+				<div class="bw-cell bw-left-column">
+					<label class="ui-widget bw-disabled" for="triggerThreshold"
+						id="triggerThresholdLabel">Trigger Theshold:</label>
+				</div>
+				<div class="bw-cell bw-right-column">
+					<input id="triggerThreshold" style="width: 12ex">
+				</div>
+			</div>
+			<div class="bw-row">
+				<div class="bw-cell bw-left-column">
+					<label class="ui-widget bw-disabled" for="signalThreshold"
+						id="signalThresholdLabel">Signal Theshold:</label>
+				</div>
+				<div class="bw-cell bw-right-column">
+					<input id="signalThreshold" style="width: 12ex">
+				</div>
+			</div>
+		</fieldset>
+	</div>
+
+	<div class="mtable" id="chartPanel">
+		<div id="chartPart">
+			<iframe id="frame"> </iframe>
+			s s s s s s s s s s s s s s s ss s s s s s s ss s s s s s s ss s s s
+			s s s ss s s s s s s s s s s s s s s s s s s s s s s ss s s s s s s
+			ss s s s s s s ss s s s s s s ss s s s s s s s s s s s s s s s s s s
+			s s s s ss s s s s s s ss s s s s s s ss s s s s s s ss s s s s s s s
+			s s s s s s s s s s s s s s s ss s s s s s s ss s s s s s s ss s s s
+			s s s ss s s s s s s s s s s s s s s s s s s s s s s ss s s s s s s
+			ss s s s s s s ss s s s s s s ss s s s s s s s s s s s s s s s s s s
+			s s s s ss s s s s s s ss s s s s s s ss s s s s s s ss s s s s s s s
+			s s s s s s s s s s s s s s s ss s s s s s s ss s s s s s s ss s s s
+			s s s ss s s s s s s s s s s s s s s s s s s s s s s ss s s s s s s
+			ss s s s s s s ss s s s s s s ss s s s s s s s s s s s s s s s s s s
+			s s s s ss s s s s s s ss s s s s s s ss s s s s s s ss s s s s s s s
+			s s s s s s s s s s s s s s s ss s s s s s s ss s s s s s s ss s s s
+			s s s ss s s s s s s s s s s s s s s s s s s s s s s ss s s s s s s
+			ss s s s s s s ss s s s s s s ss s s s s s s s s s s s s s s s s s s
+			s s s s ss s s s s s s ss s s s s s s ss s s s s s s ss s s s s s s s
+			s s s s s s s s s s s s s s s ss s s s s s s ss s s s s s s ss s s s
+			s s s ss s s s s s s s s s s s s s s s s s s s s s s ss s s s s s s
+			ss s s s s s s ss s s s s s s ss s s s s s s s s s s s s s s s s s s
+			s s s s ss s s s s s s ss s s s s s s ss s s s s s s ss s s s s s s s
+			s s s s s s s s s s s s s s s ss s s s s s s ss s s s s s s ss s s s
+			s s s ss s s s s s s s s s s s s s s s s s s s s s s ss s s s s s s
+			ss s s s s s s ss s s s s s s ss s s s s s s s s s s s s s s s s s s
+			s s s s ss s s s s s s ss s s s s s s ss s s s s s s ss s s s s s s s
+			s s s s s s s s s s s s s s s ss s s s s s s ss s s s s s s ss s s s
+			s s s ss s s s s s s s s s s s s s s s s s s s s s s ss s s s s s s
+			ss s s s s s s ss s s s s s s ss s s s s s s s s s s s s s s s s s s
+			s s s s ss s s s s s s ss s s s s s s ss s s s s s s ss s s s s s s s
+			s s s s s s s s s s s s s s s ss s s s s s s ss s s s s s s ss s s s
+			s s s ss s s s s s s s s s s s s s s s s s s s s s s ss s s s s s s
+			ss s s s s s s ss s s s s s s ss s s s s s s s s s s s s s s s s s s
+			s s s s ss s s s s s s ss s s s s s s ss s s s s s s ss s s s s s s s
+			s s s s s s s s s s s s s s s ss s s s s s s ss s s s s s s ss s s s
+			s s s ss s s s s s s s s s s s s s s s s s s s s s s ss s s s s s s
+			ss s s s s s s ss s s s s s s ss s s s s s s s s s s s s s s s s s s
+			s s s s ss s s s s s s ss s s s s s s ss s s s s s s ss s s s s s s s
+			s s s s s s s s s s s s s s s ss s s s s s s ss s s s s s s ss s s s
+			s s s ss s s s s s s s s s s s s s s s s s s s s s s ss s s s s s s
+			ss s s s s s s ss s s s s s s ss s s s s s s s s s s s s s s s s s s
+			s s s s ss s s s s s s ss s s s s s s ss s s s s s s ss s s s s s s s
+			s s s s s s s s s s s s s s s ss s s s s s s ss s s s s s s ss s s s
+			s s s ss s s s s s s s s s s s s s s s s s s s s s s ss s s s s s s
+			ss s s s s s s ss s s s s s s ss s s s s s s s s s s s s s s s s s s
+			s s s s ss s s s s s s ss s s s s s s ss s s s s s s ss s s s s s s s
+			s s s s s s s s s s s s s s s ss s s s s s s ss s s s s s s ss s s s
+			s s s ss s s s s s s s
+
+		</div>
+	</div>
+
+	<!--  	</div> -->
 
 </body>
 </html>
