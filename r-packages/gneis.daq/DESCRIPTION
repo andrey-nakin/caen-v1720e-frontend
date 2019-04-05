@@ -1,0 +1,9 @@
+Package: gneis.daq
+Version: 1.0
+Title: GNEIS DAQ
+Description: Parsing MIDAS data files produced by GNEIS facility
+License: MIT
+Author: Andrey Nakin <andrey.nakin@gmail.com>
+Maintainer: Andrey Nakin <andrey.nakin@gmail.com>
+Imports:
+
