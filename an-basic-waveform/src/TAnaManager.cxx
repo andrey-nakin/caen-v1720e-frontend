@@ -12,8 +12,14 @@ namespace bwf {
 
 TAnaManager::TAnaManager(VirtualOdb* const anOdb,
 		std::string const& anOdbRootKey) :
-		odb(anOdb), odbRootKey(anOdbRootKey), v1720Waveform(anOdb,
-				anOdbRootKey), v1724Waveform(anOdb, anOdbRootKey) {
+		odb(anOdb), odbRootKey(anOdbRootKey) {
+
+	waveforms.push_back(
+			std::unique_ptr < analyzer::hist::AbstractWaveform
+					> (new analyzer::hist::V1720Waveform(anOdb, anOdbRootKey)));
+	waveforms.push_back(
+			std::unique_ptr < analyzer::hist::AbstractWaveform
+					> (new analyzer::hist::V1724Waveform(anOdb, anOdbRootKey)));
 
 }
 
@@ -25,15 +31,17 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer) {
 				settings::resetHistograms);
 		auto const doReset = midasOdb->odbReadBool(key.c_str(), 0, false);
 		if (doReset) {
-			v1720Waveform.ResetAllHistograms();
-			v1724Waveform.ResetAllHistograms();
+			ForEachWaveform([](analyzer::hist::AbstractWaveform* wf) {
+				wf->ResetAllHistograms();
+			});
 		}
 
 		setResetHistogramsFlag();
 	}
 
-	v1720Waveform.UpdateHistograms(dataContainer);
-	v1724Waveform.UpdateHistograms(dataContainer);
+	ForEachWaveform([&dataContainer](analyzer::hist::AbstractWaveform* wf) {
+		wf->UpdateHistograms(dataContainer);
+	});
 
 	return 1;
 }
@@ -43,15 +51,19 @@ void TAnaManager::BeginRun(int const transition, int const run,
 
 	setResetHistogramsFlag();
 
-	v1720Waveform.BeginRun(transition, run, time);
-	v1724Waveform.BeginRun(transition, run, time);
+	ForEachWaveform(
+			[transition, run, time](analyzer::hist::AbstractWaveform* wf) {
+				wf->BeginRun(transition, run, time);
+			});
 
 }
 
 void TAnaManager::EndRun(int const transition, int const run, int const time) {
 
-	v1720Waveform.EndRun(transition, run, time);
-	v1724Waveform.EndRun(transition, run, time);
+	ForEachWaveform(
+			[transition, run, time](analyzer::hist::AbstractWaveform* wf) {
+				wf->EndRun(transition, run, time);
+			});
 
 }
 
