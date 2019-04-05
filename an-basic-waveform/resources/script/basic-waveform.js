@@ -421,8 +421,10 @@ var bw = {
 
         if (num > 0) {
             $('#deviceSetup').show();
+            $('#analyzerConfig').show();
         } else {
             $('#deviceSetup').hide();
+            $('#analyzerConfig').hide();
         }
 
         $("#dcOffset").change(function () {
