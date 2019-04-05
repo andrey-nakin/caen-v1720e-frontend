@@ -1,7 +1,9 @@
 #include <iomanip>
 #include <sstream>
+#include <TMidasOnline.h>
 #include <analyzer/hist/AbstractWaveform.hxx>
 #include <analyzer/util/AnalyzerUtils.hxx>
+#include <midas/odb.hxx>
 
 namespace analyzer {
 
@@ -82,18 +84,20 @@ void AbstractWaveform::BeginRun(int /*transition*/, int /*run*/, int /*time*/) {
 
 void AbstractWaveform::UpdateHistograms(TDataContainer& /* dataContainer */) {
 
-	auto const doReset = odb->odbReadBool(
-			util::AnalyzerUtils::OdbKey(getOdbRootKey(),
-					settings::resetHistograms).c_str(), 0, false);
-	if (doReset) {
-		for (unsigned i = 0; i < size(); i++) {
-			auto h = GetHistogram(i);
-			h->Reset();
+	auto midasOdb = dynamic_cast<TMidasOnline*>(odb);
+	if (midasOdb) {
+		auto const key = util::AnalyzerUtils::OdbKey(getOdbRootKey(),
+				settings::resetHistograms);
+		auto const doReset = midasOdb->odbReadBool(key.c_str(), 0, false);
+		if (doReset) {
+			for (unsigned i = 0; i < size(); i++) {
+				auto h = GetHistogram(i);
+				h->Reset();
+			}
+
 		}
 
-//		odb->odbWriteBool(
-//				util::AnalyzerUtils::OdbKey(getOdbRootKey(),
-//						settings::resetHistograms).c_str(), 0, false);
+		::odb::setValue(midasOdb->fDB, 0, key, false);
 	}
 
 }
