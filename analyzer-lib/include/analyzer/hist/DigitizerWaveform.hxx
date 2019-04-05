@@ -10,7 +10,6 @@
 #include <math/DiffContainer.hxx>
 #include <math/StatAccum.hxx>
 #include <math/PeakFinder.hxx>
-#include <math/IntOp.hxx>
 
 namespace analyzer {
 
@@ -19,10 +18,10 @@ namespace hist {
 class DigitizerWaveform: public AbstractWaveform {
 protected:
 
-	typedef math::IntOp<uint32_t, 31> TimestampOp;
 	typedef uint8_t channel_no_type;
 	typedef uint32_t wflength_type;
 	typedef ::util::TWaveFormRawData::difference_type distance_type;
+	typedef ::util::caen::DigitizerInfoRawData::timestamp_type timestamp_type;
 
 	static constexpr bool DEF_SIGNAL_RISING = false;
 	static constexpr wflength_type DEF_SIGNAL_LENGTH = 16;
@@ -42,9 +41,8 @@ protected:
 private:
 
 	std::map<channel_no_type, distance_type> triggers;
-	std::map<channel_no_type, TimestampOp::value_type> triggerTimestamps;
+	std::map<channel_no_type, timestamp_type> triggerTimestamps;
 
-	virtual unsigned samplesPerTimeTick() const = 0;
 	virtual channel_no_type numOfChannels() const = 0;
 	virtual unsigned numOfSampleValues() const = 0;
 	virtual uint16_t maxSampleValue() const = 0;
@@ -77,21 +75,6 @@ private:
 			HistType& ah, ::util::SignalInfoBank const* signalInfo,
 			uint32_t preTriggerLength, uint32_t peakLength, bool rising,
 			::util::TWaveFormRawData::const_iterator_type i);
-
-	static TimestampOp::value_type timestamp(
-			::util::caen::DigitizerInfoRawData const& info) {
-
-		return TimestampOp::value(info.info().timeStamp);
-
-	}
-
-	static TimestampOp::value_type timestampDiff(
-			TimestampOp::value_type const first,
-			TimestampOp::value_type const last) {
-
-		return TimestampOp::sub(last, first);
-
-	}
 
 	template<typename IntT>
 	static INT frontendIndex(IntT const v) {

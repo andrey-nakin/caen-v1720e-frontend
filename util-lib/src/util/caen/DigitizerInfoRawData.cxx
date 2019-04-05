@@ -63,6 +63,18 @@ bool DigitizerInfoRawData::hasSelfTriggers() const {
 
 }
 
+DigitizerInfoRawData::timestamp_type DigitizerInfoRawData::timeStamp() const {
+
+	return info().timeStamp;
+
+}
+
+int DigitizerInfoRawData::frontendIndex() const {
+
+	return static_cast<int>(info().frontendIndex);
+
+}
+
 }
 
 }

@@ -26,12 +26,6 @@ void V1720Waveform::UpdateHistograms(TDataContainer &dataContainer) {
 
 }
 
-unsigned V1720Waveform::samplesPerTimeTick() const {
-
-	return caen::v1720::SAMPLES_PER_TIME_TICK;
-
-}
-
 V1720Waveform::channel_no_type V1720Waveform::numOfChannels() const {
 
 	return caen::v1720::NUM_OF_CHANNELS;

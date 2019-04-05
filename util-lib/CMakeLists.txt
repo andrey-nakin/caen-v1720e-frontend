@@ -29,6 +29,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     PRIVATE src)
 target_link_libraries(${PROJECT_NAME} CaenLib)
 target_link_libraries(${PROJECT_NAME} MidasUtilLib)
+target_link_libraries(${PROJECT_NAME} MathLib)
 
 #----------------------------------------------------------------------------
 # Install the library
