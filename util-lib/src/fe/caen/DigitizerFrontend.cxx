@@ -564,6 +564,15 @@ void DigitizerFrontend::configureInRuntime(::caen::Handle& hDevice) {
 		}
 	}
 
+	std::string const signalKey = settings::signal::signal;
+	auto const currentSignalThreshold = odb::getValueInt16V(hDB, hSet,
+			signalKey + settings::signal::threshold, boardInfo.Channels,
+			defaults::channel::signal::threshold, true);
+	if (!util::VectorComparator::equal(currentSignalThreshold,
+			signalThresholds)) {
+		signalThresholds = currentSignalThreshold;
+	}
+
 }
 
 }
