@@ -21,6 +21,12 @@ namespace analyzer {
 
 namespace hist {
 
+namespace settings {
+
+constexpr char resetHistograms[] = "reset_histograms";
+
+}
+
 class AbstractWaveform: public THistogramArrayBase {
 protected:
 
@@ -55,6 +61,7 @@ public:
 //	void CreateHistograms();
 
 	virtual void BeginRun(int transition, int run, int time);
+	void UpdateHistograms(TDataContainer &dataContainer) override;
 
 protected:
 
