@@ -168,7 +168,10 @@ private:
 
 	std::vector<uint16_t> loadDcOffsets(HNDLE hSet) const;
 	std::vector<uint32_t> loadTriggerThreshold(HNDLE hSet) const;
+	std::vector<bool> loadTriggerChannel(HNDLE hSet) const;
 	std::vector<int16_t> loadSignalThresholds(HNDLE hSet) const;
+
+	void setTriggerChannel(::caen::Handle& hDevice);
 
 };
 

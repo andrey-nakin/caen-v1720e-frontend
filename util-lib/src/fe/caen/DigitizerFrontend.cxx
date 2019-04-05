@@ -220,16 +220,8 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 			signalKey + settings::signal::maxTime, boardInfo.Channels,
 			defaults::channel::signal::maxTime, true);
 
-	triggerChannel = odb::getValueBoolV(hDB, hSet, settings::triggerChannel,
-			boardInfo.Channels, defaults::triggerChannel, true);
-	auto const trigChMask = channelMask(triggerChannel);
-	hDevice.hCommand("setting channel self trigger", [trigChMask](int handle) {
-		return CAEN_DGTZ_SetChannelSelfTrigger(
-				handle,
-				CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT,
-				trigChMask
-		);
-	});
+	triggerChannel = loadTriggerChannel(hSet);
+	setTriggerChannel(hDevice);
 
 	triggerThreshold = loadTriggerThreshold(hSet);
 
@@ -237,7 +229,8 @@ void DigitizerFrontend::configure(::caen::Handle& hDevice) {
 			settings::triggerRaisingPolarity, boardInfo.Channels,
 			defaults::triggerRaisingPolarity, true);
 
-	auto const chMask = trigChMask | channelMask(enabledChannels);
+	auto const chMask = channelMask(triggerChannel)
+			| channelMask(enabledChannels);
 	hDevice.hCommand("setting channel enable mask", [chMask](int handle) {
 		return CAEN_DGTZ_SetChannelEnableMask(handle, chMask);
 	});
@@ -555,6 +548,12 @@ void DigitizerFrontend::configureInRuntime(::caen::Handle& hDevice) {
 		}
 	}
 
+	auto const currentTriggerChannel = loadTriggerChannel(hSet);
+	if (!util::VectorComparator::equal(currentTriggerChannel, triggerChannel)) {
+		triggerChannel = std::move(currentTriggerChannel);
+		setTriggerChannel(hDevice);
+	}
+
 	auto const currentSignalThreshold = loadSignalThresholds(hSet);
 	if (!util::VectorComparator::equal(currentSignalThreshold,
 			signalThresholds)) {
@@ -578,6 +577,14 @@ std::vector<uint32_t> DigitizerFrontend::loadTriggerThreshold(
 
 }
 
+std::vector<bool> DigitizerFrontend::loadTriggerChannel(
+		HNDLE const hSet) const {
+
+	return odb::getValueBoolV(hDB, hSet, settings::triggerChannel,
+			boardInfo.Channels, defaults::triggerChannel, true);
+
+}
+
 std::vector<int16_t> DigitizerFrontend::loadSignalThresholds(
 		HNDLE const hSet) const {
 
@@ -585,6 +592,19 @@ std::vector<int16_t> DigitizerFrontend::loadSignalThresholds(
 	return odb::getValueInt16V(hDB, hSet,
 			signalKey + settings::signal::threshold, boardInfo.Channels,
 			defaults::channel::signal::threshold, true);
+
+}
+
+void DigitizerFrontend::setTriggerChannel(::caen::Handle& hDevice) {
+
+	auto const trigChMask = channelMask(triggerChannel);
+	hDevice.hCommand("setting channel self trigger", [trigChMask](int handle) {
+		return CAEN_DGTZ_SetChannelSelfTrigger(
+				handle,
+				CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT,
+				trigChMask
+		);
+	});
 
 }
 
