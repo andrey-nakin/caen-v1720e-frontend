@@ -123,8 +123,8 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 		}
 	}
 
-	dest << "EventInfo\n" << "Device\t" << info.GetName() << "\n" << "BoardId\t"
-			<< info.info().boardId << "\n" << "ChannelMask\t"
+	dest << "#EventInfo\n" << "Device\t" << info.GetName() << "\n"
+			<< "BoardId\t" << info.info().boardId << "\n" << "ChannelMask\t"
 			<< info.info().channelMask << "\n" << "EventCounter\t"
 			<< info.info().eventCounter << "\n" << "FrontendIndex\t"
 			<< info.frontendIndex() << "\n" << "TimeStamp\t" << info.timeStamp()
@@ -147,7 +147,7 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 //
 //	dest << "\n";
 //
-	dest << "Waveforms\n";
+	dest << "#Waveforms\n";
 
 	{
 		bool first = true;
@@ -193,7 +193,7 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 	dest << "\n";
 
 	if (dcInfo) {
-		dest << "DcOffsets\n";
+		dest << "#DcOffsets\n";
 
 		{
 			bool first = true;
@@ -261,7 +261,7 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 	//
 
 	++eventCounter;
-	dest << ".\n" << std::endl;
+	dest << "#EndOfEvent\n" << std::endl;
 
 	return true;
 
