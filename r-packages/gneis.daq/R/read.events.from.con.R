@@ -1,6 +1,6 @@
 # Read one or several MID files, parse and return the events
 read.events.from.con <- 
-  function(con, handler) {
+  function(con, handler, time.units = "nus", voltage.units = "mV") {
     state <- 0  # idle
     
     i <- 0
@@ -18,6 +18,7 @@ read.events.from.con <-
           res <- handler(list(
             eventInfo = eventInfo,
             waveforms = waveforms,
+            timeseries = waveforms.to.timeseries(eventInfo, waveforms, time.units = time.units, voltage.units = voltage.units),
             dcOffsets = dcOffsets
           ))
           if (!is.null(res) && res == FALSE) {
