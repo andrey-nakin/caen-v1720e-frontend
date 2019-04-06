@@ -30,7 +30,8 @@ constexpr T nsPerSample() {
 
 }
 
-constexpr double VOLTAGE_RANGE = 2.25;
+constexpr double DYNAMIC_RANGE = 2.25;
+constexpr double MIN_VOLTAGE = -2.25;
 
 }
 

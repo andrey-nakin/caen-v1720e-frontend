@@ -75,6 +75,13 @@ int DigitizerInfoRawData::frontendIndex() const {
 
 }
 
+double DigitizerInfoRawData::dcValue(TWaveFormRawData::value_type const sample,
+		TDcOffsetRawData::value_type const dcOffset) const {
+
+	return dcMultiplier() * sample + dcBaseline(dcOffset);
+
+}
+
 }
 
 }

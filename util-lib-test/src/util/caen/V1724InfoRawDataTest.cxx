@@ -1,3 +1,4 @@
+#include <cmath>
 #include <util/caen/V1724InfoRawData.hxx>
 #include <gtest/gtest.h>
 
@@ -141,6 +142,29 @@ TEST(V1724InfoRawData, DcMultiplier) {
 	V1724InfoRawData const e(sizeof(bank), TID_DWORD, V1724InfoRawData::bankName(), &bank);
 	EXPECT_NEAR(1.373375E-004, e.dcMultiplier(), 0.5e-10);
 
+}
+
+TEST(V1724InfoRawData, DcBaseline) {
+
+	InfoBank bank;
+	V1724InfoRawData const e(sizeof(bank), TID_DWORD, V1724InfoRawData::bankName(), &bank);
+
+	EXPECT_NEAR(-2.25, e.dcBaseline(0x0000u), 0.5e-10);
+	EXPECT_NEAR(-1.125, e.dcBaseline(0x7fffu), 0.5e-4);
+	EXPECT_NEAR(-1.125, e.dcBaseline(0x8000u), 0.5e-4);
+	EXPECT_NEAR(0.00, e.dcBaseline(0xffffu), 0.5e-10);
+}
+
+TEST(V1724InfoRawData, DcValue) {
+
+	InfoBank bank;
+	V1724InfoRawData const e(sizeof(bank), TID_DWORD, V1724InfoRawData::bankName(), &bank);
+
+	EXPECT_NEAR(-2.25, e.dcValue(0u, 0x0000u), 0.5e-10);
+	EXPECT_NEAR(0.00, e.dcValue(0u, 0xffffu), 0.5e-10);
+
+	EXPECT_NEAR(0.00, e.dcValue(16383u, 0x0000u), 0.5e-10);
+	EXPECT_NEAR(2.25, e.dcValue(16383u, 0xffffu), 0.5e-10);
 }
 
 }

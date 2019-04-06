@@ -135,6 +135,37 @@ TEST(V1720InfoRawData, SampleWidthInBits) {
 
 }
 
+TEST(V1720InfoRawData, DcMultiplier) {
+
+	InfoBank bank;
+	V1720InfoRawData const e(sizeof(bank), TID_DWORD, V1720InfoRawData::bankName(), &bank);
+	EXPECT_NEAR(4.884005E-004, e.dcMultiplier(), 0.5e-10);
+
+}
+
+TEST(V1720InfoRawData, DcBaseline) {
+
+	InfoBank bank;
+	V1720InfoRawData const e(sizeof(bank), TID_DWORD, V1720InfoRawData::bankName(), &bank);
+
+	EXPECT_NEAR(-2.00, e.dcBaseline(0x0000u), 0.5e-10);
+	EXPECT_NEAR(-1.00, e.dcBaseline(0x7fffu), 0.5e-4);
+	EXPECT_NEAR(-1.00, e.dcBaseline(0x8000u), 0.5e-4);
+	EXPECT_NEAR(0.00, e.dcBaseline(0xffffu), 0.5e-10);
+}
+
+TEST(V1720InfoRawData, DcValue) {
+
+	InfoBank bank;
+	V1720InfoRawData const e(sizeof(bank), TID_DWORD, V1720InfoRawData::bankName(), &bank);
+
+	EXPECT_NEAR(-2.00, e.dcValue(0u, 0x0000u), 0.5e-10);
+	EXPECT_NEAR(0.00, e.dcValue(0u, 0xffffu), 0.5e-10);
+
+	EXPECT_NEAR(0.00, e.dcValue(4095u, 0x0000u), 0.5e-10);
+	EXPECT_NEAR(2.00, e.dcValue(4095u, 0xffffu), 0.5e-10);
+}
+
 }
 
 }

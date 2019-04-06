@@ -41,13 +41,16 @@ uint8_t V1724InfoRawData::sampleWidthInBits() const {
 
 double V1724InfoRawData::dcMultiplier() const {
 
-	return ::caen::v1724::VOLTAGE_RANGE
+	return ::caen::v1724::DYNAMIC_RANGE
 			/ (::caen::v1724::MAX_SAMPLE_VALUE - ::caen::v1724::MIN_SAMPLE_VALUE);
 
 }
 
 double V1724InfoRawData::dcBaseline(
 		TDcOffsetRawData::value_type const dcOffset) const {
+
+	return ::caen::v1724::MIN_VOLTAGE
+			+ ::caen::v1724::DYNAMIC_RANGE * dcOffset / 65535.0;
 
 }
 

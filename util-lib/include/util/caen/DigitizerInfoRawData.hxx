@@ -5,6 +5,7 @@
 #include <util/types.hxx>
 #include <math/IntOp.hxx>
 #include <util/TDcOffsetRawData.hxx>
+#include <util/TWaveFormRawData.hxx>
 
 namespace util {
 
@@ -58,6 +59,9 @@ public:
 	virtual double dcMultiplier() const = 0;
 
 	virtual double dcBaseline(TDcOffsetRawData::value_type dcOffset) const = 0;
+
+	double dcValue(TWaveFormRawData::value_type sample,
+			TDcOffsetRawData::value_type dcOffset) const;
 
 private:
 
