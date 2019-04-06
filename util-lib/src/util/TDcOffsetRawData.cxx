@@ -10,7 +10,8 @@ TDcOffsetRawData::TDcOffsetRawData(int const bklen, int const bktype,
 
 }
 
-uint16_t TDcOffsetRawData::dcOffset(uint8_t const channelNo) const {
+TDcOffsetRawData::value_type TDcOffsetRawData::dcOffset(
+		uint8_t const channelNo) const {
 
 	return channelNo < GetSize() ? GetData16()[channelNo] : 0;
 

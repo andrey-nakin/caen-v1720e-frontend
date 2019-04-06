@@ -30,6 +30,8 @@ constexpr T nsPerSample() {
 
 }
 
+constexpr double VOLTAGE_RANGE = 2.25;
+
 }
 
 }

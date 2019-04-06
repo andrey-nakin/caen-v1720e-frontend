@@ -39,6 +39,15 @@ uint8_t V1720InfoRawData::sampleWidthInBits() const {
 
 }
 
+double V1720InfoRawData::dcMultiplier() const {
+
+}
+
+double V1720InfoRawData::dcBaseline(
+		TDcOffsetRawData::value_type const dcOffset) const {
+
+}
+
 }
 
 }

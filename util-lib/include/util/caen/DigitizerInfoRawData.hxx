@@ -4,6 +4,7 @@
 #include <TGenericData.hxx>
 #include <util/types.hxx>
 #include <math/IntOp.hxx>
+#include <util/TDcOffsetRawData.hxx>
 
 namespace util {
 
@@ -53,6 +54,10 @@ public:
 	virtual uint8_t sampleWidthInBits() const = 0;
 
 	int frontendIndex() const;
+
+	virtual double dcMultiplier() const = 0;
+
+	virtual double dcBaseline(TDcOffsetRawData::value_type dcOffset) const = 0;
 
 private:
 

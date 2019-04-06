@@ -10,11 +10,13 @@ namespace util {
 class TDcOffsetRawData: public TGenericData {
 public:
 
+	typedef uint16_t value_type;
+
 	static char const* BANK_NAME;
 
 	TDcOffsetRawData(int bklen, int bktype, const char* name, void *pdata);
 
-	uint16_t dcOffset(uint8_t channelNo) const;
+	value_type dcOffset(uint8_t channelNo) const;
 
 };
 

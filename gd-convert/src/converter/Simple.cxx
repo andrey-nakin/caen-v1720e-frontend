@@ -6,6 +6,7 @@
 #include <util/caen/V1724InfoRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
 #include <util/TriggerInfoRawData.hxx>
+#include <util/TDcOffsetRawData.hxx>
 #include <converter/Simple.hxx>
 
 namespace gdc {
@@ -92,6 +93,7 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 
 	using util::TWaveFormRawData;
 	using util::TriggerInfoRawData;
+	using util::TDcOffsetRawData;
 
 	if (maxEvents > 0 && maxEvents <= eventCounter) {
 		return false;
@@ -104,6 +106,8 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 	//std::ofstream dest(ConstructName(info));
 //	auto& dest = std::cout;
 
+	auto const dcInfo = dataContainer.GetEventData < TDcOffsetRawData
+			> (TDcOffsetRawData::BANK_NAME);
 	auto const trgInfo = dataContainer.GetEventData < TriggerInfoRawData
 			> (TriggerInfoRawData::bankName());
 
@@ -141,110 +145,113 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 //
 //	dest << "\n";
 //
-//	for (std::size_t i = 0; i < recordLength; i++) {
-//
-//		switch (i) {
-//		case 0:
-//			dest << "Type\t" << info.GetName();
-//			break;
-//
-//		case 1:
-//			dest << "BoardId\t" << info.info().boardId;
-//			break;
-//
-//		case 2:
-//			dest << "ChannelMask\t" << info.info().channelMask;
-//			break;
-//
-//		case 3:
-//			dest << "EventCounter\t" << info.info().eventCounter;
-//			break;
-//
-//		case 4:
-//			dest << "FrontendIndex\t" << info.frontendIndex();
-//			break;
-//
-//		case 5:
-//			dest << "TimeStamp\t" << info.timeStampDifferenceInSamples(0);
-//			break;
-//
-//		case 6:
-//			dest << "TimeStampNs\t" << info.timeStampDifferenceInNs(0);
-//			break;
-//
-//		case 7:
-//			dest << "PreTriggerLength\t" << info.info().preTriggerLength;
-//			break;
-//
-//		case 8:
-//			dest << "RecordLength\t" << recordLength;
-//			break;
-//
-//		case 9:
-//			dest << "BitsInSample\t"
-//					<< static_cast<int>(info.sampleWidthInBits());
-//			break;
-//
-//		case 10:
-//		case 11:
-//		case 12:
-//		case 13:
-//		case 14:
-//		case 15:
-//		case 16:
-//		case 17: {
-//			auto const trgCh = i - 10;
-//			dest << "TrgCh" << trgCh << "\t"
-//					<< (info.selfTrigger(trgCh) ? "TRUE" : "FALSE");
-//		}
-//			break;
-//
-//		case 18:
-//			dest << "TrgExt\t" << (info.extTrigger() ? "TRUE" : "FALSE");
-//			break;
-//
-//		default:
-//			dest << "\t-";
-//		}
-//
-//		for (uint8_t ch = 0; ch < 8; ch++) {
-//			dest << '\t';
-//
-//			if (info.channelIncluded(ch)) {
-//				auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
-//						> (TWaveFormRawData::bankName(ch));
-//				if (wfRaw) {
-//					if (i < wfRaw->numOfSamples()) {
-//						dest << *(wfRaw->begin() + i);
-//					}
-//				}
-//			}
-//
-//		}
-//
-//		if (trgInfo) {
-//			for (TriggerInfoRawData::channelno_type trgCh = 0; trgCh < 8;
-//					trgCh++) {
-//				auto const trgChInf = trgInfo->channelInfo(trgCh);
-//				if (trgChInf) {
-//					dest << '\t';
-//					switch (i) {
-//					case 0:
-//						dest << static_cast<int>(trgInfo->channel(*trgChInf));
-//						break;
-//					case 1:
-//						dest << trgInfo->threshold(*trgChInf);
-//						break;
-//					case 2:
-//						dest << (trgInfo->rising(*trgChInf) ? "TRUE" : "FALSE");
-//						break;
-//					}
-//				}
-//			}
-//		}
-//
-//		dest << "\n";
-//	}
+	dest << "Waveforms\n";
+
+	{
+		bool first = true;
+
+		for (uint8_t ch = 0; ch < 8; ch++) {
+			if (info.channelIncluded(ch)) {
+				if (first) {
+					first = false;
+				} else {
+					dest << '\t';
+				}
+				dest << "CH" << static_cast<int>(ch);
+			}
+		}
+
+		dest << "\n";
+	}
+
+	for (std::size_t i = 0; i < recordLength; i++) {
+		bool first = true;
+
+		for (uint8_t ch = 0; ch < 8; ch++) {
+			if (info.channelIncluded(ch)) {
+				if (first) {
+					first = false;
+				} else {
+					dest << '\t';
+				}
+
+				auto const wfRaw = dataContainer.GetEventData < TWaveFormRawData
+						> (TWaveFormRawData::bankName(ch));
+				if (wfRaw) {
+					if (i < wfRaw->numOfSamples()) {
+						dest << *(wfRaw->begin() + i);
+					}
+				}
+			}
+
+		}
+
+		dest << "\n";
+	}
+	dest << "\n";
+
+	if (dcInfo) {
+		dest << "DcOffsets\n";
+
+		{
+			bool first = true;
+
+			for (uint8_t ch = 0; ch < 8; ch++) {
+				if (first) {
+					first = false;
+				} else {
+					dest << '\t';
+				}
+				dest << "CH" << static_cast<int>(ch);
+			}
+
+			dest << "\n";
+		}
+
+		for (std::size_t i = 0; i < 3; i++) {
+			bool first = true;
+
+			for (uint8_t ch = 0; ch < 8; ch++) {
+				if (first) {
+					first = false;
+				} else {
+					dest << '\t';
+				}
+
+				switch (i) {
+				case 0:
+					dest << dcInfo->dcOffset(ch);
+					break;
+				}
+			}
+
+			dest << "\n";
+		}
+		dest << "\n";
+	}
+
+	//
+	//		if (trgInfo) {
+	//			for (TriggerInfoRawData::channelno_type trgCh = 0; trgCh < 8;
+	//					trgCh++) {
+	//				auto const trgChInf = trgInfo->channelInfo(trgCh);
+	//				if (trgChInf) {
+	//					dest << '\t';
+	//					switch (i) {
+	//					case 0:
+	//						dest << static_cast<int>(trgInfo->channel(*trgChInf));
+	//						break;
+	//					case 1:
+	//						dest << trgInfo->threshold(*trgChInf);
+	//						break;
+	//					case 2:
+	//						dest << (trgInfo->rising(*trgChInf) ? "TRUE" : "FALSE");
+	//						break;
+	//					}
+	//				}
+	//			}
+	//		}
+	//
 
 	++eventCounter;
 	dest << "." << std::endl;

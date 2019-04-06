@@ -12,10 +12,19 @@ read.events.from.file <-
           cat("switch to state 1\n")
           state <- 1  # readig event info
           eventInfo <- list()
+        } else if (line == "Waveforms") {
+          waveforms <- read.csv(con, header = T, sep = "\t", nrows = eventInfo$RecordLength)
+        } else if (line == ".") {
+          res <- handler(list(
+            eventInfo = eventInfo,
+            waveforms = waveforms
+          ))
+          if (!is.null(res) && res == FALSE) {
+            break
+          }
         }
       } else if (state == 1) {
         if (line == "") {
-          handler(eventInfo)
           cat("switch to state 0\n")
           state <- 0
         } else {
@@ -28,9 +37,6 @@ read.events.from.file <-
           }
           eventInfo[[name]] <- value
         }
-      }
-      if (i > 20) {
-        break
       }
     }    
   }

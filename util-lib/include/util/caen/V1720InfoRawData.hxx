@@ -25,6 +25,10 @@ public:
 
 	uint8_t sampleWidthInBits() const override;
 
+	double dcMultiplier() const override;
+
+	double dcBaseline(TDcOffsetRawData::value_type dcOffset) const override;
+
 };
 
 }

@@ -135,6 +135,14 @@ TEST(V1724InfoRawData, SampleWidthInBits) {
 
 }
 
+TEST(V1724InfoRawData, DcMultiplier) {
+
+	InfoBank bank;
+	V1724InfoRawData const e(sizeof(bank), TID_DWORD, V1724InfoRawData::bankName(), &bank);
+	EXPECT_NEAR(1.373375E-004, e.dcMultiplier(), 0.5e-10);
+
+}
+
 }
 
 }
