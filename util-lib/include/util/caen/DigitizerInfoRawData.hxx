@@ -42,6 +42,12 @@ public:
 
 	timestamp_type timeStamp() const;
 
+	timestamp_type timeStampModule() const;
+
+	virtual unsigned ticksPerSample() const = 0;
+
+	virtual uint32_t samplesPerNuSecond() const = 0;
+
 	/**
 	 * to_nanosecs(<this timestamp> - <ts>)
 	 */

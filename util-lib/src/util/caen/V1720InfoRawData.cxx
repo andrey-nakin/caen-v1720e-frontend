@@ -18,6 +18,18 @@ const char* V1720InfoRawData::bankName() {
 
 }
 
+unsigned V1720InfoRawData::ticksPerSample() const {
+
+	return ::caen::v1720::SAMPLES_PER_TIME_TICK;
+
+}
+
+uint32_t V1720InfoRawData::samplesPerNuSecond() const {
+
+	return 1000ul / ::caen::v1720::nsPerSample();
+
+}
+
 uint64_t V1720InfoRawData::timeStampDifferenceInNs(
 		timestamp_type const ts) const {
 

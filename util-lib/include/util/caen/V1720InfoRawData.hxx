@@ -13,6 +13,10 @@ public:
 
 	static const char* bankName();
 
+	unsigned ticksPerSample() const override;
+
+	uint32_t samplesPerNuSecond() const override;
+
 	/**
 	 * to_nanosecs(<this timestamp> - <ts>)
 	 */

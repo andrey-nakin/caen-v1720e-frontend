@@ -127,12 +127,14 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 			<< info.info().boardId << "\n" << "ChannelMask\t"
 			<< info.info().channelMask << "\n" << "EventCounter\t"
 			<< info.info().eventCounter << "\n" << "FrontendIndex\t"
-			<< info.frontendIndex() << "\n" << "TimeStamp\t"
-			<< info.timeStampDifferenceInSamples(0) << "\n" << "TimeStampNs\t"
-			<< info.timeStampDifferenceInNs(0) << "\n" << "PreTriggerLength\t"
-			<< info.info().preTriggerLength << "\n" << "RecordLength\t"
-			<< recordLength << "\n" << "BitsInSample\t"
-			<< static_cast<int>(info.sampleWidthInBits()) << "\n\n";
+			<< info.frontendIndex() << "\n" << "TimeStamp\t" << info.timeStamp()
+			<< "\n" << "TimeStampModule\t" << info.timeStampModule() << "\n"
+			<< "TicksPerSample\t" << info.ticksPerSample() << "\n"
+			<< "SamplesPerNuSecond\t" << info.samplesPerNuSecond() << "\n"
+			<< "WaveformLength\t" << recordLength << "\n"
+			<< "PreTriggerLength\t" << info.info().preTriggerLength << "\n"
+			<< "BitsPerSample\t" << static_cast<int>(info.sampleWidthInBits())
+			<< "\n" << "DcMultiplier\t" << info.dcMultiplier() << "\n\n";
 
 //	if (trgInfo) {
 //		for (TriggerInfoRawData::channelno_type trgCh = 0; trgCh < 8; trgCh++) {
@@ -208,7 +210,9 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 			dest << "\n";
 		}
 
-		for (std::size_t i = 0; i < 3; i++) {
+		dest << std::fixed << std::setprecision(6);
+
+		for (std::size_t i = 0; i < 2; i++) {
 			bool first = true;
 
 			for (uint8_t ch = 0; ch < 8; ch++) {
@@ -221,6 +225,9 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 				switch (i) {
 				case 0:
 					dest << dcInfo->dcOffset(ch);
+					break;
+				case 1:
+					dest << info.dcBaseline(dcInfo->dcOffset(ch));
 					break;
 				}
 			}
@@ -254,7 +261,7 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 	//
 
 	++eventCounter;
-	dest << "." << std::endl;
+	dest << ".\n" << std::endl;
 
 	return true;
 

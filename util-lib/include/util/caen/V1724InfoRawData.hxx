@@ -13,6 +13,10 @@ public:
 
 	static const char* bankName();
 
+	unsigned ticksPerSample() const override;
+
+	uint32_t samplesPerNuSecond() const override;
+
 	uint64_t timeStampDifferenceInNs(timestamp_type ts) const override;
 
 	uint64_t timeStampDifferenceInSamples(timestamp_type ts) const override;

@@ -167,6 +167,22 @@ TEST(V1724InfoRawData, DcValue) {
 	EXPECT_NEAR(2.25, e.dcValue(16383u, 0xffffu), 0.5e-10);
 }
 
+TEST(V1724InfoRawData, TicksPerSample) {
+
+	InfoBank bank;
+	V1724InfoRawData const e(sizeof(bank), TID_DWORD, V1724InfoRawData::bankName(), &bank);
+
+	EXPECT_EQ(1, e.ticksPerSample());
+}
+
+TEST(V1724InfoRawData, SamplesPerNuSecond) {
+
+	InfoBank bank;
+	V1724InfoRawData const e(sizeof(bank), TID_DWORD, V1724InfoRawData::bankName(), &bank);
+
+	EXPECT_EQ(100, e.samplesPerNuSecond());
+}
+
 }
 
 }
