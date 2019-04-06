@@ -136,17 +136,6 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 			<< "BitsPerSample\t" << static_cast<int>(info.sampleWidthInBits())
 			<< "\n" << "DcMultiplier\t" << info.dcMultiplier() << "\n\n";
 
-//	if (trgInfo) {
-//		for (TriggerInfoRawData::channelno_type trgCh = 0; trgCh < 8; trgCh++) {
-//			auto const trgChInf = trgInfo->channelInfo(trgCh);
-//			if (trgChInf) {
-//				dest << "\tTRG" << static_cast<int>(trgCh);
-//			}
-//		}
-//	}
-//
-//	dest << "\n";
-//
 	dest << "#Waveforms\n";
 
 	{
@@ -237,30 +226,79 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 		dest << "\n";
 	}
 
-	//
-	//		if (trgInfo) {
-	//			for (TriggerInfoRawData::channelno_type trgCh = 0; trgCh < 8;
-	//					trgCh++) {
-	//				auto const trgChInf = trgInfo->channelInfo(trgCh);
-	//				if (trgChInf) {
-	//					dest << '\t';
-	//					switch (i) {
-	//					case 0:
-	//						dest << static_cast<int>(trgInfo->channel(*trgChInf));
-	//						break;
-	//					case 1:
-	//						dest << trgInfo->threshold(*trgChInf);
-	//						break;
-	//					case 2:
-	//						dest << (trgInfo->rising(*trgChInf) ? "TRUE" : "FALSE");
-	//						break;
-	//					}
-	//				}
-	//			}
-	//		}
-	//
+	if (trgInfo) {
+		dest << "#Triggers\n";
 
-	++eventCounter;
+		{
+			bool first = true;
+
+			for (uint8_t ch = 0; ch < 8; ch++) {
+				if (first) {
+					first = false;
+				} else {
+					dest << '\t';
+				}
+				dest << "CH" << static_cast<int>(ch);
+			}
+
+			dest << "\n";
+		}
+
+		for (std::size_t i = 0; i < 4; i++) {
+			bool first = true;
+
+			for (TriggerInfoRawData::channelno_type trgCh = 0; trgCh < 8;
+					trgCh++) {
+
+				if (first) {
+					first = false;
+				} else {
+					dest << '\t';
+				}
+
+				auto const trgChInf = trgInfo->channelInfo(trgCh);
+
+				switch (i) {
+				case 0:
+					if (trgChInf) {
+						dest << (info.selfTrigger(trgCh) ? "TRUE" : "FALSE");
+					} else {
+						dest << "FALSE";
+					}
+					break;
+
+				case 1:
+					if (trgChInf) {
+						dest << (trgInfo->rising(*trgChInf) ? "TRUE" : "FALSE");
+					} else {
+						dest << "FALSE";
+					}
+					break;
+
+				case 2:
+					if (trgChInf) {
+						dest << trgInfo->threshold(*trgChInf);
+					} else {
+						dest << -1;
+					}
+					break;
+
+				case 3:
+					if (trgChInf && info.selfTrigger(trgCh)) {
+						dest << 0;	// TODOtrgInfo->threshold(*trgChInf);
+					} else {
+						dest << -1;
+					}
+					break;
+				}
+			}
+
+			dest << "\n";
+		}
+
+		dest << "\n";
+	}
+
 	dest << "#EndOfEvent\n" << std::endl;
 
 	return true;
