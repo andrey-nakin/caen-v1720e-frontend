@@ -18,7 +18,9 @@ read.events.from.con <-
           res <- handler(list(
             eventInfo = eventInfo,
             waveforms = waveforms,
-            timeseries = waveforms.to.timeseries(eventInfo, waveforms, time.units = time.units, voltage.units = voltage.units),
+            timeseries = waveforms.to.timeseries(
+              eventInfo, waveforms, dcOffsets, time.units = time.units, voltage.units = voltage.units
+            ),
             dcOffsets = dcOffsets
           ))
           if (!is.null(res) && res == FALSE) {
