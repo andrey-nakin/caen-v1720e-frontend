@@ -30,7 +30,7 @@ waveforms.to.timeseries <-
       TIME = seq(from = 1, to = nrow(waveforms), by = 1) * 1.0e-6 * time.coef / eventInfo$SamplesPerNuSecond
     )
     for (col in colnames(waveforms)) {
-      result[[col]] <- waveforms[[col]] * eventInfo$DcMultiplier + dcOffsets[[col]][2]
+      result[[col]] <- (waveforms[[col]] * eventInfo$DcMultiplier + dcOffsets[[col]][2]) * v.coef
     }
     return (result)
   }
