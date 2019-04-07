@@ -15,25 +15,19 @@ public:
 
 	static std::string Name();
 
-	void BeginRun(int transition, int run, int time) override;
 	bool ProcessMidasEvent(std::ostream& dest, TDataContainer& dataContainer)
 			override;
+
 	void Configure(std::vector<char*>& args) override;
-	std::string FileExtension() const override {
 
-		return ".txt";
-
-	}
+	std::string FileExtension() const override;
 
 private:
 
-	int currentRun;
 	uint16_t triggerMask;
-	unsigned eventCounter, maxEvents;
 
 	bool ProcessMidasEvent(std::ostream& dest, TDataContainer& dataContainer,
 			util::caen::DigitizerInfoRawData const& info);
-	std::string ConstructName(util::caen::DigitizerInfoRawData const& info);
 
 };
 

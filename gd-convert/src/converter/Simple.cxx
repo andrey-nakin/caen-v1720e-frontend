@@ -28,7 +28,7 @@ static bool StartsWith(const char* const s, const char* const substr) {
 }
 
 Simple::Simple() :
-		currentRun(0), triggerMask(0xffff), eventCounter(0), maxEvents(0) {
+		triggerMask(0xffff) {
 
 }
 
@@ -38,10 +38,9 @@ std::string Simple::Name() {
 
 }
 
-void Simple::BeginRun(int const transition, int const run, int time) {
+std::string Simple::FileExtension() const {
 
-	FilePerRun::BeginRun(transition, run, time);
-	currentRun = run;
+	return ".txt";
 
 }
 
@@ -77,8 +76,6 @@ void Simple::Configure(std::vector<char*>& args) {
 	for (std::size_t i = 0; i < args.size();) {
 		if (StartsWith(args[i], cmd::triggerMask)) {
 			triggerMask = std::stoi(args[i] + std::strlen(cmd::triggerMask));
-		} else if (StartsWith(args[i], cmd::events)) {
-			maxEvents = std::stoi(args[i] + std::strlen(cmd::events));
 		} else {
 			i++;
 			continue;
@@ -96,16 +93,9 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 	using util::TriggerInfoRawData;
 	using util::TDcOffsetRawData;
 
-	if (maxEvents > 0 && maxEvents <= eventCounter) {
-		return false;
-	}
-
 	if (0 == (info.info().pattern.bits.channelTrigger & triggerMask)) {
 		return true;
 	}
-
-	//std::ofstream dest(ConstructName(info));
-//	auto& dest = std::cout;
 
 	auto const dcInfo = dataContainer.GetEventData < TDcOffsetRawData
 			> (TDcOffsetRawData::BANK_NAME);
@@ -313,16 +303,6 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 	dest << "#EndOfEvent\n" << std::endl;
 
 	return true;
-
-}
-
-std::string Simple::ConstructName(
-		util::caen::DigitizerInfoRawData const& info) {
-
-	std::stringstream s;
-	s << "run" << std::setfill('0') << std::setw(5) << currentRun << ".event"
-			<< std::setw(9) << info.info().eventCounter << ".txt";
-	return s.str();
 
 }
 
