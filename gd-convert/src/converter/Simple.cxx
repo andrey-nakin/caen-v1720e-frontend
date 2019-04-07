@@ -17,7 +17,6 @@ namespace converter {
 namespace cmd {
 
 constexpr char triggerMask[] = "-tm";
-constexpr char events[] = "-e";
 
 }
 
