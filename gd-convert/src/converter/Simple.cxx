@@ -7,6 +7,7 @@
 #include <util/TWaveFormRawData.hxx>
 #include <util/TriggerInfoRawData.hxx>
 #include <util/TDcOffsetRawData.hxx>
+#include <math/EdgeFinder.hxx>
 #include <converter/Simple.hxx>
 
 namespace gdc {
@@ -283,12 +284,22 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 					}
 					break;
 
-				case 3:
-					if (trgChInf && info.selfTrigger(trgCh)) {
-						dest << 0;	// TODOtrgInfo->threshold(*trgChInf);
+				case 3: {
+					auto const wfRaw = dataContainer.GetEventData
+							< TWaveFormRawData
+							> (TWaveFormRawData::bankName(trgCh));
+
+					if (trgChInf && info.selfTrigger(trgCh) && wfRaw) {
+						dest
+								<< math::FindEdgeDistance(
+										TriggerInfoRawData::rising(*trgChInf),
+										TriggerInfoRawData::threshold(
+												*trgChInf), wfRaw->begin(),
+										wfRaw->end());
 					} else {
 						dest << -1;
 					}
+				}
 					break;
 				}
 			}

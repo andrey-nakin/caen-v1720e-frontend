@@ -14,6 +14,8 @@ read.events.from.con <-
           waveforms <- read.csv(con, header = T, sep = "\t", nrows = eventInfo$WaveformLength)
         } else if (line == "#DcOffsets") {
           dcOffsets <- read.csv(con, header = T, sep = "\t", nrows = 2)
+        } else if (line == "#Triggers") {
+          triggers <- read.csv(con, header = T, sep = "\t", nrows = 4)
         } else if (line == "#EndOfEvent") {
           res <- handler(list(
             eventInfo = eventInfo,
@@ -21,7 +23,8 @@ read.events.from.con <-
             timeseries = waveforms.to.timeseries(
               eventInfo, waveforms, dcOffsets, time.units = time.units, voltage.units = voltage.units
             ),
-            dcOffsets = dcOffsets
+            dcOffsets = dcOffsets,
+            triggers = triggers
           ))
           if (!is.null(res) && res == FALSE) {
             break
