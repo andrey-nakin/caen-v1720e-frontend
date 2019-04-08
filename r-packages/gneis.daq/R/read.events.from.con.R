@@ -1,9 +1,9 @@
 # Read one or several MID files, parse and return the events
 read.events.from.con <- 
-  function(con, filter = null, converter = NA, merger = NA, init.value = NA, nevents = -1, time.units = "nus", voltage.units = "mV") {
+  function(con, filter.func = NULL, converter.func = NULL, merging.func = NULL, init.value = NULL, nevents = -1, time.units = "nus", voltage.units = "mV") {
     state <- 0  # idle
     my.ecount <- 0
-    if (is.na(init.value) || is.na(merger)) {
+    if (is.null(init.value) || missing(merging.func) || is.null(merging.func)) {
       my.result <- list()
     } else {
       my.result <- init.value
@@ -31,18 +31,17 @@ read.events.from.con <-
             triggers = triggers
           )
           
-          if (is.null(filter) || filter(my.event) == TRUE) {
+          if (missing(filter.func) || is.null(filter.func) || filter.func(my.event) == TRUE) {
             my.ecount <- my.ecount + 1
-            cat("my.ecount=", my.ecount, "\n")
             
-            if (!is.na(converter)) {
-              my.event <- converter(my.event)
+            if (!missing(converter.func) && !is.null(converter.func)) {
+              my.event <- converter.func(my.event)
             }
             
-            if (is.na(merger)) {
+            if (missing(merging.func) || is.null(merging.func)) {
               my.result[[my.ecount]] <- my.event
             } else {
-              my.result <- merger(my.result, my.event)
+              my.result <- merging.func(my.result, my.event)
             }
             
             if (nevents >= 0 && nevents <= my.ecount) {
