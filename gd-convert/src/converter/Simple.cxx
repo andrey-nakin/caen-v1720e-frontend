@@ -251,17 +251,17 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 				switch (i) {
 				case 0:
 					if (trgChInf) {
-						dest << (info.selfTrigger(trgCh) ? "TRUE" : "FALSE");
+						dest << (info.selfTrigger(trgCh) ? 1 : 0);
 					} else {
-						dest << "FALSE";
+						dest << 0;
 					}
 					break;
 
 				case 1:
 					if (trgChInf) {
-						dest << (trgInfo->rising(*trgChInf) ? "TRUE" : "FALSE");
+						dest << (trgInfo->rising(*trgChInf) ? 1 : 0);
 					} else {
-						dest << "FALSE";
+						dest << 0;
 					}
 					break;
 
