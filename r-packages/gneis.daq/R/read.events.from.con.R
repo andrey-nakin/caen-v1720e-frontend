@@ -1,11 +1,15 @@
 # Read one or several MID files, parse and return the events
 read.events.from.con <- 
-  function(con, handler, time.units = "nus", voltage.units = "mV") {
+  function(con, filter = NA, converter = NA, merger = NA, init.value = NA, nevents = -1, time.units = "nus", voltage.units = "mV") {
     state <- 0  # idle
+    my.ecount <- 0
+    if (is.na(init.value) || is.na(merger)) {
+      my.result <- list()
+    } else {
+      my.result <- init.value
+    }
     
-    i <- 0
     while (length(line <- readLines(con, n=1)) > 0) {
-      i <- i + 1
       if (state == 0) {
         if (line == "#EventInfo") {
           state <- 1  # readig event info
@@ -17,19 +21,32 @@ read.events.from.con <-
         } else if (line == "#Triggers") {
           triggers <- read.csv(con, header = T, sep = "\t", nrows = 4)
         } else if (line == "#EndOfEvent") {
-          res <- handler(
-            list(
-              eventInfo = eventInfo,
-              waveforms = waveforms,
-              timeseries = waveforms.to.timeseries(
-                eventInfo, waveforms, dcOffsets, time.units = time.units, voltage.units = voltage.units
-              ),
-              dcOffsets = dcOffsets,
-              triggers = triggers
-            ) 
+          my.event <- list(
+            eventInfo = eventInfo,
+            waveforms = waveforms,
+            timeseries = waveforms.to.timeseries(
+              eventInfo, waveforms, dcOffsets, time.units = time.units, voltage.units = voltage.units
+            ),
+            dcOffsets = dcOffsets,
+            triggers = triggers
           )
-          if (!is.null(res)) {
-            return(res)
+          
+          if (is.na(filter) || filter(my.event) == TRUE) {
+            my.ecount <- my.ecount + 1
+            
+            if (!is.na(converter)) {
+              my.event <- converter(my.event)
+            }
+            
+            if (is.na(merger)) {
+              my.result[[my.ecount]] <- my.event
+            } else {
+              my.result <- merger(my.result, my.event)
+            }
+            
+            if (nevents >= 0 && nevents <= my.ecount) {
+              break
+            }
           }
         }
       } else if (state == 1) {
@@ -47,5 +64,7 @@ read.events.from.con <-
         }
       }
     }    
+    
+    return(my.result)
   }
 
