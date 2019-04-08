@@ -4,7 +4,7 @@ read.events.from.con <-
     state <- 0  # idle
     
     i <- 0
-    while (length(line <- readLines(f,n=1)) > 0) {
+    while (length(line <- readLines(con, n=1)) > 0) {
       i <- i + 1
       if (state == 0) {
         if (line == "#EventInfo") {
@@ -17,17 +17,19 @@ read.events.from.con <-
         } else if (line == "#Triggers") {
           triggers <- read.csv(con, header = T, sep = "\t", nrows = 4)
         } else if (line == "#EndOfEvent") {
-          res <- handler(list(
-            eventInfo = eventInfo,
-            waveforms = waveforms,
-            timeseries = waveforms.to.timeseries(
-              eventInfo, waveforms, dcOffsets, time.units = time.units, voltage.units = voltage.units
-            ),
-            dcOffsets = dcOffsets,
-            triggers = triggers
-          ))
-          if (!is.null(res) && res == FALSE) {
-            break
+          res <- handler(
+            list(
+              eventInfo = eventInfo,
+              waveforms = waveforms,
+              timeseries = waveforms.to.timeseries(
+                eventInfo, waveforms, dcOffsets, time.units = time.units, voltage.units = voltage.units
+              ),
+              dcOffsets = dcOffsets,
+              triggers = triggers
+            ) 
+          )
+          if (!is.null(res)) {
+            return(res)
           }
         }
       } else if (state == 1) {
