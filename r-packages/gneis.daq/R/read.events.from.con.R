@@ -1,6 +1,6 @@
 # Read one or several MID files, parse and return the events
 read.events.from.con <- 
-  function(con, filter = NA, converter = NA, merger = NA, init.value = NA, nevents = -1, time.units = "nus", voltage.units = "mV") {
+  function(con, filter = null, converter = NA, merger = NA, init.value = NA, nevents = -1, time.units = "nus", voltage.units = "mV") {
     state <- 0  # idle
     my.ecount <- 0
     if (is.na(init.value) || is.na(merger)) {
@@ -31,8 +31,9 @@ read.events.from.con <-
             triggers = triggers
           )
           
-          if (is.na(filter) || filter(my.event) == TRUE) {
+          if (is.null(filter) || filter(my.event) == TRUE) {
             my.ecount <- my.ecount + 1
+            cat("my.ecount=", my.ecount, "\n")
             
             if (!is.na(converter)) {
               my.event <- converter(my.event)
