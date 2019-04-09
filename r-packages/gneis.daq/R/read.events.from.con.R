@@ -3,7 +3,7 @@ read.events.from.con <-
   function(con, filter.func = NULL, converter.func = NULL, merging.func = NULL, init.value = NULL, nevents = -1, time.units = "nus", voltage.units = "mV") {
     state <- 0  # idle
     my.ecount <- 0
-    if (is.null(init.value) || missing(merging.func) || is.null(merging.func)) {
+    if (missing(merging.func) || is.null(merging.func)) {
       my.result <- list()
     } else {
       my.result <- init.value
