@@ -1,6 +1,16 @@
 # Read one or several MID files, parse and return the events
 read.events.from.con <- 
-  function(con, filter.func = NULL, converter.func = NULL, merging.func = NULL, init.value = NULL, nevents = -1, time.units = "nus", voltage.units = "mV") {
+  function(
+    con, 
+    filter.func = NULL, 
+    converter.func = NULL, 
+    merging.func = NULL, 
+    init.value = NULL, 
+    nevents = -1, 
+    time.units = "nus", 
+    voltage.units = "mV",
+    need.timeseries = F
+  ) {
     state <- 0  # idle
     my.ecount <- 0
     if (missing(merging.func) || is.null(merging.func)) {
@@ -21,12 +31,17 @@ read.events.from.con <-
         } else if (line == "#Triggers") {
           triggers <- read.csv(con, header = T, sep = "\t", nrows = 4)
         } else if (line == "#EndOfEvent") {
+          if (need.timeseries) {
+            timeseries <- waveforms.to.timeseries(
+              eventInfo, waveforms, dcOffsets, time.units = time.units, voltage.units = voltage.units
+            )
+          } else {
+            timeseries <- NULL
+          }
           my.event <- list(
             eventInfo = eventInfo,
             waveforms = waveforms,
-            timeseries = waveforms.to.timeseries(
-              eventInfo, waveforms, dcOffsets, time.units = time.units, voltage.units = voltage.units
-            ),
+            timeseries = timeseries,
             dcOffsets = dcOffsets,
             triggers = triggers
           )
@@ -67,4 +82,3 @@ read.events.from.con <-
     
     return(my.result)
   }
-
