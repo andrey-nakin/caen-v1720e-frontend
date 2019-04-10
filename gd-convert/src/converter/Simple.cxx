@@ -114,7 +114,7 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 		}
 	}
 
-	dest << "#EventInfo\n" << "TimeStamp\n" << midasData.GetTimeStamp() << "\n"
+	dest << "#EventInfo\n" << "TimeStamp\t" << midasData.GetTimeStamp() << "\n"
 			<< "Run\t" << GetRun() << "\n" << "Device\t" << info.GetName()
 			<< "\n" << "BoardId\t" << info.info().boardId << "\n"
 			<< "ChannelMask\t" << info.info().channelMask << "\n"
