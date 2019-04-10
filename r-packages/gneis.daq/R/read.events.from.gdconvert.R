@@ -26,4 +26,5 @@ read.events.from.gdconvert <-
       need.timeseries = need.timeseries
     )
     close(my.con)
+    return(my.result)
   }
