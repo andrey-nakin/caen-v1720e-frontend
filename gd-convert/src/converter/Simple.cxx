@@ -96,6 +96,7 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 		return true;
 	}
 
+	auto const& midasData = dataContainer.GetMidasData();
 	auto const dcInfo = dataContainer.GetEventData < TDcOffsetRawData
 			> (TDcOffsetRawData::BANK_NAME);
 	auto const trgInfo = dataContainer.GetEventData < TriggerInfoRawData
@@ -113,12 +114,14 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 		}
 	}
 
-	dest << "#EventInfo\n" << "Device\t" << info.GetName() << "\n"
-			<< "BoardId\t" << info.info().boardId << "\n" << "ChannelMask\t"
-			<< info.info().channelMask << "\n" << "EventCounter\t"
-			<< info.info().eventCounter << "\n" << "FrontendIndex\t"
-			<< info.frontendIndex() << "\n" << "TimeStamp\t" << info.timeStamp()
-			<< "\n" << "TimeStampModule\t" << info.timeStampModule() << "\n"
+	dest << "#EventInfo\n" << "TimeStamp\n" << midasData.GetTimeStamp() << "\n"
+			<< "Run\t" << GetRun() << "\n" << "Device\t" << info.GetName()
+			<< "\n" << "BoardId\t" << info.info().boardId << "\n"
+			<< "ChannelMask\t" << info.info().channelMask << "\n"
+			<< "EventCounter\t" << info.info().eventCounter << "\n"
+			<< "FrontendIndex\t" << info.frontendIndex() << "\n"
+			<< "DeviceTimeStamp\t" << info.timeStamp() << "\n"
+			<< "DeviceTimeStampModule\t" << info.timeStampModule() << "\n"
 			<< "TicksPerSample\t" << info.ticksPerSample() << "\n"
 			<< "SamplesPerNuSecond\t" << info.samplesPerNuSecond() << "\n"
 			<< "WaveformLength\t" << recordLength << "\n"

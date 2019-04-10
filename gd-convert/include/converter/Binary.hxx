@@ -21,7 +21,6 @@ class Binary: public FilePerRun {
 public:
 
 	Binary();
-	using Converter::Converter;
 
 	static std::string Name();
 

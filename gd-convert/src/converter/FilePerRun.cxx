@@ -6,7 +6,14 @@ namespace gdc {
 
 namespace converter {
 
+FilePerRun::FilePerRun() :
+		run(-1) {
+
+}
+
 void FilePerRun::BeginRun(int /* transition */, int const run, int /* time */) {
+
+	this->run = run;
 
 	std::stringstream s;
 	ConstructFileName(s, run);
@@ -41,6 +48,12 @@ void FilePerRun::ConstructFileName(std::ostream& dest, int const run) const {
 std::ios_base::openmode FilePerRun::FileMode() const {
 
 	return std::ios_base::out;
+
+}
+
+int FilePerRun::GetRun() const {
+
+	return run;
 
 }
 
