@@ -1,4 +1,4 @@
-read.events.from.pipe <- 
+read.events.from.gdconvert <- 
   function(
     file.names, 
     executable="gd-convert", 
