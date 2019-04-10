@@ -12,7 +12,6 @@ read.events.from.pipe <-
     need.timeseries = F
   ) {
     my.cmd <- paste(executable, "-fsimple", "-Fstdout", paste(file.names, collapse = " "), sep = " ")
-    cat(my.cmd, "\n")
     my.con <- pipe(my.cmd)
     open(my.con)
     my.result <- read.events.from.con(
