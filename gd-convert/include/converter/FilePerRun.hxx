@@ -18,6 +18,7 @@ public:
 	void BeginRun(int transition, int run, int time) override;
 	void EndRun(int transition, int run, int time) override;
 	bool ProcessMidasEvent(TDataContainer& dataContainer) override;
+	void Configure(std::vector<char*>& args) override;
 
 	virtual bool ProcessMidasEvent(std::ostream& dest,
 			TDataContainer& dataContainer) = 0;
@@ -31,6 +32,7 @@ public:
 private:
 
 	int run;
+	std::string fixedFileName;
 	std::unique_ptr<std::ostream> dest;
 
 };

@@ -1,10 +1,17 @@
 #include <fstream>
 #include <iomanip>
+#include <cstring>
 #include <converter/FilePerRun.hxx>
 
 namespace gdc {
 
 namespace converter {
+
+namespace cmd {
+
+constexpr char fileName[] = "-fn";
+
+}
 
 FilePerRun::FilePerRun() :
 		run(-1) {
@@ -15,10 +22,16 @@ void FilePerRun::BeginRun(int /* transition */, int const run, int /* time */) {
 
 	this->run = run;
 
-	std::stringstream s;
-	ConstructFileName(s, run);
+	std::string filename;
 
-	std::string filename = s.str();
+	if (fixedFileName.empty()) {
+		std::stringstream s;
+		ConstructFileName(s, run);
+		filename = s.str();
+	} else {
+		filename = fixedFileName;
+	}
+
 	dest = std::unique_ptr < std::ostream
 			> (new std::ofstream(filename, FileMode()));
 
@@ -35,6 +48,20 @@ void FilePerRun::EndRun(int /* transition */, int /* run */, int /* time */) {
 bool FilePerRun::ProcessMidasEvent(TDataContainer& dataContainer) {
 
 	return ProcessMidasEvent(*dest, dataContainer);
+
+}
+
+void FilePerRun::Configure(std::vector<char*>& args) {
+
+	for (std::size_t i = 0; i < args.size();) {
+		if (StartsWith(args[i], cmd::fileName)) {
+			fixedFileName = std::string(args[i] + std::strlen(cmd::fileName));
+		} else {
+			i++;
+			continue;
+		}
+		args.erase(args.begin() + i);
+	}
 
 }
 

@@ -1,7 +1,6 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
-#include <cstring>
 #include <util/caen/V1720InfoRawData.hxx>
 #include <util/caen/V1724InfoRawData.hxx>
 #include <util/TWaveFormRawData.hxx>
@@ -17,12 +16,6 @@ namespace converter {
 namespace cmd {
 
 constexpr char triggerMask[] = "-tm";
-
-}
-
-static bool StartsWith(const char* const s, const char* const substr) {
-
-	return s == std::strstr(s, substr);
 
 }
 
@@ -71,6 +64,8 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 }
 
 void Simple::Configure(std::vector<char*>& args) {
+
+	FilePerRun::Configure(args);
 
 	for (std::size_t i = 0; i < args.size();) {
 		if (StartsWith(args[i], cmd::triggerMask)) {

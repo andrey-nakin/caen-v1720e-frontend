@@ -22,6 +22,10 @@ public:
 
 	virtual void Configure(std::vector<char*>& args);
 
+protected:
+
+	static bool StartsWith(const char* const s, const char* const substr);
+
 };
 
 }

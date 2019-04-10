@@ -1,3 +1,4 @@
+#include <cstring>
 #include <Converter.hxx>
 
 namespace gdc {
@@ -23,6 +24,12 @@ void Converter::EndRun(int /* transition */, int /* run */, int /* time */) {
 void Converter::Configure(std::vector<char*>& /* args */) {
 
 	// null implementation
+
+}
+
+bool Converter::StartsWith(const char* const s, const char* const substr) {
+
+	return s == std::strstr(s, substr);
 
 }
 
