@@ -34,6 +34,7 @@ private:
 	int run;
 	std::string fixedFileName;
 	std::unique_ptr<std::ostream> dest;
+	bool useStdout;
 
 };
 

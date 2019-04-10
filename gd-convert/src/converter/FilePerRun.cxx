@@ -10,6 +10,7 @@ namespace converter {
 namespace cmd {
 
 constexpr char fileName[] = "-F";
+constexpr char stdout[] = "stdout";
 
 }
 
@@ -32,8 +33,11 @@ void FilePerRun::BeginRun(int /* transition */, int const run, int /* time */) {
 		filename = fixedFileName;
 	}
 
-	dest = std::unique_ptr < std::ostream
-			> (new std::ofstream(filename, FileMode()));
+	useStdout = filename == cmd::stdout;
+	if (!useStdout) {
+		dest = std::unique_ptr < std::ostream
+				> (new std::ofstream(filename, FileMode()));
+	}
 
 }
 
@@ -47,7 +51,7 @@ void FilePerRun::EndRun(int /* transition */, int /* run */, int /* time */) {
 
 bool FilePerRun::ProcessMidasEvent(TDataContainer& dataContainer) {
 
-	return ProcessMidasEvent(*dest, dataContainer);
+	return ProcessMidasEvent(useStdout ? std::cout : *dest, dataContainer);
 
 }
 
