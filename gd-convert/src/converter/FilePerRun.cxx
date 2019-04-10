@@ -9,7 +9,7 @@ namespace converter {
 
 namespace cmd {
 
-constexpr char fileName[] = "-fn";
+constexpr char fileName[] = "-F";
 
 }
 
