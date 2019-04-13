@@ -37,6 +37,8 @@ void FilePerRun::BeginRun(int /* transition */, int const run, int /* time */) {
 	if (!useStdout) {
 		dest = std::unique_ptr < std::ostream
 				> (new std::ofstream(filename, FileMode()));
+	} else {
+		std::ios::sync_with_stdio(false);
 	}
 
 }
