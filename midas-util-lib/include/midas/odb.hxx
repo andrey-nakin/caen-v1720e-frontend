@@ -52,9 +52,6 @@ std::vector<T> getValueV(HNDLE const hDB, HNDLE const hKeyRoot,
 bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, bool const value, bool const create);
 
-void setValue(HNDLE hDB, HNDLE hKeyRoot, std::string const& keyName,
-		bool value);
-
 std::string getValueString(HNDLE hDB, HNDLE hKeyRoot,
 		std::string const& keyName, std::string const& value, bool create,
 		std::size_t size = ODB_MAX_STRING_LENGTH);
@@ -92,9 +89,6 @@ void setValue(HNDLE const hDB, HNDLE const hKeyRoot, std::string const& keyName,
 	}
 
 }
-
-void setValue(HNDLE hDB, HNDLE hKeyRoot, std::string const& keyName,
-		std::string const& value);
 
 std::vector<bool> getValueBoolV(HNDLE hDB, HNDLE hKeyRoot,
 		std::string const& keyName, std::size_t numValues, bool defValue,
@@ -137,6 +131,28 @@ auto const getValueUInt32V = getValueV<std::uint32_t, TID_DWORD>;
 auto const getValueFloatV = getValueV<float, TID_FLOAT>;
 
 auto const getValueDoubleV = getValueV<double, TID_DOUBLE>;
+
+auto const setValueInt8 = setValue<std::int8_t, TID_SBYTE>;
+
+auto const setValueUInt8 = setValue<std::uint8_t, TID_BYTE>;
+
+auto const setValueInt16 = setValue<std::int16_t, TID_SHORT>;
+
+auto const setValueUInt16 = setValue<std::uint16_t, TID_WORD>;
+
+auto const setValueInt32 = setValue<std::int32_t, TID_INT>;
+
+auto const setValueUInt32 = setValue<std::uint32_t, TID_DWORD>;
+
+auto const setValueFloat = setValue<float, TID_FLOAT>;
+
+auto const setValueDouble = setValue<double, TID_DOUBLE>;
+
+void setValueBool(HNDLE hDB, HNDLE hKeyRoot, std::string const& keyName,
+		bool value);
+
+void setValue(HNDLE hDB, HNDLE hKeyRoot, std::string const& keyName,
+		std::string const& value);
 
 std::string equipSettingsKeyName(const char* equipName, const char* propName =
 		nullptr);

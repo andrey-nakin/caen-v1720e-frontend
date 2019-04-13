@@ -73,7 +73,7 @@ void TAnaManager::setResetHistogramsFlag(bool value) {
 	if (midasOdb) {
 		auto const key = analyzer::util::AnalyzerUtils::OdbKey(odbRootKey,
 				settings::resetHistograms);
-		::odb::setValue(midasOdb->fDB, 0, key, value);
+		::odb::setValueBool(midasOdb->fDB, 0, key, value);
 	}
 
 }

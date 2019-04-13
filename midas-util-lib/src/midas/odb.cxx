@@ -34,8 +34,8 @@ bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
 
 }
 
-void setValue(HNDLE const hDB, HNDLE const hKeyRoot, std::string const& keyName,
-		bool const value) {
+void setValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
+		std::string const& keyName, bool const value) {
 
 	return setValue<uint32_t, TID_BOOL>(hDB, hKeyRoot, keyName, value ? 1 : 0);
 
