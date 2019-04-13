@@ -33,7 +33,7 @@ std::vector<T> getValueV(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, std::size_t const numValues,
 		T const defValue, bool const create) {
 
-	std::vector<T> value(numValues, defValue);
+	std::vector < T > value(numValues, defValue);
 	if (numValues > 0) {
 		INT bufSize = sizeof(T) * numValues;
 		INT const status = db_get_value(hDB, hKeyRoot, keyName.c_str(),
@@ -62,6 +62,36 @@ std::string getValueString(HNDLE hDB, HNDLE hKeyRoot,
 std::string getValueString(HNDLE hDB, HNDLE hKeyRoot,
 		std::string const& keyName, std::vector<std::string> const& validValues,
 		std::size_t size = ODB_MAX_STRING_LENGTH);
+
+template<typename T, DWORD type>
+void setValue(HNDLE const hDB, HNDLE const hKeyRoot, std::string const& keyName,
+		T const value) {
+
+	INT status;
+	HNDLE hKey;
+
+	status = db_find_key(hDB, hKeyRoot, keyName.c_str(), &hKey);
+	if (status == DB_NO_KEY) {
+		status = db_create_key(hDB, hKeyRoot, keyName.c_str(), type);
+		if (DB_SUCCESS != status) {
+			throw midas::Exception(status,
+					std::string("Error creating ODB key ") + keyName);
+		}
+		status = db_find_key(hDB, hKeyRoot, keyName.c_str(), &hKey);
+	}
+	if (DB_SUCCESS != status) {
+		throw midas::Exception(status,
+				std::string("Error finding ODB key ") + keyName);
+	}
+
+	status = db_set_data(hDB, hKey, &value, sizeof(value), 1, type);
+
+	if (DB_SUCCESS != status) {
+		throw midas::Exception(status,
+				std::string("Error writing ODB key ") + keyName);
+	}
+
+}
 
 void setValue(HNDLE hDB, HNDLE hKeyRoot, std::string const& keyName,
 		std::string const& value);
