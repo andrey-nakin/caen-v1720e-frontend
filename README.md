@@ -18,7 +18,7 @@ Collection of data-acquisition applications for [GNEIS](http://accelconf.web.cer
 * `analyzer-lib`: library for analyzer applications.
 * `math-lib`: general purpose math library.
 * `math-lib-test`: unit tests for `math-lib`.
-* `r-packages`: R packages with data parsing and hadling functions.
+* `r`: R packages with data parsing and hadling functions.
 * `doc`: documentation.
 
 ## Requirements
