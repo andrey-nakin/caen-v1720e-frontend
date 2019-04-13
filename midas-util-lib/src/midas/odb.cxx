@@ -42,14 +42,7 @@ void setValue(HNDLE const hDB, HNDLE const hKeyRoot, std::string const& keyName,
 
 	status = db_find_key(hDB, hKeyRoot, keyName.c_str(), &hKey);
 	if (status == DB_NO_KEY) {
-		std::string msg1 = std::string("creating key ") + keyName;
-		cm_msg(MERROR, "odb", msg1.c_str(), 0);
-
 		status = db_create_key(hDB, hKeyRoot, keyName.c_str(), TID_BOOL);
-
-		msg1 = std::string("created key ") + keyName + " " + std::to_string(status);
-		cm_msg(MERROR, "odb", msg1.c_str(), 0);
-
 		if (DB_SUCCESS != status) {
 			throw midas::Exception(status,
 					std::string("Error creating ODB key ") + keyName);

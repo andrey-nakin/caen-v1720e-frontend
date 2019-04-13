@@ -1,4 +1,4 @@
-	#include <sstream>
+#include <sstream>
 #include <fstream>
 #include <memory>
 #include <TGraph.h>
@@ -69,17 +69,10 @@ void TAnaManager::EndRun(int const transition, int const run, int const time) {
 
 void TAnaManager::setResetHistogramsFlag(bool value) {
 
-	std::string msg = std::string("setResetHistogramsFlag ") + typeid(*odb).name();
-	cm_msg(MERROR, "TAnaManager", msg.c_str(), 0);
-
 	auto midasOdb = dynamic_cast<TMidasOnline*>(odb);
 	if (midasOdb) {
 		auto const key = analyzer::util::AnalyzerUtils::OdbKey(odbRootKey,
 				settings::resetHistograms);
-
-		std::string msg1 = std::string("setResetHistogramsFlag updae db ") + key;
-		cm_msg(MERROR, "TAnaManager", msg1.c_str(), 0);
-
 		::odb::setValue(midasOdb->fDB, 0, key, value);
 	}
 
