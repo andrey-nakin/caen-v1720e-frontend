@@ -59,9 +59,7 @@ public:
 
 	}
 
-//	void CreateHistograms();
-
-	virtual void BeginRun(int transition, int run, int time);
+	void BeginRun(int transition, int run, int time) override;
 
 	void ResetAllHistograms();
 
