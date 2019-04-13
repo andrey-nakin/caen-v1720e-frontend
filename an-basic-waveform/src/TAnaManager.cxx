@@ -76,6 +76,10 @@ void TAnaManager::setResetHistogramsFlag(bool value) {
 	if (midasOdb) {
 		auto const key = analyzer::util::AnalyzerUtils::OdbKey(odbRootKey,
 				settings::resetHistograms);
+
+		std::string msg1 = std::string("setResetHistogramsFlag updae db ") + key;
+		cm_msg(MERROR, "TAnaManager", msg1.c_str(), 0);
+
 		::odb::setValue(midasOdb->fDB, 0, key, value);
 	}
 
