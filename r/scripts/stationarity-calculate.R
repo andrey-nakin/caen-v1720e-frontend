@@ -1,24 +1,19 @@
 #!/usr/bin/Rscript
-# Arguments: <path-to-package> <MID file wildcard> <destination file> [<chunk size>]
+# Arguments: <destination file> <MID file1 [...]> 
 
 my.cmd.args <- commandArgs(trailingOnly=TRUE)
 
-install.packages(paste(my.cmd.args[1], "gneis.daq.tar.gz", sep = "/"))
 library(gneis.daq)
 
-if (length(my.cmd.args) < 4) {
-  CHUNK <- 60 * 15
-} else {
-  CHUNK <- as.numeric(my.cmd.args[4])
-}
+CHUNK <- 60 * 15
 
-my.dest <- file(my.cmd.args[3])
+my.dest <- file(my.cmd.args[1])
 open(my.dest, "w")
 cat(file = my.dest, "TS0\tTS1\tNE\tNS\tCH0\tSD0\tTRG0\tCH1\tSD1\tTRG1\tCH2\tSD2\tTRG2\tCH3\tSD3\tTRG3\tCH4\tSD4\tTRG4\tCH5\tSD5\tTRG5\tCH6\tSD6\tTRG6\tCH7\tSD7\tTRG7", "\n")
 
 my.process <- function(nevents, filter.func = NULL, converter.func = NULL, merging.func = NULL, init.value = NULL) {
   res <- read.events.from.gdconvert(
-    file.names = my.cmd.args[2],
+    file.names = tail(my.cmd.args, n = -1),
     filter.func = filter.func, 
     converter.func = converter.func, 
     merging.func = merging.func,
