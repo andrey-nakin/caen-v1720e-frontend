@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(RPackages VERSION 1.0.0 LANGUAGES CXX DESCRIPTION "R packages")
 
-set(GNEIS_DAQ_SOURCES ${PROJECT_SOURCE_DIR}/gneis.daq)
+set(GNEIS_DAQ gneis.daq)
+set(GNEIS_DAQ_SOURCES ${PROJECT_SOURCE_DIR}/${GNEIS_DAQ})
+set(GNEIS_DAQ_PACKAGE ${GNEIS_DAQ}.tar.gz)
 
 file(COPY 
 	${GNEIS_DAQ_SOURCES} 
@@ -11,15 +13,18 @@ file(COPY
 	)
 
 add_custom_command(
-	OUTPUT gneis.daq.tar.gz
-	COMMAND ${CMAKE_COMMAND} -E tar cfvz gneis.daq.tar.gz gneis.daq
+	OUTPUT ${GNEIS_DAQ_PACKAGE}
+	COMMAND ${CMAKE_COMMAND} -E tar cfvz ${GNEIS_DAQ_PACKAGE} ${GNEIS_DAQ}
 	)
 	
 add_custom_target(
 	GneisDaqPackage ALL
-	DEPENDS gneis.daq.tar.gz 
+	DEPENDS ${GNEIS_DAQ_PACKAGE} 
 	)
 
 if(DEFINED R_PACKAGES_INSTALL_DIR)
-  install(DIRECTORY scripts DESTINATION ${R_PACKAGES_INSTALL_DIR})
+	install(
+  		FILES ${PROJECT_BINARY_DIR}/${GNEIS_DAQ_PACKAGE}
+  		DESTINATION ${R_PACKAGES_INSTALL_DIR}
+  	)
 endif(DEFINED R_PACKAGES_INSTALL_DIR)
