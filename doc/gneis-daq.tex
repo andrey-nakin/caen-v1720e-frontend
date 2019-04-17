@@ -26,6 +26,7 @@
 \newcommand{\DIRECTORY}[1]{<<{\tt #1}>>}
 \newcommand{\FILE}[1]{<<{\tt #1}>>}
 \newcommand{\COMMAND}[1]{{\tt #1}}
+\newcommand{\CMDARG}[1]{<<{\tt #1}>>}
 \newcommand{\PACKAGE}[1]{{\tt #1}}
 \newcommand{\ENV}[1]{{\tt #1}}
 \newcommand{\BITVALUE}[1]{<<#1>>}
@@ -38,7 +39,7 @@
 }
 
 \author{Накин~А.~В.}
-\date{Ревизия документа: 0.1\\Март 2019}
+\date{Ревизия документа: 2\\Апрель 2019}
 
 \begin{document}
 
@@ -789,6 +790,14 @@ sudo make install
 \chapter{Фронтенд для \DEVICE{}}
 
 \input{fe-v1724.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\GDCONVERT}{\APP{gd-convert}}
+
+\chapter{Программа конвертации \GDCONVERT}
+
+\input{gd-convert.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
