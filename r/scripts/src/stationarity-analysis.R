@@ -1,18 +1,6 @@
 #!/usr/bin/Rscript
 # Arguments: <source file> <destination file>
 
-my.pkgTest <- function(x) {
-  if (!require(x, character.only = TRUE)) {
-    install.packages(x, dep=TRUE, repos = "https://cloud.r-project.org")
-    if(!require(x, character.only = TRUE)) {
-      stop("Package not found")
-    }
-  }
-}
-
-my.pkgTest("ggplot2")
-my.pkgTest("scales")
-
 library(ggplot2)
 library(scales)
 
