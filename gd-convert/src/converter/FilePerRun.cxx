@@ -43,7 +43,7 @@ void FilePerRun::BeginRun(int /* transition */, int const run, int /* time */) {
 	}
 
 	if (!useFixedFile || firstRun) {
-		onNewFile(*dest, filename);
+		onNewFile(useStdout ? std::cout : *dest, filename);
 		firstRun = false;
 	}
 }
