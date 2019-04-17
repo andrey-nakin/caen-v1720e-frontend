@@ -15,7 +15,7 @@ constexpr char stdout[] = "stdout";
 }
 
 FilePerRun::FilePerRun() :
-		run(-1) {
+		run(-1), firstRun(true) {
 
 }
 
@@ -25,7 +25,8 @@ void FilePerRun::BeginRun(int /* transition */, int const run, int /* time */) {
 
 	std::string filename;
 
-	if (fixedFileName.empty()) {
+	auto const useFixedFile = !fixedFileName.empty();
+	if (!useFixedFile) {
 		std::stringstream s;
 		ConstructFileName(s, run);
 		filename = s.str();
@@ -41,6 +42,10 @@ void FilePerRun::BeginRun(int /* transition */, int const run, int /* time */) {
 		std::ios::sync_with_stdio(false);
 	}
 
+	if (!useFixedFile || firstRun) {
+		onNewFile(*dest, filename);
+		firstRun = false;
+	}
 }
 
 void FilePerRun::EndRun(int /* transition */, int /* run */, int /* time */) {

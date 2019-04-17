@@ -9,6 +9,9 @@ namespace gdc {
 namespace converter {
 
 class Simple: public FilePerRun {
+
+	static constexpr int VERSION = 1;
+
 public:
 
 	Simple();
@@ -28,6 +31,8 @@ private:
 
 	bool ProcessMidasEvent(std::ostream& dest, TDataContainer& dataContainer,
 			util::caen::DigitizerInfoRawData const& info);
+
+	void onNewFile(std::ostream& dest, std::string const& fileName) override;
 
 };
 

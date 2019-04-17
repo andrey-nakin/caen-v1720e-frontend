@@ -35,6 +35,11 @@ private:
 	std::string fixedFileName;
 	std::unique_ptr<std::ostream> dest;
 	bool useStdout;
+	bool firstRun;
+
+	virtual void onNewFile(std::ostream& /* dest */,
+			std::string const& /* fileName */) {
+	}
 
 };
 

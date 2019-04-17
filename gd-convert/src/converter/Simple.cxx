@@ -303,6 +303,12 @@ bool Simple::ProcessMidasEvent(std::ostream& dest,
 
 }
 
+void Simple::onNewFile(std::ostream& dest, std::string const& /* fileName */) {
+
+	dest << "#Version\n" << VERSION << "\n" << std::endl;
+
+}
+
 }
 
 }
