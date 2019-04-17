@@ -12,6 +12,7 @@ option(BUILD_EXAMPLES "Enable example building" ON)
 option(BUILD_UTILS "Enable utility building" ON)
 option(BUILD_TESTS "Enable unit test building" OFF)
 option(BUILD_DOCS "Enable documentation building" OFF)
+option(BUILD_R "Enable R package building" ON)
 
 add_subdirectory(midas-util-lib)
 add_subdirectory(caen-lib)
@@ -45,4 +46,8 @@ endif()
 
 if(BUILD_DOCS)
   add_subdirectory(doc)
+endif()
+
+if(BUILD_R)
+  add_subdirectory(r)
 endif()
