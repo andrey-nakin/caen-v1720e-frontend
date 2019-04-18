@@ -12,55 +12,55 @@ my.front.lengths <- rep(4, times = 8)
 my.tail.lengths <- rep(10, times = 8)
 
 my.print.init.info <- function(e) {
-  cat(
-    file = my.dest, 
-    sep = "\t",
-    "# InitialTimeStamp:",
-    e$eventInfo$TimeStamp,
-    "\n"
-  )
-  cat(
-    file = my.dest, 
-    sep = "\t",
-    "# Device:",
-    e$eventInfo$Device,
-    "\n"
-  )
-  cat(
-    file = my.dest, 
-    sep = "\t",
-    "# FrontendIndex:",
-    e$eventInfo$FrontendIndex,
-    "\n"
-  )
-  cat(
-    file = my.dest, 
-    sep = "\t",
-    "# DeviceTimeStampModule:",
-    e$eventInfo$DeviceTimeStampModule,
-    "\n"
-  )
-  cat(
-    file = my.dest, 
-    sep = "\t",
-    "# TicksPerSample:",
-    e$eventInfo$TicksPerSample,
-    "\n"
-  )
-  cat(
-    file = my.dest, 
-    sep = "\t",
-    "# SamplesPerNuSecond:",
-    e$eventInfo$SamplesPerNuSecond,
-    "\n"
-  )
-  cat(
-    file = my.dest, 
-    sep = "\t",
-    "# BitsPerSample:",
-    e$eventInfo$BitsPerSample,
-    "\n"
-  )
+  # cat(
+  #   file = my.dest, 
+  #   sep = "\t",
+  #   "# InitialTimeStamp:",
+  #   e$eventInfo$TimeStamp,
+  #   "\n"
+  # )
+  # cat(
+  #   file = my.dest, 
+  #   sep = "\t",
+  #   "# Device:",
+  #   e$eventInfo$Device,
+  #   "\n"
+  # )
+  # cat(
+  #   file = my.dest, 
+  #   sep = "\t",
+  #   "# FrontendIndex:",
+  #   e$eventInfo$FrontendIndex,
+  #   "\n"
+  # )
+  # cat(
+  #   file = my.dest, 
+  #   sep = "\t",
+  #   "# DeviceTimeStampModule:",
+  #   e$eventInfo$DeviceTimeStampModule,
+  #   "\n"
+  # )
+  # cat(
+  #   file = my.dest, 
+  #   sep = "\t",
+  #   "# TicksPerSample:",
+  #   e$eventInfo$TicksPerSample,
+  #   "\n"
+  # )
+  # cat(
+  #   file = my.dest, 
+  #   sep = "\t",
+  #   "# SamplesPerNuSecond:",
+  #   e$eventInfo$SamplesPerNuSecond,
+  #   "\n"
+  # )
+  # cat(
+  #   file = my.dest, 
+  #   sep = "\t",
+  #   "# BitsPerSample:",
+  #   e$eventInfo$BitsPerSample,
+  #   "\n"
+  # )
 
   cat(
     file = my.dest, 
