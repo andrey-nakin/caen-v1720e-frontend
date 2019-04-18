@@ -70,6 +70,7 @@ my.print.init.info <- function(e) {
     "TS",
     "CH",
     "TRG",
+    "TRGP",
     "PP",
     "PA",
     "FI",
@@ -78,7 +79,7 @@ my.print.init.info <- function(e) {
   )
 }
 
-my.print.channel <- function(my.info, ch, wf, trg) {
+my.print.channel <- function(my.info, ch, wf, trg, trg.pos) {
   my.pos <- which.min(wf)
   my.front.pos <- my.pos - my.front.lengths[ch]
   my.tail.pos <- my.pos + my.tail.lengths[ch] + 1
@@ -115,6 +116,7 @@ my.print.channel <- function(my.info, ch, wf, trg) {
     my.info$DeviceTimeStamp,
     ch - 1,
     trg,
+    trg.pos,
     my.pos - 1,
     my.amp,
     my.front.sum,
@@ -134,7 +136,7 @@ my.event.collector <- function(a, e) {
   my.ch <- 1
   
   for (col in colnames(my.wfs)) {
-    my.print.channel(e$eventInfo, my.ch, my.wfs[[col]], my.trg[[col]][1])
+    my.print.channel(e$eventInfo, my.ch, my.wfs[[col]], my.trg[[col]][1], my.trg[[col]][4])
     my.ch <- my.ch + 1
   }
 
