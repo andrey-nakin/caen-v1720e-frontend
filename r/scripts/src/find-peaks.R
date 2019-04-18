@@ -1,9 +1,9 @@
 #!/usr/bin/Rscript
 # Arguments: [<options>] <destination file> <MID file1 [...]> 
 
-my.cmd.args <- commandArgs(trailingOnly=TRUE)
-
 library(gneis.daq)
+
+my.cmd.args <- commandArgs(trailingOnly=TRUE)
 
 my.dest <- file(my.cmd.args[1])
 open(my.dest, "w")
