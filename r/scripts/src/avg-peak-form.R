@@ -10,10 +10,16 @@ library(gneis.daq)
 
 my.option.list <- list( 
   make_option(
-    c("-a", "--amplitude"),
+    c("-a", "--minamp"),
     type = "double",
     default = 1000, 
     help = "Min value of peak amplitude (default %default)"
+  ),
+  make_option(
+    c("-b", "--maxamp"),
+    type = "double",
+    default = -1, 
+    help = "Max value of peak amplitude (default %default)"
   ),
   make_option(
     c("-c", "--channel"),
@@ -66,6 +72,8 @@ CONF_LEVEL <- 2
 
 my.wf.sum <- array(rep(0, times = my.opt$options$front + my.opt$options$last + 1))
 my.wf.sum2 <- array(rep(0, times = my.opt$options$front + my.opt$options$last + 1))
+my.wf.min <- array(rep(0, times = my.opt$options$front + my.opt$options$last + 1))
+my.wf.max <- array(rep(0, times = my.opt$options$front + my.opt$options$last + 1))
 my.wf.count <- 0
 
 my.channel.column <- paste("CH", my.opt$options$channel, sep = "")
@@ -90,11 +98,20 @@ my.process.waveform <- function(wf) {
     my.mean <- my.sum / my.n
     my.amp = wf[my.pos] - my.mean
     
-    if (abs(my.amp) > my.opt$options$amplitude) {
+    if (abs(my.amp) > my.opt$options$minamp && (my.opt$options$maxamp < 0 || abs(my.amp) <= my.opt$options$maxamp)) {
       my.peak <- wf[my.front.pos : my.tail.pos] - my.mean
 
       my.wf.sum <<- my.wf.sum + my.peak
       my.wf.sum2 <<- my.wf.sum2 + my.peak^2
+      
+      if (my.wf.count > 0) {
+        my.wf.min <<- pmin(my.wf.min, my.peak)
+        my.wf.max <<- pmax(my.wf.max, my.peak)
+      } else {
+        my.wf.min <<- my.peak
+        my.wf.max <<- my.peak
+      }
+      
       my.wf.count <<- my.wf.count + 1
       
       return(1)
@@ -125,7 +142,9 @@ my.wf.avg.err <- my.wf.std / sqrt(my.wf.count)
 my.df <- data.frame(
   x = seq(0, length(my.wf.avg) - 1),
   y = my.wf.avg,
-  err = my.wf.avg.err * CONF_LEVEL
+  err = my.wf.avg.err * CONF_LEVEL,
+  min = my.wf.min,
+  max = my.wf.max
 )
 
 pdf(my.plot.file)
@@ -134,8 +153,11 @@ my.p <- ggplot(data = my.df, aes(x = x, y = y)) +
   ggtitle(
     label = paste("Averaged Pulse", paste("Channel #", my.opt$options$channel, sep = ""), sep = ", "),
     subtitle = paste(
-      paste("Num of Waveforms", my.wf.count, sep = ": "),
-      paste("Min Amplitude", my.opt$options$amplitude, sep = ": "),
+      paste("Peak Pos", my.opt$options$front, sep = ": "),
+      paste("Peak Amp", format(my.wf.avg[my.opt$options$front + 1], digits = 2), sep = ": "),
+      paste("Num of WFs", my.wf.count, sep = ": "),
+      paste("Min Amp", my.opt$options$minamp, sep = ": "),
+      paste("Max Amp", my.opt$options$maxamp, sep = ": "),
       sep = ", "
     )
   ) +
@@ -144,6 +166,9 @@ my.p <- ggplot(data = my.df, aes(x = x, y = y)) +
   theme_light(base_size = 10) +
   geom_errorbar(aes(ymin=y - err, ymax = y + err), width = .3, position = position_dodge(0.05)) +
   geom_line() +
-  geom_point()
-
+  geom_point() + 
+  geom_line(aes(y = min), size=0.25) +
+  geom_line(aes(y = max), size=0.25) +
+  scale_color_manual(values = c("#000000", "#000000", "#ff0000", "#00ff00"))
+  
 plot(my.p)
