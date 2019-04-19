@@ -18,7 +18,7 @@ my.option.list <- list(
   make_option(
     c("-b", "--maxamp"),
     type = "double",
-    default = -1, 
+    default = 10000, 
     help = "Max value of peak amplitude (default %default)"
   ),
   make_option(
@@ -162,13 +162,13 @@ my.p <- ggplot(data = my.df, aes(x = x, y = y, group = c, color = c)) +
       "Averaged Pulse", 
       paste("Channel #", my.opt$options$channel, sep = ""), 
       paste("Trigger #", my.opt$options$trigger, sep = ""), 
+      paste("Amplitudes", paste(my.opt$options$minamp, my.opt$options$maxamp, sep = "-"), sep = ": "),
       sep = ", "
     ),
     subtitle = paste(
       paste("Peak Pos", my.opt$options$front, sep = ": "),
       paste("Peak Amp", format(my.wf.avg[my.opt$options$front + 1], digits = 2), sep = ": "),
       paste("Num of WFs", my.wf.count, sep = ": "),
-#      paste("Amps", paste(my.opt$options$minamp, my.opt$options$maxamp, sep = "-"), sep = ": "),
       paste("10/90 Front Length", format(root2 - root1, digits = 2), sep = ": "),
       sep = ", "
     )
