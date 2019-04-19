@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
 
 library(optparse)
+library(gneis.daq)
 
 ########################################################
 # Command line parsing
@@ -54,6 +55,22 @@ my.midas.files <- tail(my.opt$args, n = -1)
 # Processing
 ########################################################
 
-cat("my.plot.file=", my.plot.file, "\n")
-cat("my.midas.files=", my.midas.files, "\n")
-cat("amplitude=", my.opt$options$amplitude, "\n")
+my.event.filter <- NULL
+if (!(my.opt$options$trigger < 0)) {
+  my.trigger.column <- paste("CH", my.opt$options$trigger, sep = "")
+  my.event.filter <- function(e) {
+    return(e$triggers[[my.trigger.column]][1] > 0)
+  }
+}
+
+my.event.collector <- function(a, e) {
+  cat(e$eventInfo$Run, e$eventInfo$EventCounter, "\n")
+}
+
+my.res <- read.events.from.gdconvert(
+  file.names = my.midas.files,
+  filter.func = my.event.filter,
+  merging.func = my.event.collector,
+  init.value = 0,
+  nevents = 10
+)
