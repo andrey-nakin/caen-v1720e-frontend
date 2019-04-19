@@ -104,13 +104,13 @@ my.process.waveform <- function(wf) {
       my.wf.sum <<- my.wf.sum + my.peak
       my.wf.sum2 <<- my.wf.sum2 + my.peak^2
       
-      if (my.wf.count > 0) {
-        my.wf.min <<- pmin(my.wf.min, my.peak)
-        my.wf.max <<- pmax(my.wf.max, my.peak)
-      } else {
-        my.wf.min <<- my.peak
-        my.wf.max <<- my.peak
-      }
+      # if (my.wf.count > 0) {
+      #   my.wf.min <<- pmin(my.wf.min, my.peak)
+      #   my.wf.max <<- pmax(my.wf.max, my.peak)
+      # } else {
+      #   my.wf.min <<- my.peak
+      #   my.wf.max <<- my.peak
+      # }
       
       my.wf.count <<- my.wf.count + 1
       
@@ -136,22 +136,24 @@ my.wf.var <- (my.wf.count * my.wf.sum2 - my.wf.sum^2) / (my.wf.count * (my.wf.co
 my.wf.std <- sqrt(my.wf.var)
 my.wf.avg.err <- my.wf.std / sqrt(my.wf.count)
 
-#cat(my.wf.avg, "\n")
-#cat(my.wf.avg.err, "\n")
-
 my.df <- data.frame(
-  x = seq(0, length(my.wf.avg) - 1),
-  y = my.wf.avg,
-  err = my.wf.avg.err * CONF_LEVEL,
-  min = my.wf.min,
-  max = my.wf.max
+  x = rep(seq(0, length(my.wf.avg) - 1), 3),
+  y = append(append(my.wf.avg, my.wf.avg + qnorm(0.10) * my.wf.std), my.wf.avg + qnorm(0.90) * my.wf.std),
+  g = append(append(rep(1, length(my.wf.avg)), rep(2, length(my.wf.avg))), rep(3, length(my.wf.avg))),
+  c = append(append(rep("a) Mean", length(my.wf.avg)), rep("b) 10th Percentile", length(my.wf.avg))), rep("c) 90th Percentile", length(my.wf.avg))),
+  err = append(my.wf.avg.err * qnorm(0.975), rep(NA, 2 * length(my.wf.avg.err)))
 )
 
 pdf(my.plot.file)
 
-my.p <- ggplot(data = my.df, aes(x = x, y = y)) +
+my.p <- ggplot(data = my.df, aes(x = x, y = y, group = c, color = c)) +
   ggtitle(
-    label = paste("Averaged Pulse", paste("Channel #", my.opt$options$channel, sep = ""), sep = ", "),
+    label = paste(
+      "Averaged Pulse", 
+      paste("Channel #", my.opt$options$channel, sep = ""), 
+      paste("Trigger #", my.opt$options$trigger, sep = ""), 
+      sep = ", "
+    ),
     subtitle = paste(
       paste("Peak Pos", my.opt$options$front, sep = ": "),
       paste("Peak Amp", format(my.wf.avg[my.opt$options$front + 1], digits = 2), sep = ": "),
@@ -166,9 +168,9 @@ my.p <- ggplot(data = my.df, aes(x = x, y = y)) +
   theme_light(base_size = 10) +
   geom_errorbar(aes(ymin=y - err, ymax = y + err), width = .3, position = position_dodge(0.05)) +
   geom_line() +
-  geom_point() + 
-  geom_line(aes(y = min), size=0.25) +
-  geom_line(aes(y = max), size=0.25) +
-  scale_color_manual(values = c("#000000", "#000000", "#ff0000", "#00ff00"))
+  geom_point(aes(shape = c)) + scale_shape_manual(values=c(20, NA, NA)) +
+  warnings()
   
 plot(my.p)
+
+#warnings()
