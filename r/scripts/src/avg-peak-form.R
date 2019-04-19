@@ -168,6 +168,8 @@ my.p <- ggplot(data = my.df, aes(x = x, y = y, group = c, color = c)) +
   theme_light(base_size = 10) +
   geom_errorbar(aes(ymin=y - err, ymax = y + err), width = .3, position = position_dodge(0.05)) +
   geom_line() +
+  geom_line(aes(x = x, y = rep(0.2 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]), length(x))), size = 0.25, color = 'magenta') +
+  geom_line(aes(x = x, y = rep(0.8 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]), length(x))), size = 0.25, color = 'magenta') +
   geom_point(aes(shape = c)) + scale_shape_manual(values=c(20, NA, NA)) +
   warnings()
   
