@@ -135,7 +135,7 @@ my.p <- ggplot(data = my.df, aes(x = x, y = y)) +
     label = paste("Averaged Pulse", paste("Channel #", my.opt$options$channel, sep = ""), sep = ", "),
     subtitle = paste(
       paste("Num of Waveforms", my.wf.count, sep = ": "),
-      paste("Amplitude Threshold", my.opt$options$amplitude, sep = ": "),
+      paste("Min Amplitude", my.opt$options$amplitude, sep = ": "),
       sep = ", "
     )
   ) +
