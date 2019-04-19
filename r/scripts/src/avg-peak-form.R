@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
 
 library(optparse)
+library(ggplot2)
 library(gneis.daq)
 
 ########################################################
@@ -61,6 +62,8 @@ my.midas.files <- tail(my.opt$args, n = -1)
 # Processing
 ########################################################
 
+CONF_LEVEL <- 2
+
 my.wf.sum <- array(rep(0, times = my.opt$options$front + my.opt$options$last + 1))
 my.wf.sum2 <- array(rep(0, times = my.opt$options$front + my.opt$options$last + 1))
 my.wf.count <- 0
@@ -116,8 +119,31 @@ my.wf.var <- (my.wf.count * my.wf.sum2 - my.wf.sum^2) / (my.wf.count * (my.wf.co
 my.wf.std <- sqrt(my.wf.var)
 my.wf.avg.err <- my.wf.std / sqrt(my.wf.count)
 
-cat(my.wf.avg, "\n")
-cat(my.wf.avg.err, "\n")
+#cat(my.wf.avg, "\n")
+#cat(my.wf.avg.err, "\n")
+
+my.df <- data.frame(
+  x = seq(0, length(my.wf.avg) - 1),
+  y = my.wf.avg,
+  err = my.wf.avg.err * CONF_LEVEL
+)
 
 pdf(my.plot.file)
-plot(my.wf.avg, type='b', pch=19)
+
+my.p <- ggplot(data = my.df, aes(x = x, y = y)) +
+  ggtitle(
+    label = paste("Averaged Pulse", paste("Channel #", my.opt$options$channel, sep = ""), sep = ", "),
+    subtitle = paste(
+      paste("Num of Waveforms", my.wf.count, sep = ": "),
+      paste("Amplitude Threshold", my.opt$options$amplitude, sep = ": "),
+      sep = ", "
+    )
+  ) +
+  scale_x_continuous(name = "Time, channels") +
+  scale_y_continuous(name = "Amplitude, channels") +
+  theme_light(base_size = 10) +
+  geom_errorbar(aes(ymin=y - err, ymax = y + err), width = .3, position = position_dodge(0.05)) +
+  geom_line() +
+  geom_point()
+
+plot(my.p)
