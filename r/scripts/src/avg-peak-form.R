@@ -135,9 +135,19 @@ my.wf.avg <- my.wf.sum / my.wf.count
 my.wf.var <- (my.wf.count * my.wf.sum2 - my.wf.sum^2) / (my.wf.count * (my.wf.count - 1))
 my.wf.std <- sqrt(my.wf.var)
 my.wf.avg.err <- my.wf.std / sqrt(my.wf.count)
+my.x <- seq(0, length(my.wf.avg) - 1)
+
+my.func <- approxfun(my.x, my.wf.avg)
+cat("y(8.5)", my.func(8.5), "\n")
+cat("y(9.5)", my.func(9.5), "\n")
+cat("y(10.0)", my.func(10), "\n")
+y1 <- 0.1 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1])
+y2 <- 0.9 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1])
+root1 <- uniroot(f = function(x) my.func(x) - y1, interval = c(0, my.opt$options$front))$root
+root2 <- uniroot(f = function(x) my.func(x) - y2, interval = c(0, my.opt$options$front))$root
 
 my.df <- data.frame(
-  x = rep(seq(0, length(my.wf.avg) - 1), 3),
+  x = rep(my.x, 3),
   y = append(append(my.wf.avg, my.wf.avg + qnorm(0.10) * my.wf.std), my.wf.avg + qnorm(0.90) * my.wf.std),
   g = append(append(rep(1, length(my.wf.avg)), rep(2, length(my.wf.avg))), rep(3, length(my.wf.avg))),
   c = append(append(rep("a) Mean", length(my.wf.avg)), rep("b) 10th Percentile", length(my.wf.avg))), rep("c) 90th Percentile", length(my.wf.avg))),
@@ -158,8 +168,8 @@ my.p <- ggplot(data = my.df, aes(x = x, y = y, group = c, color = c)) +
       paste("Peak Pos", my.opt$options$front, sep = ": "),
       paste("Peak Amp", format(my.wf.avg[my.opt$options$front + 1], digits = 2), sep = ": "),
       paste("Num of WFs", my.wf.count, sep = ": "),
-      paste("Min Amp", my.opt$options$minamp, sep = ": "),
-      paste("Max Amp", my.opt$options$maxamp, sep = ": "),
+#      paste("Amps", paste(my.opt$options$minamp, my.opt$options$maxamp, sep = "-"), sep = ": "),
+      paste("10/90 Front Length", format(root2 - root1, digits = 2), sep = ": "),
       sep = ", "
     )
   ) +
@@ -168,8 +178,8 @@ my.p <- ggplot(data = my.df, aes(x = x, y = y, group = c, color = c)) +
   theme_light(base_size = 10) +
   geom_errorbar(aes(ymin=y - err, ymax = y + err), width = .3, position = position_dodge(0.05)) +
   geom_line() +
-  geom_line(aes(x = x, y = rep(0.2 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]), length(x))), size = 0.25, color = 'magenta') +
-  geom_line(aes(x = x, y = rep(0.8 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]), length(x))), size = 0.25, color = 'magenta') +
+  geom_line(aes(x = x, y = rep(0.1 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]), length(x))), size = 0.25, color = 'magenta') +
+  geom_line(aes(x = x, y = rep(0.9 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]), length(x))), size = 0.25, color = 'magenta') +
   geom_point(aes(shape = c)) + scale_shape_manual(values=c(20, NA, NA)) +
   warnings()
   
