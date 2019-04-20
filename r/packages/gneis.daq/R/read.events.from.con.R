@@ -6,6 +6,7 @@ read.events.from.con <-
     converter.func = NULL, 
     merging.func = NULL, 
     init.value = NULL, 
+    stop.func = NULL, 
     nevents = -1, 
     time.units = "nus", 
     voltage.units = "mV",
@@ -61,6 +62,13 @@ read.events.from.con <-
             
             if (nevents >= 0 && nevents <= my.ecount) {
               break
+            }
+            
+            if (!missing(stop.func) && !is.null(stop.func)) {
+              my.stop.flag <- stop.func(my.result)
+              if (!is.null(my.stop.flag) && !is.na(my.stop.flag) && !(my.stop.flag == FALSE)) {
+                break
+              }
             }
           }
         }
