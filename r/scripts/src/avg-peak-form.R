@@ -78,7 +78,7 @@ my.plot <- function() {
         paste("Peak Pos", my.opt$options$front, sep = ": "),
         paste("Peak Amp", format(my.wf.avg[my.opt$options$front + 1], digits = 2), sep = ": "),
         paste("Num of WFs", my.wf.count, sep = ": "),
-        paste("10/90 Front Length", format(root2 - root1, digits = 2), sep = ": "),
+        paste("10/90 Front Length", format(my.root2 - my.root1, digits = 2), sep = ": "),
         sep = ", "
       )
     ) +
@@ -87,8 +87,8 @@ my.plot <- function() {
     theme_light(base_size = 10) +
     geom_errorbar(aes(ymin=y - err, ymax = y + err), width = .3, position = position_dodge(0.05)) +
     geom_line() +
-    geom_line(aes(x = x, y = rep(0.1 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]), length(x))), size = 0.25, color = 'magenta') +
-    geom_line(aes(x = x, y = rep(0.9 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]), length(x))), size = 0.25, color = 'magenta') +
+    geom_line(aes(x = x, y = rep(my.level1, length(x))), size = 0.25, color = 'magenta') +
+    geom_line(aes(x = x, y = rep(my.level2, length(x))), size = 0.25, color = 'magenta') +
     geom_point(aes(shape = c)) + scale_shape_manual(values=c(20, NA, NA)) +
     warnings()
   
@@ -192,13 +192,16 @@ my.wf.avg.err <- my.wf.std / sqrt(my.wf.count)
 my.x <- seq(0, length(my.wf.avg) - 1)
 
 my.func <- approxfun(my.x, my.wf.avg)
-cat("y(8.5)", my.func(8.5), "\n")
-cat("y(9.5)", my.func(9.5), "\n")
-cat("y(10.0)", my.func(10), "\n")
-y1 <- 0.1 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1])
-y2 <- 0.9 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1])
-root1 <- uniroot(f = function(x) my.func(x) - y1, interval = c(0, my.opt$options$front))$root
-root2 <- uniroot(f = function(x) my.func(x) - y2, interval = c(0, my.opt$options$front))$root
+my.level1 <- 0.1 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]) + my.wf.avg[1]
+my.level2 <- 0.9 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]) + my.wf.avg[1]
+if (my.level2 < my.level1) {
+  cat(my.wf.avg[my.opt$options$front + 1], my.wf.avg[1], my.level1, my.level2, "\n")
+  my.root1 <- uniroot(f = function(x) my.func(x) - my.level1, interval = c(0, my.opt$options$front))$root
+  my.root2 <- uniroot(f = function(x) my.func(x) - my.level2, interval = c(0, my.opt$options$front))$root
+} else {
+  my.root1 <- 0
+  my.root2 <- 0
+}
 
 my.plot()
 
