@@ -194,7 +194,6 @@ my.func <- approxfun(my.x, my.wf.avg)
 my.level1 <- 0.1 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]) + my.wf.avg[1]
 my.level2 <- 0.9 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]) + my.wf.avg[1]
 if (my.level2 < my.level1) {
-  cat(my.wf.avg[my.opt$options$front + 1], my.wf.avg[1], my.level1, my.level2, "\n")
   my.root1 <- uniroot(f = function(x) my.func(x) - my.level1, interval = c(0, my.opt$options$front))$root
   my.root2 <- uniroot(f = function(x) my.func(x) - my.level2, interval = c(0, my.opt$options$front))$root
 } else {
