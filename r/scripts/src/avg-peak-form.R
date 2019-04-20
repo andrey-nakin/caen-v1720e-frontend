@@ -58,11 +58,10 @@ my.plot <- function() {
   my.df <- data.frame(
     x = rep(my.x, 3),
     y = append(append(my.wf.avg, my.wf.avg + qnorm(0.10) * my.wf.std), my.wf.avg + qnorm(0.90) * my.wf.std),
-    g = append(append(rep(1, length(my.wf.avg)), rep(2, length(my.wf.avg))), rep(3, length(my.wf.avg))),
     c = append(append(rep("a) Mean", length(my.wf.avg)), rep("b) 10th Percentile", length(my.wf.avg))), rep("c) 90th Percentile", length(my.wf.avg))),
     err = append(my.wf.avg.err * qnorm(0.975), rep(NA, 2 * length(my.wf.avg.err)))
   )
-  
+
   pdf(my.plot.file)
   
   my.p <- ggplot(data = my.df, aes(x = x, y = y, group = c, color = c)) +
