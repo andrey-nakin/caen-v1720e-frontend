@@ -60,7 +60,7 @@ read.events.from.con <-
               my.result <- merging.func(my.result, my.event)
             }
             
-            if (nevents >= 0 && nevents <= my.ecount) {
+            if (!is.na(nevents) && nevents >= 0 && nevents <= my.ecount) {
               break
             }
             
