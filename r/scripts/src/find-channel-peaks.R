@@ -25,11 +25,12 @@ my.print.init.info <- function(e) {
   cat(
     file = my.dest, 
     sep = "\t",
-    "TM",
+    "DATETIME",
     "RUN",
     "EC",
     "TS",
     "PP",
+    "EPP",
     "PA",
     "EPA",
     "FI",
@@ -39,56 +40,18 @@ my.print.init.info <- function(e) {
 }
 
 my.print.channel <- function(my.info, wf, triggers) {
-  my.pos <- which.min(wf)
-  my.front.pos <- my.pos - my.opt$options$front
-  my.tail.pos <- my.pos + my.opt$options$tail
-  my.skip.pos <- my.tail.pos + my.opt$options$skip + 1
-  my.sum <- 0
-  my.sum2 <- 0
-  my.n <- 0
-  my.front.sum <- 0
-  my.tail.sum <- 0
-  my.len <- length(wf)
-
-  if (!(my.front.pos > 0) || my.tail.pos > my.len) {
+  my.pulse <- get.pulse(
+    wf,
+    front.len = my.opt$options$front,
+    tail.len = my.opt$options$tail,
+    n.skip = my.opt$options$skip,
+    need.integration = TRUE
+  )
+  
+  if (is.null(my.pulse)) {
     return(0)
   }
 
-  my.front <- wf[my.front.pos : my.pos]
-  my.tail <- wf[(my.pos + 1) : my.tail.pos]
-  my.pulse <- append(my.front, my.tail)
-  
-  my.front.sum <- sum(my.front)
-  my.tail.sum <- sum(my.tail)
-  my.sum <- my.front.sum + my.tail.sum
-  my.positions <- seq(0, length(my.opt$options$front) + length(my.opt$options$tail) + 1)
-  my.mass.center <- sum(my.positions * my.pulse / my.sum)
-
-  if (my.front.pos > 1) {
-    my.sum <- sum(wf[1 : (my.front.pos - 1)])
-    my.sum2 <- sum(wf[1 : (my.front.pos - 1)]^2)
-    my.n <- my.front.pos - 1
-  }
-  
-  if (my.skip.pos <= my.len) {
-    my.sum <- my.sum + sum(wf[my.skip.pos : my.len])
-    my.sum2 <- my.sum2 + sum(wf[my.skip.pos : my.len]^2)
-    my.n <- my.n + my.len - my.skip.pos + 1
-  }
-  
-  if (!(my.n > 1)) {
-    return(0)
-  }
-  
-  my.mean = my.sum / my.n
-  my.var <- (my.n * my.sum2 - my.sum^2) / (my.n * (my.n - 1))
-  my.std <- sqrt(my.var)
-  
-  my.amp = wf[my.pos] - my.mean
-  my.amp.err = 0.5 + my.std / sqrt(my.n)
-  my.front.sum <- my.front.sum - my.mean * (my.opt$options$front + 1)
-  my.tail.sum <- my.tail.sum - my.mean * my.opt$options$tail
-  
   cat(
     file = my.dest, 
     sep = "\t",
@@ -96,11 +59,12 @@ my.print.channel <- function(my.info, wf, triggers) {
     my.info$Run,
     my.info$EventCounter,
     my.info$DeviceTimeStamp,
-    format(my.mass.center, digits = my.opt$options$precision),
-    format(my.amp, digits = my.opt$options$precision),
-    format(my.amp.err, digits = my.opt$options$precision),
-    format(my.front.sum, digits = my.opt$options$precision),
-    format(my.tail.sum, digits = my.opt$options$precision),
+    format(my.pulse$x, digits = my.opt$options$precision),
+    format(my.pulse$x.err, digits = my.opt$options$precision),
+    format(my.pulse$amp, digits = my.opt$options$precision),
+    format(my.pulse$amp.err, digits = my.opt$options$precision),
+    format(my.pulse$front.int, digits = my.opt$options$precision),
+    format(my.pulse$tail.int, digits = my.opt$options$precision),
     "\n"
   )
   
@@ -122,7 +86,7 @@ my.event.collector <- function(a, e) {
     my.last.master.eventCounter <<- my.info$EventCounter
     my.last.master.timeStamp <<- my.info$DeviceTimeStamp
     my.last.master.trigger.position <<- my.trg[[my.master.trigger.col]][4]
-    my.mc <- pulse.mass.center(
+    my.mc <- get.pulse(
       e$waveforms[[my.master.trigger.col]],
       front.len = my.opt$options$masterfront,
       tail.len = my.opt$options$mastertail,
