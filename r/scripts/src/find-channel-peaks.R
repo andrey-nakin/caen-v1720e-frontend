@@ -107,31 +107,6 @@ my.print.channel <- function(my.info, wf, triggers) {
   return(1)
 }
 
-my.find.master.peak.position <- function(wf) {
-  my.pos <- which.min(wf)
-  my.front.pos <- my.pos - my.opt$options$masterfront
-  my.tail.pos <- my.pos + my.opt$options$mastertail
-  my.len <- length(wf)
-  
-  if (!(my.front.pos > 0) || my.tail.pos > my.len) {
-    return(NA)
-  }
-  
-  my.front <- wf[my.front.pos : my.pos]
-  my.tail <- wf[(my.pos + 1) : my.tail.pos]
-  my.pulse <- append(my.front, my.tail)
-  
-  my.front.sum <- sum(my.front)
-  my.tail.sum <- sum(my.tail)
-  my.sum <- my.front.sum + my.tail.sum
-  my.positions <- seq(my.pos - my.opt$options$masterfront, my.pos + my.opt$options$mastertail)
-  my.mass.center <- sum(my.positions * my.pulse / my.sum)
-  
-  cat("MC", my.pos, my.mass.center, "\n")
-
-  return(my.mass.center)
-}
-
 my.event.collector <- function(a, e) {
   if (a == 0) {
     my.print.init.info(e)
@@ -147,7 +122,12 @@ my.event.collector <- function(a, e) {
     my.last.master.eventCounter <<- my.info$EventCounter
     my.last.master.timeStamp <<- my.info$DeviceTimeStamp
     my.last.master.trigger.position <<- my.trg[[my.master.trigger.col]][4]
-    my.last.master.peak.position <<- my.find.master.peak.position(e$waveforms[[my.master.trigger.col]])
+    my.last.master.peak.position <<- pulse.mass.center(
+      e$waveforms[[my.master.trigger.col]],
+      front.len = my.opt$options$masterfront,
+      tail.len = my.opt$options$mastertail,
+      n.skip = my.opt$options$masterskip
+    )
   }
 
   my.wf <- e$waveforms[[my.channel.col]]
@@ -222,6 +202,12 @@ my.option.list <- list(
     type = "integer",
     default = 10, 
     help = "Number of samples before the peak in master channel (default %default)"
+  ),
+  make_option(
+    c("", "--masterskip"),
+    type = "integer",
+    default = 50, 
+    help = "Number of samples after the peak to skip in master channel (default %default)"
   ),
   make_option(
     c("-n", "--number"),
