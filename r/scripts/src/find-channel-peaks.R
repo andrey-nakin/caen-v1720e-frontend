@@ -28,7 +28,7 @@ my.print.init.info <- function(e) {
     "DATETIME",
     "RUN",
     "EC",
-    "TS",
+    "TRG",
     "PP",
     "EPP",
     "PA",
@@ -39,7 +39,7 @@ my.print.init.info <- function(e) {
   )
 }
 
-my.print.channel <- function(my.info, wf, triggers) {
+my.print.channel <- function(my.info, wf, trg.ch, trg.pos) {
   my.pulse <- get.pulse(
     wf,
     front.len = my.opt$options$front,
@@ -52,15 +52,33 @@ my.print.channel <- function(my.info, wf, triggers) {
     return(0)
   }
 
+  if (my.last.master.run == my.info$Run && !is.na(my.last.master.peak.position)) {
+    cat(my.pulse$x, my.last.master.peak.position, trg.pos, my.last.master.trigger.position, my.info$DeviceTimeStamp, my.last.master.timeStamp, "\n")
+    
+    my.pos <- (my.pulse$x - my.last.master.peak.position) + 
+      (trg.pos - my.last.master.trigger.position) + 
+      ((my.info$DeviceTimeStamp - my.last.master.timeStamp) %% my.info$DeviceTimeStampModule) * my.info$TicksPerSample
+    my.pos.err <- my.pulse$x.err + 1
+  } else {
+    my.pos <- my.pulse$x
+    my.pos.err <- my.pulse$x.err
+  }
+  
+  if (my.pos > 9999) {
+    my.pos <- round(my.pos)
+  } else {
+    my.pos <- format(my.pos, digits = my.opt$options$precision)
+  }
+  
   cat(
     file = my.dest, 
     sep = "\t",
     my.info$TimeStamp,
     my.info$Run,
     my.info$EventCounter,
-    my.info$DeviceTimeStamp,
-    format(my.pulse$x, digits = my.opt$options$precision),
-    format(my.pulse$x.err, digits = my.opt$options$precision),
+    trg.ch,
+    my.pos,
+    format(my.pos.err, digits = my.opt$options$precision),
     format(my.pulse$amp, digits = my.opt$options$precision),
     format(my.pulse$amp.err, digits = my.opt$options$precision),
     format(my.pulse$front.int, digits = my.opt$options$precision),
@@ -99,9 +117,21 @@ my.event.collector <- function(a, e) {
     }
   }
 
-  my.wf <- e$waveforms[[my.channel.col]]
-  if (!is.null(my.wf)) {
-    my.print.channel(my.info, my.wf, my.trg)
+  if (is.na(my.trigger.col) || my.trg[[my.trigger.col]][1] > 0) {
+    my.wf <- e$waveforms[[my.channel.col]]
+    if (!is.null(my.wf)) {
+      my.trg.ch <- 0
+      my.trg.pos <- 0
+      for (col in colnames(my.trg)) {
+        if (my.trg[[col]][1]) {
+          my.trg.pos <- my.trg[[col]][4]
+          break;
+        }
+        my.trg.ch <- my.trg.ch + 1  
+      }
+      
+      my.print.channel(my.info, my.wf, my.trg.ch, my.trg.pos)
+    }
   }
 
   return(a + 1)  
@@ -232,22 +262,8 @@ my.trigger.col <- my.make.column.name(my.opt$options$trigger)
 my.dest <- file(my.make.filename(my.opt))
 open(my.dest, "w")
 
-my.event.filter <- NULL
-if (!is.na(my.trigger.col)) {
-  my.event.filter <- function(e) {
-    if (e$triggers[[my.trigger.col]][1] > 0) {
-      return(TRUE)
-    }
-    if (!is.na(my.master.trigger.col) && e$triggers[[my.master.trigger.col]][1] > 0) {
-      return(TRUE)
-    }
-    return(FALSE)
-  }
-}
-
 my.res <- read.events.from.gdconvert(
   file.names = my.midas.files,
-  filter.func = my.event.filter,
   merging.func = my.event.collector,
   init.value = 0,
   nevents = my.opt$options$number
