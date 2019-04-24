@@ -122,12 +122,17 @@ my.event.collector <- function(a, e) {
     my.last.master.eventCounter <<- my.info$EventCounter
     my.last.master.timeStamp <<- my.info$DeviceTimeStamp
     my.last.master.trigger.position <<- my.trg[[my.master.trigger.col]][4]
-    my.last.master.peak.position <<- pulse.mass.center(
+    my.mc <- pulse.mass.center(
       e$waveforms[[my.master.trigger.col]],
       front.len = my.opt$options$masterfront,
       tail.len = my.opt$options$mastertail,
       n.skip = my.opt$options$masterskip
     )
+    if (!is.null(my.mc)) {
+      my.last.master.peak.position <<- my.mc$x
+    } else {
+      my.last.master.peak.position <<- NA
+    }
   }
 
   my.wf <- e$waveforms[[my.channel.col]]

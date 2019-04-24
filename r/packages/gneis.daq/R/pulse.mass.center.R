@@ -11,7 +11,7 @@ pulse.mass.center <- function(wf, front.len, tail.len, n.skip = 0, is.positive =
   my.len <- length(wf)
   
   if (my.front.pos < 1 || my.tail.pos > my.len) {
-    return(NA)
+    return(NULL)
   }
   
   my.s <- 0
@@ -28,17 +28,18 @@ pulse.mass.center <- function(wf, front.len, tail.len, n.skip = 0, is.positive =
   }
   
   if (my.n < 1) {
-    return(NA)
+    return(NULL)
   }
   
   my.zero <- my.s / my.n
   my.pulse <- wf[my.front.pos : my.tail.pos] - my.zero
   my.positions <- (my.pos - front.len) : (my.pos + tail.len)
   my.mass.center <- sum(my.positions * my.pulse / sum(my.pulse))
-  
-  cat("PULSE", my.pulse, "\n")
-  cat("POS", my.positions, "\n")
-  cat("MC", my.pos, my.mass.center, "\n")
-  
-  return(my.mass.center)
+
+  return(
+    list(
+      x = my.mass.center,
+      error = 0.5
+    )
+  )
 }
