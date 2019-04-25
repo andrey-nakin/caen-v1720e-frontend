@@ -53,8 +53,6 @@ my.print.channel <- function(my.info, wf, trg.ch, trg.pos) {
   }
 
   if (my.last.master.run == my.info$Run && !is.na(my.last.master.peak.position)) {
-    cat(my.pulse$x, my.last.master.peak.position, trg.pos, my.last.master.trigger.position, my.info$DeviceTimeStamp, my.last.master.timeStamp, "\n")
-    
     my.pos <- (my.pulse$x - my.last.master.peak.position) + 
       (trg.pos - my.last.master.trigger.position) + 
       ((my.info$DeviceTimeStamp - my.last.master.timeStamp) %% my.info$DeviceTimeStampModule) * my.info$TicksPerSample
@@ -148,7 +146,12 @@ my.make.filename <- function(opt) {
     res <- paste(res, ".trg", opt$options$trigger, sep = "")
   }
   
-  res <- paste(res, ".txt", sep = "")
+  if (length(my.opt$args) == 2) {
+    runname <- strsplit(basename(my.opt$args[2]), "\\.")[[1]][1]
+    res <- paste(res, runname, sep = ".")
+  }
+  
+  res <- paste(res, "txt", sep = ".")
   
   return (res)
 }
