@@ -129,10 +129,13 @@ my.event.collector <- function(a, e) {
     }
     my.trg.ch <- my.trg.ch + 1  
   }
-  
-  if (a == 0) {
+
+  if (my.write.header) {
     my.print.init.info(e)
-  } else if (a %% 1000 == 0 && my.opt$options$verbose) {
+    my.write.header <<- FALSE
+  }
+    
+  if (a %% 1000 == 0 && my.opt$options$verbose) {
     cat(e$eventInfo$Run, e$eventInfo$EventCounter, "\n")
   }
   
@@ -276,6 +279,7 @@ my.trigger.col <- my.make.column.name(my.opt$options$trigger)
 
 my.dest <- file(my.make.filename(my.opt))
 open(my.dest, "w")
+my.write.header <- TRUE
 
 my.res <- read.events.from.gdconvert(
   file.names = my.midas.files,
