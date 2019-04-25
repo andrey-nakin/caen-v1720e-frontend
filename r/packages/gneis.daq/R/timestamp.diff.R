@@ -1,9 +1,9 @@
 timestamp.diff <- function(a, b, width = 31) {
   m <- 2^width
-  if (!(a < m)) {
+  while (!(a < m)) {
     a <- a - m
   }
-  if (!(b < m)) {
+  while (!(b < m)) {
     b <- b - m
   }
   res <- a - b
