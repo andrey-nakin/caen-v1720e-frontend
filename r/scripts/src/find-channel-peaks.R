@@ -69,6 +69,11 @@ my.print.channel <- function(my.info, wf, trg.ch, trg.pos) {
     my.pos <- format(my.pos, digits = my.opt$options$precision)
   }
   
+  if (my.write.header) {
+    my.print.init.info(e)
+    my.write.header <<- FALSE
+  }
+  
   cat(
     file = my.dest, 
     sep = "\t",
@@ -130,11 +135,6 @@ my.event.collector <- function(a, e) {
     my.trg.ch <- my.trg.ch + 1  
   }
 
-  if (my.write.header) {
-    my.print.init.info(e)
-    my.write.header <<- FALSE
-  }
-    
   if (a %% 1000 == 0 && my.opt$options$verbose) {
     cat(e$eventInfo$Run, e$eventInfo$EventCounter, "\n")
   }
