@@ -59,7 +59,7 @@ my.print.channel <- function(my.info, wf, trg.ch, trg.pos) {
       ((my.info$DeviceTimeStamp - my.last.master.timeStamp) %% my.info$DeviceTimeStampModule) * my.info$TicksPerSample
     my.pos.err <- my.pulse$x.err + 1
   } else {
-    my.pos <- my.pulse$x
+    my.pos <- my.pulse$x - trg.pos
     my.pos.err <- my.pulse$x.err
   }
   
