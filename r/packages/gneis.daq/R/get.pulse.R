@@ -40,13 +40,13 @@ get.pulse <- function(wf, front.len, tail.len, n.skip = 0, is.positive = FALSE, 
   my.std <- sqrt(my.var)
   
   my.pulse <- wf[my.front.pos : my.tail.pos] - my.zero
-  my.pulse.sum <- sum(my.pulse)
+  my.pulse.abs <- abs(my.pulse)
   my.positions <- (my.pos - front.len) : (my.pos + tail.len)
-  my.mass.center <- sum(my.positions * (my.pulse / my.pulse.sum))
+  my.mass.center <- sum(my.positions * (my.pulse.abs / sum(my.pulse.abs)))
 
   if (need.integration) {
     my.front.int <- sum(my.pulse[1 : (front.len + 1)])
-    my.tail.int <- my.pulse.sum - my.front.int
+    my.tail.int <- sum(my.pulse) - my.front.int
   } else {
     my.front.int <- NA
     my.tail.int <- NA
