@@ -90,15 +90,13 @@ my.print.channel <- function(my.info, wf, trg.ch, trg.pos) {
 }
 
 my.event.collector <- function(a, e) {
-  if (a == 0) {
-    my.print.init.info(e)
-  } else if (a %% 1000 == 0 && my.opt$options$verbose) {
-    cat(e$eventInfo$Run, e$eventInfo$EventCounter, "\n")
-  }
-  
   my.info <- e$eventInfo
   my.trg <- e$triggers
 
+  if (!is.na(my.trigger.col) && !(my.trg[[my.trigger.col]][1] > 0)) {
+    return(a)
+  }
+    
   if (!is.na(my.master.trigger.col) && my.trg[[my.master.trigger.col]][1] > 0) {
     my.last.master.run <<- my.info$Run
     my.last.master.eventCounter <<- my.info$EventCounter
@@ -117,24 +115,30 @@ my.event.collector <- function(a, e) {
     }
   }
 
-  if (is.na(my.trigger.col) || my.trg[[my.trigger.col]][1] > 0) {
-    my.wf <- e$waveforms[[my.channel.col]]
-    if (!is.null(my.wf)) {
-      my.trg.ch <- 0
-      my.trg.pos <- 0
-      for (col in colnames(my.trg)) {
-        if (my.trg[[col]][1]) {
-          my.trg.pos <- my.trg[[col]][4]
-          break;
-        }
-        my.trg.ch <- my.trg.ch + 1  
-      }
-      
-      my.print.channel(my.info, my.wf, my.trg.ch, my.trg.pos)
-    }
+  my.wf <- e$waveforms[[my.channel.col]]
+  if (is.null(my.wf)) {
+    return(a)
   }
-
-  return(a + 1)  
+  
+  my.trg.ch <- 0
+  my.trg.pos <- 0
+  for (col in colnames(my.trg)) {
+    if (my.trg[[col]][1]) {
+      my.trg.pos <- my.trg[[col]][4]
+      break;
+    }
+    my.trg.ch <- my.trg.ch + 1  
+  }
+  
+  if (a == 0) {
+    my.print.init.info(e)
+  } else if (a %% 1000 == 0 && my.opt$options$verbose) {
+    cat(e$eventInfo$Run, e$eventInfo$EventCounter, "\n")
+  }
+  
+  my.res <- my.print.channel(my.info, my.wf, my.trg.ch, my.trg.pos)
+  
+  return(a + my.res)
 }
 
 my.make.filename <- function(opt) {
@@ -164,6 +168,10 @@ my.make.column.name <- function(channel) {
   } else {
     return (paste("CH", channel, sep = ""))
   }
+}
+
+my.stop.func <- function(a) {
+  return(!is.na(my.opt$options$number) && my.opt$options$number > 0 && !(a < my.opt$options$number))
 }
 
 ########################################################
@@ -272,8 +280,8 @@ open(my.dest, "w")
 my.res <- read.events.from.gdconvert(
   file.names = my.midas.files,
   merging.func = my.event.collector,
-  init.value = 0,
-  nevents = my.opt$options$number
+  stop.func = my.stop.func,
+  init.value = 0
 )
 
 close(my.dest)
