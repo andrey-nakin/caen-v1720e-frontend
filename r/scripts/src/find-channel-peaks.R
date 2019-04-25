@@ -257,10 +257,6 @@ if (is.na(my.opt$options$channel)) {
   stop("ERROR: channel is not specified")
 }
 
-if (is.na(my.opt$options$master)) {
-  stop("ERROR: master trigger is not specified")
-}
-
 my.midas.files <- tail(my.opt$args, n = -1)
 my.channel.col <- my.make.column.name(my.opt$options$channel)
 my.master.trigger.col <- my.make.column.name(my.opt$options$master)
