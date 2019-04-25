@@ -57,7 +57,10 @@ my.print.channel <- function(my.info, wf, trg.ch, trg.pos) {
     my.pos <- (my.pulse$x - (trg.pos + 1)) - 
       (my.last.master.peak.position - (my.last.master.trigger.position + 1))  +
       timestamp.diff(my.info$DeviceTimeStamp, my.last.master.timeStamp) * my.info$TicksPerSample
-    my.pos.err <- my.pulse$x.err + 1
+    my.pos.err <- my.pulse$x.err
+    if (my.last.master.eventCounter != my.info$EventCounter) {
+      my.pos.err <- my.pos.err + 1
+    }
   } else {
     my.pos <- my.pulse$x - (trg.pos + 1)
     my.pos.err <- my.pulse$x.err
