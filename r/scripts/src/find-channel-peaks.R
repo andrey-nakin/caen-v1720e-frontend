@@ -90,7 +90,7 @@ my.print.channel <- function(my.info, wf, trg.ch, trg.pos) {
 my.event.collector <- function(a, e) {
   if (a == 0) {
     my.print.init.info(e)
-  } else if (a %% 10000 == 0) {
+  } else if (a %% 1000 == 0 && my.opt$options$verbose) {
     cat(e$eventInfo$Run, e$eventInfo$EventCounter, "\n")
   }
   
@@ -234,6 +234,12 @@ my.option.list <- list(
     type = "integer",
     default = NA, 
     help = "Trigger channel #"
+  ),
+  make_option(
+    c("-v", "--verbose"),
+    action="store_true",
+    default = FALSE, 
+    help = "Verbose mode"
   )
 )
 
