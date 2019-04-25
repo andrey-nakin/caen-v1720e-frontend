@@ -54,8 +54,8 @@ my.print.channel <- function(my.info, wf, trg.ch, trg.pos) {
   }
 
   if (my.last.master.run == my.info$Run && !is.na(my.last.master.peak.position)) {
-    my.pos <- (my.pulse$x - my.last.master.peak.position) + 
-      (trg.pos - my.last.master.trigger.position) + 
+    my.pos <- (my.pulse$x - trg.pos) - 
+      (my.last.master.peak.position - my.last.master.trigger.position) +
       ((my.info$DeviceTimeStamp - my.last.master.timeStamp) %% my.info$DeviceTimeStampModule) * my.info$TicksPerSample
     my.pos.err <- my.pulse$x.err + 1
   } else {
