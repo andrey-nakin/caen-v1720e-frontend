@@ -2,6 +2,7 @@
 
 library(optparse)
 library(ggplot2)
+library(stringr)
 
 ########################################################
 # Functions
@@ -61,11 +62,11 @@ my.make.txt.filename.mask <- function(opt) {
   return (res)
 }
 
-my.make.plot.filename <- function(opt, runfile) {
+my.make.plot.filename <- function(opt) {
   res <- paste(opt$args[2], "/avg-peak-form.ch", opt$options$channel, sep = "")
   
   if (!is.na(opt$options$trigger)) {
-    res <- paste(res, "trg", opt$options$trigger, sep = ".")
+    res <- paste(res, ".trg", opt$options$trigger, sep = "")
   }
   
   res <- paste(res, sprintf("amp%d-%d", opt$options$minamp, opt$options$maxamp), sep = ".")
@@ -75,9 +76,60 @@ my.make.plot.filename <- function(opt, runfile) {
   return (res)
 }
 
+my.analyze <- function(df) {
+
+  my.pos <- which.min(df$MY)
+
+  return(
+    list(
+      peak.pos = df$MX[my.pos],
+      peak.amp = df$MY[my.pos]
+    )
+  )
+    
+}
+
+my.extract.run.no <- function(fn) {
+  return(as.numeric(sub(".*\\.run([0-9]+)\\..*", "\\1", basename(fn), perl=TRUE)))
+}
+
 my.process.file <- function(fn) {
+  
   cat("FILE", fn, "\n")
-  my.df <- read.table(fn, header = T, sep = "/")
+  my.df <- read.table(fn, header = T, sep = "\t")
+  my.info <- my.analyze(my.df)
+  
+  my.stat.run <<- append(my.stat.run, my.extract.run.no(fn))
+  my.stat.peak.pos <<- append(my.stat.peak.pos, my.info$peak.pos)
+  my.stat.peak.amp <<- append(my.stat.peak.amp, my.info$peak.amp)
+  
+}
+
+my.plot.stat <- function(y, main, ylab, units) {
+  my.data <- data.frame(x = my.stat.run, y = y)
+  my.lm <- lm(y ~ x, data = my.data)
+  my.coef <- coefficients(my.lm)
+  my.slope <- my.coef[2]
+  my.slope.ci <- confint(my.lm, 'x', level = 0.95)
+  my.slope.err = max(abs(my.slope - my.slope.ci[1]), abs(my.slope - my.slope.ci[2]))
+  
+  p <- ggplot(
+    data = my.data, 
+    aes(x = x, y = y)
+  ) + 
+    geom_line() +
+    ggtitle(
+      label = paste(main, ", Channel #", my.opt$options$channel, sep = ""),
+      subtitle = paste("Approximation Line Slope: ", sprintf("%0.2g +/- %0.1g", my.slope, my.slope.err), " ", units, "/run", sep = "")
+    ) +
+    scale_x_continuous(name = "Run #") + 
+    scale_y_continuous(name = paste(ylab, ", ", units, sep = "")) +
+    theme_light(base_size = 10) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    geom_abline(intercept = my.coef[1], slope = my.coef[2], color="#00a000", linetype="dotted")
+  
+  plot(p)
+  
 }
 
 ########################################################
@@ -141,28 +193,36 @@ my.opt <- parse_args(
 # Processing
 ########################################################
 
-cat("FILES", my.opt$args[1], my.make.txt.filename.mask(my.opt), "\n")
+my.stat.run <- array(dim = c(0))
+my.stat.peak.pos <- array(dim = c(0))
+my.stat.peak.amp <- array(dim = c(0))
+
 for (my.fn in list.files(path = my.opt$args[1], pattern = my.make.txt.filename.mask(my.opt), full.names = T)) {
   my.process.file(my.fn)
 }
 
-my.wf.avg <- my.wf.sum / my.wf.count
-my.wf.var <- (my.wf.count * my.wf.sum2 - my.wf.sum^2) / (my.wf.count * (my.wf.count - 1))
-my.wf.std <- sqrt(my.wf.var)
-my.wf.avg.err <- my.wf.std / sqrt(my.wf.count)
-my.x <- seq(0, length(my.wf.avg) - 1)
+pdf(my.make.plot.filename(my.opt))
 
-my.func <- approxfun(my.x, my.wf.avg)
-my.level1 <- 0.1 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]) + my.wf.avg[1]
-my.level2 <- 0.9 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]) + my.wf.avg[1]
-if (my.level2 < my.level1) {
-  my.root1 <- uniroot(f = function(x) my.func(x) - my.level1, interval = c(0, my.opt$options$front))$root
-  my.root2 <- uniroot(f = function(x) my.func(x) - my.level2, interval = c(0, my.opt$options$front))$root
-} else {
-  my.root1 <- 0
-  my.root2 <- 0
-}
+my.plot.stat(my.stat.peak.pos, "Peak Positions", "Peak Position", "channels")
+my.plot.stat(my.stat.peak.amp, "Peak Amplitudes", "Peak Amplitude", "channels")
 
-my.plot()
+# my.wf.avg <- my.wf.sum / my.wf.count
+# my.wf.var <- (my.wf.count * my.wf.sum2 - my.wf.sum^2) / (my.wf.count * (my.wf.count - 1))
+# my.wf.std <- sqrt(my.wf.var)
+# my.wf.avg.err <- my.wf.std / sqrt(my.wf.count)
+# my.x <- seq(0, length(my.wf.avg) - 1)
+# 
+# my.func <- approxfun(my.x, my.wf.avg)
+# my.level1 <- 0.1 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]) + my.wf.avg[1]
+# my.level2 <- 0.9 * (my.wf.avg[my.opt$options$front + 1] - my.wf.avg[1]) + my.wf.avg[1]
+# if (my.level2 < my.level1) {
+#   my.root1 <- uniroot(f = function(x) my.func(x) - my.level1, interval = c(0, my.opt$options$front))$root
+#   my.root2 <- uniroot(f = function(x) my.func(x) - my.level2, interval = c(0, my.opt$options$front))$root
+# } else {
+#   my.root1 <- 0
+#   my.root2 <- 0
+# }
+
+# my.plot()
 
 #warnings()
