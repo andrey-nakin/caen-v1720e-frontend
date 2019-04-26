@@ -1,4 +1,4 @@
-get.pulse <- function(wf, front.len, tail.len, n.skip = 0, is.positive = FALSE, need.integration = FALSE) {
+get.pulse <- function(wf, front.len, tail.len, n.skip = 0, is.positive = FALSE, need.integration = FALSE, need.pulse = FALSE) {
   
   if (is.positive) {
     my.pos <- which.max(wf)
@@ -51,7 +51,12 @@ get.pulse <- function(wf, front.len, tail.len, n.skip = 0, is.positive = FALSE, 
     my.front.int <- NA
     my.tail.int <- NA
   }
-  
+
+  if (!need.pulse) {
+    my.pulse = NA
+    my.positions = NA
+  }
+    
   return(
     list(
       x = my.mass.center,
@@ -59,7 +64,9 @@ get.pulse <- function(wf, front.len, tail.len, n.skip = 0, is.positive = FALSE, 
       amp = wf[my.pos] - my.zero,
       amp.err = 0.5 + my.std / sqrt(my.n),
       front.int = my.front.int,
-      tail.int = my.tail.int
+      tail.int = my.tail.int,
+      pulse = my.pulse,
+      positions = my.positions
     )
   )
   
