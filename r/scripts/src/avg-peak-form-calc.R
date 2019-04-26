@@ -50,7 +50,7 @@ my.make.filename <- function(opt) {
   res <- paste(opt$args[1], "/avg-peak-form.ch", opt$options$channel, sep = "")
   
   if (!is.na(opt$options$trigger)) {
-    res <- paste(res, "trg", opt$options$trigger, sep = ".")
+    res <- paste(res, ".trg", opt$options$trigger, sep = "")
   }
   
   res <- paste(res, sprintf("amp%d-%d", opt$options$minamp, opt$options$maxamp), sep = ".")

@@ -47,21 +47,16 @@ my.plot <- function() {
   plot(my.p)  
 }
 
-my.make.txt.filename <- function(opt, runfile) {
-  res <- paste(opt$args[1], "/avg-peak-form.ch", opt$options$channel, sep = "")
+my.make.txt.filename.mask <- function(opt) {
+  res <- paste("avg-peak-form.ch", opt$options$channel, sep = "")
   
   if (!is.na(opt$options$trigger)) {
-    res <- paste(res, "trg", opt$options$trigger, sep = ".")
+    res <- paste(res, ".trg", opt$options$trigger, sep = "")
   }
   
   res <- paste(res, sprintf("amp%d-%d", opt$options$minamp, opt$options$maxamp), sep = ".")
   
-  if (length(opt$args) == 2) {
-    runname <- strsplit(basename(opt$args[2]), "\\.")[[1]][1]
-    res <- paste(res, runname, sep = ".")
-  }
-  
-  res <- paste(res, "txt", sep = ".")
+  res <- paste(res, "*", "txt", sep = ".")
   
   return (res)
 }
@@ -78,6 +73,11 @@ my.make.plot.filename <- function(opt, runfile) {
   res <- paste(res, "pdf", sep = ".")
   
   return (res)
+}
+
+my.process.file <- function(fn) {
+  cat("FILE", fn, "\n")
+  my.df <- read.table(fn, header = T, sep = "/")
 }
 
 ########################################################
@@ -141,15 +141,10 @@ my.opt <- parse_args(
 # Processing
 ########################################################
 
-CONF_LEVEL <- 2
-
-my.wf.sum <- array(rep(0, times = my.opt$options$front + my.opt$options$last + 1))
-my.wf.sum2 <- array(rep(0, times = my.opt$options$front + my.opt$options$last + 1))
-my.wf.min <- array(rep(0, times = my.opt$options$front + my.opt$options$last + 1))
-my.wf.max <- array(rep(0, times = my.opt$options$front + my.opt$options$last + 1))
-my.wf.count <- 0
-
-# TODO collect 
+cat("FILES", my.opt$args[1], my.make.txt.filename.mask(my.opt), "\n")
+for (my.fn in list.files(path = my.opt$args[1], pattern = my.make.txt.filename.mask(my.opt), full.names = T)) {
+  my.process.file(my.fn)
+}
 
 my.wf.avg <- my.wf.sum / my.wf.count
 my.wf.var <- (my.wf.count * my.wf.sum2 - my.wf.sum^2) / (my.wf.count * (my.wf.count - 1))
