@@ -2,57 +2,10 @@
 
 library(optparse)
 library(ggplot2)
-library(gneis.daq)
 
 ########################################################
 # Functions
 ########################################################
-
-my.process.waveform <- function(wf) {
-  my.len <- length(wf)
-  my.pos <- which.min(wf)
-  my.front.pos <- my.pos - my.opt$options$front
-  my.tail.pos <- my.pos + my.opt$options$last
-  
-  if (my.front.pos > 1 && my.tail.pos < my.len) {
-    my.sum <- sum(wf[1 : (my.front.pos - 1)]) + sum(wf[(my.tail.pos + 1) : my.len])
-    my.n <- my.len - (my.opt$options$front + my.opt$options$last + 1)
-    my.mean <- my.sum / my.n
-    my.amp = wf[my.pos] - my.mean
-    
-    if (abs(my.amp) > my.opt$options$minamp && (my.opt$options$maxamp < 0 || abs(my.amp) <= my.opt$options$maxamp)) {
-      my.peak <- wf[my.front.pos : my.tail.pos] - my.mean
-      
-      my.wf.sum <<- my.wf.sum + my.peak
-      my.wf.sum2 <<- my.wf.sum2 + my.peak^2
-      
-      # if (my.wf.count > 0) {
-      #   my.wf.min <<- pmin(my.wf.min, my.peak)
-      #   my.wf.max <<- pmax(my.wf.max, my.peak)
-      # } else {
-      #   my.wf.min <<- my.peak
-      #   my.wf.max <<- my.peak
-      # }
-      
-      my.wf.count <<- my.wf.count + 1
-      
-      return(1)
-    }
-  }
-}
-
-my.event.collector <- function(a, e) {
-  my.res <- my.process.waveform(e$waveforms[[my.channel.column]])
-  if (!is.null(my.res)) {
-    return(a + my.res)
-  } else {
-    return(a)
-  }
-}
-
-my.stop.func <- function(a) {
-  return (my.opt$options$number > 0 && a >= my.opt$options$number)
-}
 
 my.plot <- function() {
   my.df <- data.frame(
@@ -94,6 +47,39 @@ my.plot <- function() {
   plot(my.p)  
 }
 
+my.make.txt.filename <- function(opt, runfile) {
+  res <- paste(opt$args[1], "/avg-peak-form.ch", opt$options$channel, sep = "")
+  
+  if (!is.na(opt$options$trigger)) {
+    res <- paste(res, "trg", opt$options$trigger, sep = ".")
+  }
+  
+  res <- paste(res, sprintf("amp%d-%d", opt$options$minamp, opt$options$maxamp), sep = ".")
+  
+  if (length(opt$args) == 2) {
+    runname <- strsplit(basename(opt$args[2]), "\\.")[[1]][1]
+    res <- paste(res, runname, sep = ".")
+  }
+  
+  res <- paste(res, "txt", sep = ".")
+  
+  return (res)
+}
+
+my.make.plot.filename <- function(opt, runfile) {
+  res <- paste(opt$args[2], "/avg-peak-form.ch", opt$options$channel, sep = "")
+  
+  if (!is.na(opt$options$trigger)) {
+    res <- paste(res, "trg", opt$options$trigger, sep = ".")
+  }
+  
+  res <- paste(res, sprintf("amp%d-%d", opt$options$minamp, opt$options$maxamp), sep = ".")
+  
+  res <- paste(res, "pdf", sep = ".")
+  
+  return (res)
+}
+
 ########################################################
 # Command line parsing
 ########################################################
@@ -114,45 +100,42 @@ my.option.list <- list(
   make_option(
     c("-c", "--channel"),
     type = "integer",
-    default = 0, 
-    help = "Channel # (default %default)"
+    default = NA, 
+    help = "Channel #"
   ),
   make_option(
-    c("-f", "--front"),
+    c("", "--front"),
     type = "integer",
     default = 10, 
     help = "Number of samples before the peak (default %default)"
   ),
   make_option(
-    c("-l", "--last"),
+    c("", "--tail"),
     type = "integer",
     default = 10, 
-    help = "Number of samples after the peak (default %default)"
+    help = "Number of samples before the peak (default %default)"
   ),
   make_option(
-    c("-n", "--number"),
-    type = "integer",
-    default = -1, 
-    help = "Max number of waveforms to process (default %default)"
+    c("-r", "--resolution"),
+    type = "double",
+    default = 0.1, 
+    help = "Pulse form resolution (default %default)"
   ),
   make_option(
     c("-t", "--trigger"),
     type = "integer",
-    default = -1, 
-    help = "Trigger channel # (default %default)"
+    default = NA, 
+    help = "Trigger channel #"
   )
 )
 
 my.opt <- parse_args(
   OptionParser(
     option_list = my.option.list,
-    usage = "%prog [options] <plot file name> <MID file 1> [<MID file 2> ...]"
+    usage = "%prog [options] <txt file directory> <plot file directory>"
   ), 
-  positional_arguments = c(2, Inf)
+  positional_arguments = c(2, 2)
 )
-
-my.plot.file <- my.opt$args[1]
-my.midas.files <- tail(my.opt$args, n = -1)
 
 ########################################################
 # Processing
@@ -166,23 +149,7 @@ my.wf.min <- array(rep(0, times = my.opt$options$front + my.opt$options$last + 1
 my.wf.max <- array(rep(0, times = my.opt$options$front + my.opt$options$last + 1))
 my.wf.count <- 0
 
-my.channel.column <- paste("CH", my.opt$options$channel, sep = "")
-
-my.event.filter <- NULL
-if (!(my.opt$options$trigger < 0)) {
-  my.trigger.column <- paste("CH", my.opt$options$trigger, sep = "")
-  my.event.filter <- function(e) {
-    return(e$triggers[[my.trigger.column]][1] > 0)
-  }
-}
-
-my.res <- read.events.from.gdconvert(
-  file.names = my.midas.files,
-  filter.func = my.event.filter,
-  merging.func = my.event.collector,
-  init.value = 0,
-  stop.func = my.stop.func
-)
+# TODO collect 
 
 my.wf.avg <- my.wf.sum / my.wf.count
 my.wf.var <- (my.wf.count * my.wf.sum2 - my.wf.sum^2) / (my.wf.count * (my.wf.count - 1))
