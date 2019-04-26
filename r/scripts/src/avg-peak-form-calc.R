@@ -185,9 +185,6 @@ cat(
   sep = "\t"
 )
 
-res.x <- array()
-res.y <- array()
-
 for (a in seq(from = -my.opt$options$front, to = my.opt$options$tail, by = my.opt$options$resolution)) {
 
   i <- which(xx >= a & xx < a + my.opt$options$resolution)
@@ -205,23 +202,7 @@ for (a in seq(from = -my.opt$options$front, to = my.opt$options$tail, by = my.op
     "\n", 
     sep = "\t"
   )
-  
-  res.x <- append(res.x, mean(x))
-  res.y <- append(res.y, mean(y))
-  
+
 }
 
 close(my.dest)
-
-plot(
-  x = xx,
-  y = yy,
-  type = "p"
-)
-lines(
-  x = res.x,
-  y = res.y,
-  col = 'red'
-)
-
-#warnings()
