@@ -80,10 +80,22 @@ my.analyze <- function(df) {
 
   my.pos <- which.min(df$MY)
 
+  my.func <- approxfun(df$MX, df$MY)
+  my.level1 <- my.low.level * (df$MY[my.opt$options$front] - df$MY[1]) + df$MY[1]
+  my.level2 <- my.high.level * (df$MY[my.opt$options$front] - df$MY[1]) + df$MY[1]
+  if (my.level2 < my.level1) {
+    my.root1 <- uniroot(f = function(x) my.func(x) - my.level1, interval = c(df$MX[1], df$MX[my.pos]))$root
+    my.root2 <- uniroot(f = function(x) my.func(x) - my.level2, interval = c(df$MX[1], df$MX[my.pos]))$root
+  } else {
+    my.root1 <- 0
+    my.root2 <- 0
+  }
+  
   return(
     list(
       peak.pos = df$MX[my.pos],
-      peak.amp = df$MY[my.pos]
+      peak.amp = df$MY[my.pos],
+      front.len = my.root2 - my.root1
     )
   )
     
@@ -102,6 +114,7 @@ my.process.file <- function(fn) {
   my.stat.run <<- append(my.stat.run, my.extract.run.no(fn))
   my.stat.peak.pos <<- append(my.stat.peak.pos, my.info$peak.pos)
   my.stat.peak.amp <<- append(my.stat.peak.amp, my.info$peak.amp)
+  my.stat.front.len <<- append(my.stat.front.len, my.info$front.len)
   
 }
 
@@ -193,9 +206,13 @@ my.opt <- parse_args(
 # Processing
 ########################################################
 
+my.low.level <- 0.05
+my.high.level <- 0.95
+
 my.stat.run <- array(dim = c(0))
 my.stat.peak.pos <- array(dim = c(0))
 my.stat.peak.amp <- array(dim = c(0))
+my.stat.front.len <- array(dim = c(0))
 
 for (my.fn in list.files(path = my.opt$args[1], pattern = my.make.txt.filename.mask(my.opt), full.names = T)) {
   my.process.file(my.fn)
@@ -205,6 +222,7 @@ pdf(my.make.plot.filename(my.opt))
 
 my.plot.stat(my.stat.peak.pos, "Peak Positions", "Peak Position", "channels")
 my.plot.stat(my.stat.peak.amp, "Peak Amplitudes", "Peak Amplitude", "channels")
+my.plot.stat(my.stat.front.len, "Front Lengths", "Front Length", "channels")
 
 # my.wf.avg <- my.wf.sum / my.wf.count
 # my.wf.var <- (my.wf.count * my.wf.sum2 - my.wf.sum^2) / (my.wf.count * (my.wf.count - 1))
