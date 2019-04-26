@@ -7,6 +7,9 @@ library(gneis.daq)
 # Functions
 ########################################################
 
+xx <- array(dim = c(0))
+yy <- array(dim = c(0))
+
 my.process.waveform <- function(wf) {
   my.pulse <- gneis.daq::get.pulse(
     wf,
@@ -15,33 +18,19 @@ my.process.waveform <- function(wf) {
     n.skip = my.opt$options$skip,
     need.pulse = TRUE
   )
+  
   if (is.null(my.pulse)) {
-    return(0)
+    return()
   }
   
-  
-  my.len <- length(wf)
-  my.pos <- which.min(wf)
-  my.front.pos <- my.pos - my.opt$options$front
-  my.tail.pos <- my.pos + my.opt$options$last
-  
-  if (my.front.pos > 1 && my.tail.pos < my.len) {
-    my.sum <- sum(wf[1 : (my.front.pos - 1)]) + sum(wf[(my.tail.pos + 1) : my.len])
-    my.n <- my.len - (my.opt$options$front + my.opt$options$last + 1)
-    my.mean <- my.sum / my.n
-    my.amp = wf[my.pos] - my.mean
-    
-    if (abs(my.amp) > my.opt$options$minamp && (my.opt$options$maxamp < 0 || abs(my.amp) <= my.opt$options$maxamp)) {
-      my.peak <- wf[my.front.pos : my.tail.pos] - my.mean
-      
-      my.wf.sum <<- my.wf.sum + my.peak
-      my.wf.sum2 <<- my.wf.sum2 + my.peak^2
-      
-      my.wf.count <<- my.wf.count + 1
-      
-      return(1)
-    }
+  if (abs(my.pulse$amp) < my.opt$options$minamp || abs(my.pulse$amp) > my.opt$options$maxamp) {
+    return()
   }
+
+  xx <<- append(xx, my.pulse$positions - my.pulse$x)
+  yy <<- append(yy, my.pulse$pulse)
+
+  return(1)
 }
 
 my.event.collector <- function(a, e) {
@@ -64,7 +53,7 @@ my.make.filename <- function(opt) {
     res <- paste(res, "trg", opt$options$trigger, sep = ".")
   }
   
-  res <- paste(res, paste("amp", opt$options$minamp, "-", opt$options$maxamp, sep=""), sep = ".")
+  res <- paste(res, sprintf("amp%d-%d", opt$options$minamp, opt$options$maxamp), sep = ".")
   
   if (length(opt$args) == 2) {
     runname <- strsplit(basename(opt$args[2]), "\\.")[[1]][1]
@@ -167,20 +156,12 @@ my.midas.files <- tail(my.opt$args, n = -1)
 # Processing
 ########################################################
 
-my.wf.len <- round((my.opt$options$front + my.opt$options$tail + 1 + 2 * my.opt$options$padding) / my.opt$options$resolution)
-my.wf.sum <- array(rep(0, times = my.wf.len))
-my.wf.sum2 <- array(rep(0, times = my.wf.len))
-my.wf.count <- array(rep(0, times = my.wf.len))
-
 my.event.filter <- NULL
 if (!is.na(my.trigger.column)) {
   my.event.filter <- function(e) {
     return(e$triggers[[my.trigger.column]][1] > 0)
   }
 }
-
-my.dest <- file(my.make.filename(my.opt))
-open(my.dest, "w")
 
 my.res <- read.events.from.gdconvert(
   file.names = my.midas.files,
@@ -190,6 +171,57 @@ my.res <- read.events.from.gdconvert(
   stop.func = my.stop.func
 )
 
+my.dest <- file(my.make.filename(my.opt))
+open(my.dest, "w")
+
+cat(
+  file = my.dest, 
+  "N", 
+  "MX", 
+  "MX2",
+  "MY",
+  "MY2",
+  "\n", 
+  sep = "\t"
+)
+
+res.x <- array()
+res.y <- array()
+
+for (a in seq(from = -my.opt$options$front, to = my.opt$options$tail, by = my.opt$options$resolution)) {
+
+  i <- which(xx >= a & xx < a + my.opt$options$resolution)
+  x <- xx[i]
+  y <- yy[i]
+  n <- length(y)
+
+  cat(
+    file = my.dest, 
+    n, 
+    mean(x),
+    sum(x^2) / n,
+    mean(y), 
+    sum(y^2) / n,
+    "\n", 
+    sep = "\t"
+  )
+  
+  res.x <- append(res.x, mean(x))
+  res.y <- append(res.y, mean(y))
+  
+}
+
 close(my.dest)
+
+plot(
+  x = xx,
+  y = yy,
+  type = "p"
+)
+lines(
+  x = res.x,
+  y = res.y,
+  col = 'red'
+)
 
 #warnings()
