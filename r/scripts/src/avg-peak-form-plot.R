@@ -9,12 +9,11 @@ library(stringr)
 ########################################################
 
 my.plot.title <- function(main) {
-  my.res <- main
-  my.res <- paste(my.res, paste("Channel #", my.opt$options$channel, sep = ""), ", ")
+  my.res <- paste(main, paste("Channel #", my.opt$options$channel, sep = ""), sep = ", ")
   if (!is.na(my.opt$options$trigger)) {
-    my.res <- paste(my.res, paste("Trigger #", my.opt$options$trigger, sep = ""), ", ")
+    my.res <- paste(my.res, paste("Trigger #", my.opt$options$trigger, sep = ""), sep = ", ")
   }
-  my.res <- paste(my.res, paste("Amplitudes", paste(my.opt$options$minamp, my.opt$options$maxamp, sep = "-"), sep = ": "), ", ")
+  my.res <- paste(my.res, paste("Amplitudes", paste(my.opt$options$minamp, my.opt$options$maxamp, sep = "-"), sep = ": "), sep = ", ")
   return(my.res)
 }
 
