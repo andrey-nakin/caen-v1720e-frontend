@@ -53,6 +53,41 @@ my.plot <- function(my.df) {
   plot(my.p)  
 }
 
+my.plot.diff <- function(my.df) {
+
+  my.dx = diff(my.df$MX)
+  my.dy = diff(my.df$MY)
+  my.f <- rep(1/10, 10)
+
+  my.df <- data.frame(
+    x = tail(my.df$MX, n = -1),
+    y = filter(my.dy / my.dx, my.f, method = "convolution")
+  )
+  
+  my.p <- ggplot(data = my.df, aes(x = x, y = y)) +
+    ggtitle(
+      label = paste(
+        "Averaged Pulse Diff", 
+        paste("Channel #", my.opt$options$channel, sep = ""), 
+        paste("Trigger #", my.opt$options$trigger, sep = ""), 
+        paste("Amplitudes", paste(my.opt$options$minamp, my.opt$options$maxamp, sep = "-"), sep = ": "),
+        sep = ", "
+      )
+      # subtitle = paste(
+      #   paste("Peak Pos", format(my.info$peak.pos, digits = 2), sep = ": "),
+      #   paste("Peak Amp", format(my.info$peak.amp, digits = 2), sep = ": "),
+      #   paste(sprintf("%d/%d Front Length", my.low.level * 100, my.high.level * 100) , format(my.info$front.len, digits = 2), sep = ": "),
+      #   sep = ", "
+      # )
+    ) +
+    scale_x_continuous(name = "Time, channels") +
+    scale_y_continuous(name = "Amplitude Diff") +
+    theme_light() +
+    geom_line()
+
+  plot(my.p)  
+}
+
 my.make.txt.filename.mask <- function(opt) {
   res <- paste("avg-peak-form.ch", opt$options$channel, sep = "")
   
@@ -240,6 +275,7 @@ for (my.fn in list.files(path = my.opt$args[1], pattern = my.make.txt.filename.m
 pdf(my.make.plot.filename(my.opt))
 
 my.plot(my.accum)
+my.plot.diff(my.accum)
 
 my.plot.stat(my.stat.peak.pos, "Peak Positions vs. Run", "Peak Position", "channels")
 my.plot.stat(my.stat.peak.amp, "Peak Amplitudes vs. Run", "Peak Amplitude", "channels")
