@@ -46,9 +46,8 @@ my.plot <- function(my.df) {
     theme_light() +
     geom_line() +
     geom_line(aes(x = x, y = rep(my.info$low.level, length(x))), size = 0.25, color = 'magenta') +
-    geom_line(aes(x = x, y = rep(my.info$high.level, length(x))), size = 0.25, color = 'magenta') +
-    warnings()
-  
+    geom_line(aes(x = x, y = rep(my.info$high.level, length(x))), size = 0.25, color = 'magenta')
+
   if (max(my.df$y.err) > abs(my.info$peak.amp) / 500) {
     my.p = my.p + geom_errorbar(aes(ymin=y - y.err, ymax = y + y.err), width = .3, position = position_dodge(0.05))
   }
