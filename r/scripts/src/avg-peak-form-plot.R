@@ -8,6 +8,16 @@ library(stringr)
 # Functions
 ########################################################
 
+my.plot.title <- function(main) {
+  my.res <- main
+  my.res <- paste(my.res, paste("Channel #", my.opt$options$channel, sep = ""), ", ")
+  if (!is.na(my.opt$options$trigger)) {
+    my.res <- paste(my.res, paste("Trigger #", my.opt$options$trigger, sep = ""), ", ")
+  }
+  my.res <- paste(my.res, paste("Amplitudes", paste(my.opt$options$minamp, my.opt$options$maxamp, sep = "-"), sep = ": "), ", ")
+  return(my.res)
+}
+
 my.plot <- function(my.df) {
   my.info <- my.analyze(my.df)
   
@@ -24,13 +34,7 @@ my.plot <- function(my.df) {
 
   my.p <- ggplot(data = my.df, aes(x = x, y = y)) +
     ggtitle(
-      label = paste(
-        "Averaged Pulse", 
-        paste("Channel #", my.opt$options$channel, sep = ""), 
-        paste("Trigger #", my.opt$options$trigger, sep = ""), 
-        paste("Amplitudes", paste(my.opt$options$minamp, my.opt$options$maxamp, sep = "-"), sep = ": "),
-        sep = ", "
-      ),
+      label = my.plot.title("Averaged Pulse"),
       subtitle = paste(
         paste("Peak Pos", format(my.info$peak.pos, digits = 2), sep = ": "),
         paste("Peak Amp", format(my.info$peak.amp, digits = 2), sep = ": "),
@@ -66,13 +70,7 @@ my.plot.diff <- function(my.df) {
   
   my.p <- ggplot(data = my.df, aes(x = x, y = y)) +
     ggtitle(
-      label = paste(
-        "Averaged Pulse Diff", 
-        paste("Channel #", my.opt$options$channel, sep = ""), 
-        paste("Trigger #", my.opt$options$trigger, sep = ""), 
-        paste("Amplitudes", paste(my.opt$options$minamp, my.opt$options$maxamp, sep = "-"), sep = ": "),
-        sep = ", "
-      )
+      label = my.plot.title("Averaged Pulse Diff")
       # subtitle = paste(
       #   paste("Peak Pos", format(my.info$peak.pos, digits = 2), sep = ": "),
       #   paste("Peak Amp", format(my.info$peak.amp, digits = 2), sep = ": "),
