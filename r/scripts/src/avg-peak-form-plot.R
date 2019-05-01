@@ -1,5 +1,8 @@
 #!/usr/bin/Rscript
 
+library(plotly)
+library(tidyverse)
+library(htmlwidgets)
 library(optparse)
 library(ggplot2)
 library(stringr)
@@ -52,7 +55,9 @@ my.plot <- function(my.df) {
     my.p = my.p + geom_errorbar(aes(ymin=y - y.err, ymax = y + y.err), width = .3, position = position_dodge(0.05))
   }
   
-  plot(my.p)  
+  plot(my.p)
+  
+  htmlwidgets::saveWidget(ggplotly(my.p), my.make.html.filename(my.opt))
 }
 
 my.plot.diff <- function(my.df) {
@@ -63,7 +68,7 @@ my.plot.diff <- function(my.df) {
 
   my.df <- data.frame(
     x = tail(my.df$MX, n = -1),
-    y = filter(my.dy / my.dx, my.f, method = "convolution")
+    y = stats::filter(my.dy / my.dx, filter = my.f, method = "convolution")
   )
   
   my.p <- ggplot(data = my.df, aes(x = x, y = y)) +
@@ -108,6 +113,13 @@ my.make.dest.filename <- function(opt, dir, ext) {
 my.make.plot.filename <- function(opt) {
   return(
     my.make.dest.filename(opt, opt$args[2], "pdf"
+    )
+  )
+}
+
+my.make.html.filename <- function(opt) {
+  return(
+    my.make.dest.filename(opt, opt$args[3], "html"
     )
   )
 }
@@ -272,9 +284,9 @@ my.option.list <- list(
 my.opt <- parse_args(
   OptionParser(
     option_list = my.option.list,
-    usage = "%prog [options] <txt file directory> <plot file directory>"
+    usage = "%prog [options] <txt file directory> <plot file directory> <html file directory>"
   ), 
-  positional_arguments = c(2, 2)
+  positional_arguments = c(3, 3)
 )
 
 ########################################################
