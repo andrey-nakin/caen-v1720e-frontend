@@ -115,10 +115,17 @@ my.make.plot.filename <- function(opt) {
 my.analyze <- function(df) {
 
   my.pos <- which.min(df$MY)
+  if (is.na(my.pos) || is.na(df$MY[my.pos]) || is.na(df$MY[1])) {
+    return()
+  }
 
   my.func <- approxfun(df$MX, df$MY)
   my.level1 <- my.low.level * (df$MY[my.pos] - df$MY[1]) + df$MY[1]
   my.level2 <- my.high.level * (df$MY[my.pos] - df$MY[1]) + df$MY[1]
+  if (is.na(my.level1) || is.na(my.level2)) {
+    return()
+  }
+  
   if (my.level2 < my.level1) {
     my.root1 <- uniroot(f = function(x) my.func(x) - my.level1, interval = c(df$MX[1], df$MX[my.pos]))$root
     my.root2 <- uniroot(f = function(x) my.func(x) - my.level2, interval = c(df$MX[1], df$MX[my.pos]))$root
@@ -147,6 +154,9 @@ my.process.file <- function(fn, accum) {
   
   my.df <- read.table(fn, header = T, sep = "\t")
   my.info <- my.analyze(my.df)
+  if (is.null(my.info)) {
+    return(accum)
+  }
   
   my.stat.run <<- append(my.stat.run, my.extract.run.no(fn))
   my.stat.peak.pos <<- append(my.stat.peak.pos, my.info$peak.pos)
