@@ -69,12 +69,6 @@ my.plot.diff <- function(my.df) {
   my.p <- ggplot(data = my.df, aes(x = x, y = y)) +
     ggtitle(
       label = my.plot.title("Averaged Pulse Diff")
-      # subtitle = paste(
-      #   paste("Peak Pos", format(my.info$peak.pos, digits = 2), sep = ": "),
-      #   paste("Peak Amp", format(my.info$peak.amp, digits = 2), sep = ": "),
-      #   paste(sprintf("%d/%d Front Length", my.low.level * 100, my.high.level * 100) , format(my.info$front.len, digits = 2), sep = ": "),
-      #   sep = ", "
-      # )
     ) +
     scale_x_continuous(name = "Time, channels") +
     scale_y_continuous(name = "Amplitude Diff") +
@@ -93,13 +87,12 @@ my.make.txt.filename.mask <- function(opt) {
   
   res <- paste(res, sprintf("amp%d-%d", opt$options$minamp, opt$options$maxamp), sep = ".")
   
-  res <- paste(res, "*", "txt", sep = ".")
-  
+  res <- paste(res, "run[0-9]+", "txt", sep = ".")
   return (res)
 }
 
-my.make.plot.filename <- function(opt) {
-  res <- paste(opt$args[2], "/avg-peak-form.ch", opt$options$channel, sep = "")
+my.make.dest.filename <- function(opt, dir, ext) {
+  res <- paste(dir, "/avg-peak-form.ch", opt$options$channel, sep = "")
   
   if (!is.na(opt$options$trigger)) {
     res <- paste(res, ".trg", opt$options$trigger, sep = "")
@@ -107,9 +100,23 @@ my.make.plot.filename <- function(opt) {
   
   res <- paste(res, sprintf("amp%d-%d", opt$options$minamp, opt$options$maxamp), sep = ".")
   
-  res <- paste(res, "pdf", sep = ".")
+  res <- paste(res, ext, sep = ".")
   
   return (res)
+}
+  
+my.make.plot.filename <- function(opt) {
+  return(
+    my.make.dest.filename(opt, opt$args[2], "pdf"
+    )
+  )
+}
+
+my.make.result.filename <- function(opt) {
+  return(
+    my.make.dest.filename(opt, opt$args[1], "txt"
+    )
+  )
 }
 
 my.analyze <- function(df) {
@@ -151,8 +158,8 @@ my.extract.run.no <- function(fn) {
 }
 
 my.process.file <- function(fn, accum) {
-  
-  my.df <- read.table(fn, header = T, sep = "\t")
+
+  my.df <- read.table(fn, header = T, sep = "", strip.white = T)
   my.info <- my.analyze(my.df)
   if (is.null(my.info)) {
     return(accum)
@@ -202,6 +209,16 @@ my.plot.stat <- function(y, main, ylab, units) {
   
   plot(p)
   
+}
+
+my.write.result <- function(df) {
+  print(df)
+  write.table(
+    df, 
+    file = my.make.result.filename(my.opt),
+    sep = "\t",
+    row.names = F
+  )
 }
 
 ########################################################
@@ -277,6 +294,8 @@ my.accum <- NULL
 for (my.fn in list.files(path = my.opt$args[1], pattern = my.make.txt.filename.mask(my.opt), full.names = T)) {
   my.accum <- my.process.file(my.fn, my.accum)
 }
+
+my.write.result(my.accum)
 
 pdf(my.make.plot.filename(my.opt))
 
