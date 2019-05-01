@@ -22,7 +22,7 @@ my.plot <- function(my.df) {
   
   my.sum = my.df$MY * my.df$N
   my.sum2 = my.df$MY2 * my.df$N
-  my.var = (my.df$N * my.sum2 - my.sum^2) / (my.df$N * (my.df$N - 1))
+  my.var = abs(my.df$N * my.sum2 - my.sum^2) / (my.df$N * (my.df$N - 1))
   my.std = sqrt(my.var)
 
   my.df <- data.frame(
@@ -48,7 +48,7 @@ my.plot <- function(my.df) {
     geom_line(aes(x = x, y = rep(my.info$low.level, length(x))), size = 0.25, color = 'magenta') +
     geom_line(aes(x = x, y = rep(my.info$high.level, length(x))), size = 0.25, color = 'magenta')
 
-  if (max(my.df$y.err) > abs(my.info$peak.amp) / 500) {
+  if (!is.na(max(my.df$y.err)) && max(my.df$y.err) > abs(my.info$peak.amp) / 100) {
     my.p = my.p + geom_errorbar(aes(ymin=y - y.err, ymax = y + y.err), width = .3, position = position_dodge(0.05))
   }
   
