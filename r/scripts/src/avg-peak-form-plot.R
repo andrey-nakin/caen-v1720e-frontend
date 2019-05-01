@@ -212,7 +212,6 @@ my.plot.stat <- function(y, main, ylab, units) {
 }
 
 my.write.result <- function(df) {
-  print(df)
   write.table(
     df, 
     file = my.make.result.filename(my.opt),
