@@ -132,6 +132,7 @@ protected:
 			CAEN_DGTZ_UINT16_EVENT_t const& event) const;
 
 	static uint32_t channelMask(std::vector<bool> const& channelState);
+	unsigned allChannelsMask() const;
 
 private:
 
@@ -165,6 +166,13 @@ private:
 			CAEN_DGTZ_UINT16_EVENT_t const& event);
 	void checkTestMode();
 	virtual void configureInRuntime(::caen::Handle& hDevice);
+
+	std::vector<uint16_t> loadDcOffsets(HNDLE hSet) const;
+	std::vector<uint32_t> loadTriggerThreshold(HNDLE hSet) const;
+	std::vector<bool> loadTriggerChannel(HNDLE hSet) const;
+	std::vector<int16_t> loadSignalThresholds(HNDLE hSet) const;
+
+	void setTriggerChannel(::caen::Handle& hDevice);
 
 };
 

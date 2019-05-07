@@ -27,6 +27,12 @@ public:
 
 	}
 
+	static bool equal(std::vector<bool> const& a, std::vector<bool> const& b) {
+
+		return a == b;
+
+	}
+
 };
 
 }

@@ -1,4 +1,5 @@
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 #include <cstring>
 #include <converter/FilePerRun.hxx>

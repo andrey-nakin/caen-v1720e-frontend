@@ -80,19 +80,28 @@ void AbstractWaveform::BeginRun(int /*transition*/, int /*run*/, int /*time*/) {
 
 }
 
+void AbstractWaveform::ResetAllHistograms() {
+
+	for (unsigned i = 0; i < size(); i++) {
+		auto h = GetHistogram(i);
+		h->Reset();
+	}
+
+}
+
 unsigned AbstractWaveform::GetPositionMaxBins() const {
 
 	return odb->odbReadUint32(
-			util::AnalyzerUtils::OdbKey(getOdbRootKey(), "time_hist_max_bins").c_str(),
-			0, 0);
+			util::AnalyzerUtils::OdbKey(getOdbRootKey(),
+					settings::timeHistMaxBins).c_str(), 0, 0);
 
 }
 
 unsigned AbstractWaveform::GetAmplitudeMaxBins() const {
 
 	return odb->odbReadUint32(
-			util::AnalyzerUtils::OdbKey(getOdbRootKey(), "amp_hist_max_bins").c_str(),
-			0, 0);
+			util::AnalyzerUtils::OdbKey(getOdbRootKey(),
+					settings::ampHistMaxBins).c_str(), 0, 0);
 
 }
 

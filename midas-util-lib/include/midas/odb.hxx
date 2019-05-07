@@ -33,7 +33,7 @@ std::vector<T> getValueV(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, std::size_t const numValues,
 		T const defValue, bool const create) {
 
-	std::vector<T> value(numValues, defValue);
+	std::vector < T > value(numValues, defValue);
 	if (numValues > 0) {
 		INT bufSize = sizeof(T) * numValues;
 		INT const status = db_get_value(hDB, hKeyRoot, keyName.c_str(),
@@ -52,9 +52,6 @@ std::vector<T> getValueV(HNDLE const hDB, HNDLE const hKeyRoot,
 bool getValueBool(HNDLE const hDB, HNDLE const hKeyRoot,
 		std::string const& keyName, bool const value, bool const create);
 
-void setValue(HNDLE hDB, HNDLE hKeyRoot, std::string const& keyName,
-		bool value);
-
 std::string getValueString(HNDLE hDB, HNDLE hKeyRoot,
 		std::string const& keyName, std::string const& value, bool create,
 		std::size_t size = ODB_MAX_STRING_LENGTH);
@@ -63,8 +60,35 @@ std::string getValueString(HNDLE hDB, HNDLE hKeyRoot,
 		std::string const& keyName, std::vector<std::string> const& validValues,
 		std::size_t size = ODB_MAX_STRING_LENGTH);
 
-void setValue(HNDLE hDB, HNDLE hKeyRoot, std::string const& keyName,
-		std::string const& value);
+template<typename T, DWORD type>
+void setValue(HNDLE const hDB, HNDLE const hKeyRoot, std::string const& keyName,
+		T const value) {
+
+	INT status;
+	HNDLE hKey;
+
+	status = db_find_key(hDB, hKeyRoot, keyName.c_str(), &hKey);
+	if (status == DB_NO_KEY) {
+		status = db_create_key(hDB, hKeyRoot, keyName.c_str(), type);
+		if (DB_SUCCESS != status) {
+			throw midas::Exception(status,
+					std::string("Error creating ODB key ") + keyName);
+		}
+		status = db_find_key(hDB, hKeyRoot, keyName.c_str(), &hKey);
+	}
+	if (DB_SUCCESS != status) {
+		throw midas::Exception(status,
+				std::string("Error finding ODB key ") + keyName);
+	}
+
+	status = db_set_data(hDB, hKey, &value, sizeof(value), 1, type);
+
+	if (DB_SUCCESS != status) {
+		throw midas::Exception(status,
+				std::string("Error writing ODB key ") + keyName);
+	}
+
+}
 
 std::vector<bool> getValueBoolV(HNDLE hDB, HNDLE hKeyRoot,
 		std::string const& keyName, std::size_t numValues, bool defValue,
@@ -107,6 +131,28 @@ auto const getValueUInt32V = getValueV<std::uint32_t, TID_DWORD>;
 auto const getValueFloatV = getValueV<float, TID_FLOAT>;
 
 auto const getValueDoubleV = getValueV<double, TID_DOUBLE>;
+
+auto const setValueInt8 = setValue<std::int8_t, TID_SBYTE>;
+
+auto const setValueUInt8 = setValue<std::uint8_t, TID_BYTE>;
+
+auto const setValueInt16 = setValue<std::int16_t, TID_SHORT>;
+
+auto const setValueUInt16 = setValue<std::uint16_t, TID_WORD>;
+
+auto const setValueInt32 = setValue<std::int32_t, TID_INT>;
+
+auto const setValueUInt32 = setValue<std::uint32_t, TID_DWORD>;
+
+auto const setValueFloat = setValue<float, TID_FLOAT>;
+
+auto const setValueDouble = setValue<double, TID_DOUBLE>;
+
+void setValueBool(HNDLE hDB, HNDLE hKeyRoot, std::string const& keyName,
+		bool value);
+
+void setValue(HNDLE hDB, HNDLE hKeyRoot, std::string const& keyName,
+		std::string const& value);
 
 std::string equipSettingsKeyName(const char* equipName, const char* propName =
 		nullptr);

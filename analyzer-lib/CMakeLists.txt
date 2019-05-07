@@ -25,6 +25,7 @@ add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${PRIVATE_HEADERS})
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME analyzer)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
+target_link_libraries(${PROJECT_NAME} rootana)
 target_link_libraries(${PROJECT_NAME} UtilLib)
 target_link_libraries(${PROJECT_NAME} MathLib)
 

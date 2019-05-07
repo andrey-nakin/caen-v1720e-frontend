@@ -21,6 +21,13 @@ namespace analyzer {
 
 namespace hist {
 
+namespace settings {
+
+constexpr char timeHistMaxBins[] = "time_hist_max_bins";
+constexpr char ampHistMaxBins[] = "amp_hist_max_bins";
+
+}
+
 class AbstractWaveform: public THistogramArrayBase {
 protected:
 
@@ -52,9 +59,9 @@ public:
 
 	}
 
-//	void CreateHistograms();
+	void BeginRun(int transition, int run, int time) override;
 
-	virtual void BeginRun(int transition, int run, int time);
+	void ResetAllHistograms();
 
 protected:
 

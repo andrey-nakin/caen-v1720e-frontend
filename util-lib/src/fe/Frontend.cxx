@@ -30,7 +30,7 @@ INT Frontend::frontendInit() {
 
 	cm_msg(MDEBUG, frontend_name, "frontend_init");
 
-	midas::Exception::setProgramName(frontend_name);
+	midas::Exception::setProgramName (frontend_name);
 
 	util::FrontEndUtils::command([this]() {
 		if (startsForTheFirstTime()) {
@@ -236,7 +236,7 @@ void Frontend::doFirstRun() {
 	std::string const feName = frontend_name
 			+ (frontend_index < 0 ? "" : lpad(frontend_index, 2));
 
-	odb::setValue(hDB, 0, std::string("/Programs/") + feName + "/Required",
+	odb::setValueBool(hDB, 0, std::string("/Programs/") + feName + "/Required",
 			true);
 
 	odb::setValue(hDB, 0, std::string("/Programs/") + feName + "/Start command",
