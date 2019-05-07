@@ -17,10 +17,9 @@ fieldset legend {
 
 #controlPanel {
 	position: fixed;
-	f-loat: left;
 	width: 55ex;
 	height: 100%;
-	overflow-y: scroll;
+	overflow-y: auto;
 	width: 55ex;
 	padding: 4px;
 }
