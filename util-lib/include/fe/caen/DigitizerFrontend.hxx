@@ -132,6 +132,7 @@ protected:
 			CAEN_DGTZ_UINT16_EVENT_t const& event) const;
 
 	static uint32_t channelMask(std::vector<bool> const& channelState);
+	unsigned allChannelsMask() const;
 
 private:
 
