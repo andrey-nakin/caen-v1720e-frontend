@@ -598,7 +598,16 @@ std::vector<int16_t> DigitizerFrontend::loadSignalThresholds(
 void DigitizerFrontend::setTriggerChannel(::caen::Handle& hDevice) {
 
 	auto const trigChMask = channelMask(triggerChannel);
-	hDevice.hCommand("setting channel self trigger", [trigChMask](int handle) {
+	hDevice.hCommand("disabling channel self trigger", [trigChMask](int handle) {
+		auto const rc = CAEN_DGTZ_SetChannelSelfTrigger(
+				handle,
+				CAEN_DGTZ_TRGMODE_DISABLED,
+				0xff
+		);
+		if (!::caen::Handle::isSuccess(rc)) {
+			return rc;
+		}
+
 		return CAEN_DGTZ_SetChannelSelfTrigger(
 				handle,
 				CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT,

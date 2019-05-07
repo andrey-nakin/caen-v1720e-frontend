@@ -32,6 +32,11 @@ public:
 
 	static const char* errorMessage(CAEN_DGTZ_ErrorCode ec);
 
+	template<typename ErrorCode>
+	static bool isSuccess(ErrorCode const status) {
+		return CAEN_DGTZ_Success == status;
+	}
+
 };
 
 }
