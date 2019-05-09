@@ -64,11 +64,10 @@ my.plot.diff <- function(my.df) {
 
   my.dx = diff(my.df$MX)
   my.dy = diff(my.df$MY)
-  my.f <- rep(1/10, 10)
 
   my.df <- data.frame(
     x = tail(my.df$MX, n = -1),
-    y = stats::filter(my.dy / my.dx, filter = my.f, method = "convolution")
+    y = my.dy / my.dx
   )
   
   my.p <- ggplot(data = my.df, aes(x = x, y = y)) +
