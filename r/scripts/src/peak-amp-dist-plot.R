@@ -11,14 +11,14 @@ library(htmlwidgets)
 # Functions
 ########################################################
 
-my.make.txt.filename.mask <- function(opt) {
+my.make.txt.filename.mask <- function(opt, notrigger = FALSE) {
   res <- paste("peaks.ch", opt$options$channel, sep = "")
   
   if (!is.na(opt$options$master)) {
     res <- paste(res, ".mst", opt$options$master, sep = "")
   }
   
-  if (!is.na(opt$options$trigger)) {
+  if (!is.na(opt$options$trigger) && !notrigger) {
     res <- paste(res, ".trg", opt$options$trigger, sep = "")
   }
 
@@ -74,6 +74,9 @@ my.process.file <- function(fn, accum, breaks) {
   my.min <- my.opt$options$min
   my.max <- my.opt$options$max
   my.x <- abs(my.df$PA)
+  if (!is.na(my.opt$options$trigger)) {
+    my.x <- my.x[which(my.df$TRG == my.opt$options$trigger)]
+  }
   my.total <<- my.total + length(my.x)
   my.x <- my.x[which(my.x >= my.min & my.x < my.max)]
   my.values <<- append(my.values, my.x)
@@ -221,10 +224,10 @@ my.option.list <- list(
     help = "Max value"
   ),
   make_option(
-    c("", "--resolution"),
+    c("", "--step"),
     type = "double",
     default = 1, 
-    help = "Resolution"
+    help = "Distribution step"
   ),
   make_option(
     c("-n", "--number"),
@@ -249,18 +252,22 @@ my.opt <- parse_args(
 my.total <- 0
 my.values <- c()
 my.accum <- NULL
-my.breaks <- seq(from = my.opt$options$min, to = my.opt$options$max, by = my.opt$options$resolution)
-my.x <- tail(my.breaks, n = -1) - my.opt$options$resolution / 2
+my.breaks <- seq(from = my.opt$options$min, to = my.opt$options$max, by = my.opt$options$step)
+my.x <- tail(my.breaks, n = -1) - my.opt$options$step / 2
 
-for (my.fn in list.files(path = my.opt$args[1], pattern = my.make.txt.filename.mask(my.opt), full.names = T)) {
+my.files <- list.files(path = my.opt$args[1], pattern = my.make.txt.filename.mask(my.opt), full.names = T)
+if (length(my.files) == 0) {
+  my.files <- list.files(path = my.opt$args[1], pattern = my.make.txt.filename.mask(my.opt, notrigger = T), full.names = T)
+}
+for (my.fn in my.files) {
   my.accum <- my.process.file(my.fn, my.accum, my.breaks)
   if (!is.na(my.opt$options$number) && length(my.values) >= my.opt$options$number) {
     break
   }
 }
 
-my.der.x <- tail(my.x, n = -1) - my.opt$options$resolution / 2
-my.der.y <- diff(my.accum) / my.opt$options$resolution
+my.der.x <- tail(my.x, n = -1) - my.opt$options$step / 2
+my.der.y <- diff(my.accum) / my.opt$options$step
 
 my.write.result()
 
