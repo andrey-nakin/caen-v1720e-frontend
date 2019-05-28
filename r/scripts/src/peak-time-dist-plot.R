@@ -177,10 +177,10 @@ my.option.list <- list(
     help = "Max value"
   ),
   make_option(
-    c("", "--resolution"),
+    c("", "--step"),
     type = "double",
     default = 1, 
-    help = "Resolution"
+    help = "Step"
   ),
   make_option(
     c("-n", "--number"),
@@ -205,8 +205,8 @@ my.opt <- parse_args(
 my.total <- 0
 my.count <- 0
 my.accum <- NULL
-my.breaks <- seq(from = my.opt$options$min, to = my.opt$options$max, by = my.opt$options$resolution)
-my.x <- tail(my.breaks, n = -1) - my.opt$options$resolution / 2
+my.breaks <- seq(from = my.opt$options$min, to = my.opt$options$max, by = my.opt$options$step)
+my.x <- tail(my.breaks, n = -1) - my.opt$options$step / 2
 
 for (my.fn in list.files(path = my.opt$args[1], pattern = my.make.txt.filename.mask(my.opt), full.names = T)) {
   my.accum <- my.process.file(my.fn, my.accum, my.breaks)
@@ -215,8 +215,8 @@ for (my.fn in list.files(path = my.opt$args[1], pattern = my.make.txt.filename.m
   }
 }
 
-my.der.x <- tail(my.x, n = -1) - my.opt$options$resolution / 2
-my.der.y <- diff(my.accum) / my.opt$options$resolution
+my.der.x <- tail(my.x, n = -1) - my.opt$options$step / 2
+my.der.y <- diff(my.accum) / my.opt$options$step
 
 my.write.result()
 
