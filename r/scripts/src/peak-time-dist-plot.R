@@ -36,6 +36,10 @@ my.make.dest.filename <- function(opt, dir, ext, suffix = NULL) {
     res <- paste(res, ".trg", opt$options$trigger, sep = "")
   }
 
+  if (!is.na(opt$options$ampfrom)) {
+    res <- paste(res, ".ampfrom", opt$options$ampfrom, sep = "")
+  }
+  
   res <- paste(res, paste("time", opt$options$step, sep = ""), "dist", sep = ".")
   if (!is.null(suffix)) {
     res <- paste(res, suffix, sep = ".")
@@ -72,7 +76,11 @@ my.process.file <- function(fn, accum, breaks) {
   my.df <- read.table(fn, header = T, sep = "", strip.white = T)
   my.min <- my.opt$options$min
   my.max <- my.opt$options$max
-  my.x <- my.df$PP
+  if (is.na(my.opt$options$ampfrom)) {
+    my.x <- my.df$PP
+  } else {
+    my.x <- my.df$PP[which(abs(my.df$PA) >= my.opt$options$ampfrom)]
+  }
   my.total <<- my.total + length(my.x)
   my.x <- my.x[which(my.x >= my.min & my.x < my.max)]
   my.count <<- my.count + length(my.x)
@@ -93,6 +101,9 @@ my.plot.title <- function(main) {
   }
   if (!is.na(my.opt$options$trigger)) {
     my.res <- paste(my.res, paste("Trigger #", my.opt$options$trigger, sep = ""), sep = ", ")
+  }
+  if (!is.na(my.opt$options$ampfrom)) {
+    my.res <- paste(my.res, paste("Min. amp. ", my.opt$options$ampfrom, sep = ""), sep = ", ")
   }
   return(my.res)
 }
@@ -181,6 +192,12 @@ my.option.list <- list(
     type = "double",
     default = 1, 
     help = "Step"
+  ),
+  make_option(
+    c("", "--ampfrom"),
+    type = "double",
+    default = NA, 
+    help = "Min peak amplitude"
   ),
   make_option(
     c("-n", "--number"),
