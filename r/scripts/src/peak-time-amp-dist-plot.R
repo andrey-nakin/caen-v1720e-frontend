@@ -32,7 +32,13 @@ my.make.dest.filename <- function(opt, dir, ext, suffix = NULL) {
     res <- paste(res, ".trg", opt$options$trigger, sep = "")
   }
 
-  res <- paste(res, "amp", my.opt$options$ampstep, "time", my.opt$options$timestep, "dist", sep = ".")
+  res <- paste(
+    res, 
+    paste("amp", my.opt$options$ampstep, sep = ""), 
+    paste("time", my.opt$options$timestep, sep = ""), 
+    "dist", 
+    sep = "."
+  )
   if (!is.null(suffix)) {
     res <- paste(res, suffix, sep = ".")
   }
