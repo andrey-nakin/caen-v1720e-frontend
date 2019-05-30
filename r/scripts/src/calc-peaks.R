@@ -83,11 +83,13 @@ my.print.channel <- function(ch, my.info, trg.ch, trg.pos) {
         my.pos.err <- my.pos.err + 1
       }
     } else {
-      my.pos <- my.pulse$x - (trg.pos + 1)
-      my.pos.err <- my.pulse$x.err
+      my.pos <- NA
+      my.pos.err <- NA
     }
 
-    if (my.pos > 9999) {
+    if (is.na(my.pos)) {
+      # do nothing
+    } else if (my.pos > 9999) {
       my.pos <- round(my.pos)
     } else {
       my.pos <- format(my.pos, digits = my.opt$options$precision)
