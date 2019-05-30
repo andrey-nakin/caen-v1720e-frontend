@@ -1,5 +1,4 @@
 #!/usr/bin/Rscript
-# Arguments: <master trigger> <trigger> <destination file> <MID file1 [...]> 
 
 library(optparse)
 library(gneis.daq)
@@ -8,20 +7,11 @@ library(gneis.daq)
 # Global variables
 ########################################################
 
-my.front.lengths <- rep(4, times = 8)
-my.tail.lengths <- rep(10, times = 8)
-
-my.last.master.run <- 0
-my.last.master.eventCounter <- 0
-my.last.master.timeStamp <- 0
-my.last.master.trigger.position <- 0
-my.last.master.peak.position <- 0
-
 ########################################################
 # Functions
 ########################################################
 
-my.print.init.info <- function(e) {
+my.print.header <- function(e) {
   cat(
     file = my.dest, 
     sep = "\t",
@@ -29,54 +19,111 @@ my.print.init.info <- function(e) {
     "RUN",
     "EC",
     "TS",
-    "TRG",
-    "PP",
-    "EPP",
-    "PA",
-    "EPA",
-    "FI",
-    "TI",
+    "TRG"
+  )
+
+  for (ch in my.channel.indices) {
+    my.n <- ch - 1
+    
+    for (t in my.trigger.indices) {
+      cat(
+        file = my.dest, 
+        sep = "\t",
+        "",
+        paste("CH", my.n, "_PP_M", t - 1, sep = ""),
+        paste("CH", my.n, "_EPP_M", t - 1, sep = "")
+      )
+    }
+    
+    cat(
+      file = my.dest, 
+      sep = "\t",
+      "",
+      paste("CH", my.n, "_PA", sep = ""),
+      paste("CH", my.n, "_EPA", sep = ""),
+      paste("CH", my.n, "_FI", sep = ""),
+      paste("CH", my.n, "_TI", sep = "")
+    )
+  }
+  
+  cat(
+    file = my.dest, 
+    sep = "\t",
+    "",
     "\n"
   )
 }
 
-my.print.channel <- function(my.info, wf, trg.ch, trg.pos) {
-  my.pulse <- get.pulse(
-    wf,
-    front.len = my.opt$options$front,
-    tail.len = my.opt$options$tail,
-    n.skip = my.opt$options$skip,
-    need.integration = TRUE
-  )
-  
+my.print.channel <- function(ch, my.info, trg.ch, trg.pos) {
+  my.pulse <- my.pulses[[ch]]
   if (is.null(my.pulse)) {
-    return(0)
+    return()
   }
 
-  if (my.last.master.run == my.info$Run && !is.na(my.last.master.peak.position)) {
-    my.pos <- (my.pulse$x - (trg.pos + 1)) - 
-      (my.last.master.peak.position - (my.last.master.trigger.position + 1))  +
-      timestamp.diff(my.info$DeviceTimeStamp, my.last.master.timeStamp) * my.info$TicksPerSample
-    my.pos.err <- my.pulse$x.err
-    if (my.last.master.eventCounter != my.info$EventCounter) {
-      my.pos.err <- my.pos.err + 1
+  for (t in my.trigger.indices) {
+    if (!is.na(my.last.master.run[t]) && my.last.master.run[t] == my.info$Run && !is.null(my.pulses[[t]])) {
+      my.pos <- (my.pulse$x - (trg.pos + 1)) -
+        (my.pulses[[t]]$x - (my.last.master.trigger.position[t] + 1))  +
+        timestamp.diff(my.info$DeviceTimeStamp, my.last.master.timeStamp[t]) * my.info$TicksPerSample
+      my.pos.err <- my.pulse$x.err
+      if (my.last.master.eventCounter[t] != my.info$EventCounter) {
+        my.pos.err <- my.pos.err + 1
+      }
+    } else {
+      my.pos <- my.pulse$x - (trg.pos + 1)
+      my.pos.err <- my.pulse$x.err
     }
-  } else {
-    my.pos <- my.pulse$x - (trg.pos + 1)
-    my.pos.err <- my.pulse$x.err
+
+    if (my.pos > 9999) {
+      my.pos <- round(my.pos)
+    } else {
+      my.pos <- format(my.pos, digits = my.opt$options$precision)
+    }
+    
+    cat(
+      file = my.dest, 
+      sep = "\t",
+      "",
+      my.pos,
+      my.pos.err
+    )
   }
   
-  if (my.pos > 9999) {
-    my.pos <- round(my.pos)
-  } else {
-    my.pos <- format(my.pos, digits = my.opt$options$precision)
-  }
+  cat(
+    file = my.dest, 
+    sep = "\t",
+    "",
+    format(my.pulse$amp, digits = my.opt$options$precision),
+    format(my.pulse$amp.err, digits = my.opt$options$precision),
+    format(my.pulse$front.int, digits = my.opt$options$precision),
+    format(my.pulse$tail.int, digits = my.opt$options$precision)
+  )
   
-  if (my.write.header) {
-    my.print.init.info(e)
-    my.write.header <<- FALSE
+  return(TRUE)
+}
+
+my.event.collector <- function(a, e) {
+  my.info <- e$eventInfo
+  my.trg <- e$triggers
+
+  my.trg.ch <- 0
+  my.trg.pos <- 0
+  for (col in colnames(my.trg)) {
+    if (my.trg[[col]][1]) {
+      my.trg.ch <- my.trg.ch + 1
+      my.trg.pos <- my.trg[[col]][4]
+      break;
+    }
+    my.trg.ch <- my.trg.ch + 1
   }
-  
+  if (my.trg.ch == 0) {
+    return(a)
+  }
+
+  if (a == 0) {
+    my.print.header()
+  }
+    
   cat(
     file = my.dest, 
     sep = "\t",
@@ -84,79 +131,56 @@ my.print.channel <- function(my.info, wf, trg.ch, trg.pos) {
     my.info$Run,
     my.info$EventCounter,
     my.info$DeviceTimeStamp,
-    trg.ch,
-    my.pos,
-    format(my.pos.err, digits = my.opt$options$precision),
-    format(my.pulse$amp, digits = my.opt$options$precision),
-    format(my.pulse$amp.err, digits = my.opt$options$precision),
-    format(my.pulse$front.int, digits = my.opt$options$precision),
-    format(my.pulse$tail.int, digits = my.opt$options$precision),
+    my.trg.ch - 1
+  )
+
+  for (ch in my.channel.indices) {
+    my.channel.col <- paste("CH", ch - 1, sep = "")
+    my.pulse <- NULL
+    my.wf <- e$waveforms[[my.channel.col]]
+    
+    if (!is.null(my.wf)) {
+      my.pulse <- get.pulse(
+        my.wf,
+        front.len = my.channels$FRONT[ch],
+        tail.len = my.channels$TAIL[ch],
+        n.skip = my.channels$SKIP[ch],
+        need.integration = TRUE
+      )
+    }
+
+    my.pulses[[ch]] <<- my.pulse
+  }
+  
+  my.last.master.run[my.trg.ch] <<- my.info$Run
+  my.last.master.eventCounter[my.trg.ch] <<- my.info$EventCounter
+  my.last.master.timeStamp[my.trg.ch] <<- my.info$DeviceTimeStamp
+  my.last.master.trigger.position[my.trg.ch] <<- my.trg.pos
+
+  for (ch in my.channel.indices) {
+    my.res <- my.print.channel(ch, my.info, my.trg.ch, my.trg.pos)
+    if (is.null(my.res)) {
+      for (t in my.trigger.indices) {
+        cat(file = my.dest, sep = "\t", "", NA, NA)
+      }
+      cat(file = my.dest, sep = "\t", "", NA, NA, NA, NA)
+    }
+  }
+
+  cat(
+    file = my.dest, 
     "\n"
   )
   
-  return(1)
-}
-
-my.event.collector <- function(a, e) {
-  my.info <- e$eventInfo
-  my.trg <- e$triggers
-
-  if (!is.na(my.trigger.col) && !(my.trg[[my.trigger.col]][1] > 0)) {
-    return(a)
-  }
-    
-  if (!is.na(my.master.trigger.col) && my.trg[[my.master.trigger.col]][1] > 0) {
-    my.last.master.run <<- my.info$Run
-    my.last.master.eventCounter <<- my.info$EventCounter
-    my.last.master.timeStamp <<- my.info$DeviceTimeStamp
-    my.last.master.trigger.position <<- my.trg[[my.master.trigger.col]][4]
-    my.mc <- get.pulse(
-      e$waveforms[[my.master.trigger.col]],
-      front.len = my.opt$options$masterfront,
-      tail.len = my.opt$options$mastertail,
-      n.skip = my.opt$options$masterskip
-    )
-    if (!is.null(my.mc)) {
-      my.last.master.peak.position <<- my.mc$x
-    } else {
-      my.last.master.peak.position <<- NA
-    }
-  }
-
-  my.wf <- e$waveforms[[my.channel.col]]
-  if (is.null(my.wf)) {
-    return(a)
-  }
-  
-  my.trg.ch <- 0
-  my.trg.pos <- 0
-  for (col in colnames(my.trg)) {
-    if (my.trg[[col]][1]) {
-      my.trg.pos <- my.trg[[col]][4]
-      break;
-    }
-    my.trg.ch <- my.trg.ch + 1  
-  }
-
   if (a %% 1000 == 0 && my.opt$options$verbose) {
     cat(e$eventInfo$Run, e$eventInfo$EventCounter, "\n")
   }
   
-  my.res <- my.print.channel(my.info, my.wf, my.trg.ch, my.trg.pos)
-  
-  return(a + my.res)
+  return(a + 1)
 }
 
 my.make.filename <- function(opt) {
-  res <- paste(opt$args[1], "/peaks.ch", opt$options$channel, sep = "")
-  
-  if (!is.na(opt$options$master)) {
-    res <- paste(res, ".mst", opt$options$master, sep = "")
-  }
-  
-  if (!is.na(opt$options$trigger)) {
-    res <- paste(res, ".trg", opt$options$trigger, sep = "")
-  }
+  res <- paste(opt$args[1], "/peaks", sep = "")
   
   if (length(my.opt$args) == 2) {
     runname <- strsplit(basename(my.opt$args[2]), "\\.")[[1]][1]
@@ -186,48 +210,6 @@ my.stop.func <- function(a) {
 
 my.option.list <- list( 
   make_option(
-    c("-c", "--channel"),
-    type = "integer",
-    default = NA, 
-    help = "Channel #"
-  ),
-  make_option(
-    c("", "--front"),
-    type = "integer",
-    default = 10, 
-    help = "Number of samples before the peak (default %default)"
-  ),
-  make_option(
-    c("", "--tail"),
-    type = "integer",
-    default = 10, 
-    help = "Number of samples before the peak (default %default)"
-  ),
-  make_option(
-    c("-m", "--master"),
-    type = "integer",
-    default = NA, 
-    help = "Trigger channel # used for time calcs."
-  ),
-  make_option(
-    c("", "--masterfront"),
-    type = "integer",
-    default = 10, 
-    help = "Number of samples before the peak in master channel (default %default)"
-  ),
-  make_option(
-    c("", "--mastertail"),
-    type = "integer",
-    default = 10, 
-    help = "Number of samples before the peak in master channel (default %default)"
-  ),
-  make_option(
-    c("", "--masterskip"),
-    type = "integer",
-    default = 50, 
-    help = "Number of samples after the peak to skip in master channel (default %default)"
-  ),
-  make_option(
     c("-n", "--number"),
     type = "integer",
     default = NA, 
@@ -238,18 +220,6 @@ my.option.list <- list(
     type = "integer",
     default = 4, 
     help = "Number precision"
-  ),
-  make_option(
-    c("", "--skip"),
-    type = "integer",
-    default = 50, 
-    help = "Number of samples after the tail to exclude from mean level calcs"
-  ),
-  make_option(
-    c("-t", "--trigger"),
-    type = "integer",
-    default = NA, 
-    help = "Trigger channel #"
   ),
   make_option(
     c("-v", "--verbose"),
@@ -267,18 +237,23 @@ my.opt <- parse_args(
   positional_arguments = c(2, Inf)
 )
 
-if (is.na(my.opt$options$channel)) {
-  stop("ERROR: channel is not specified")
-}
-
 my.midas.files <- tail(my.opt$args, n = -1)
-my.channel.col <- my.make.column.name(my.opt$options$channel)
-my.master.trigger.col <- my.make.column.name(my.opt$options$master)
-my.trigger.col <- my.make.column.name(my.opt$options$trigger)
+#my.channel.col <- my.make.column.name(my.opt$options$channel)
+#my.master.trigger.col <- my.make.column.name(my.opt$options$master)
+#my.trigger.col <- my.make.column.name(my.opt$options$trigger)
 
 ########################################################
 # Processing
 ########################################################
+
+my.channels <- read.table("channels.txt", header = T, sep = "")
+my.channel.indices <- which(!is.na(my.channels$ON) & my.channels$ON > 0)
+my.trigger.indices <- which(!is.na(my.channels$ON) & my.channels$ON > 0 & !is.na(my.channels$TRG) & my.channels$TRG > 0)
+my.pulses <- list(rep(NULL, times = nrow(my.channels)))
+my.last.master.run <- rep(NA, times = nrow(my.channels))
+my.last.master.eventCounter <- rep(NA, times = nrow(my.channels))
+my.last.master.timeStamp <- rep(NA, times = nrow(my.channels))
+my.last.master.trigger.position <- rep(NA, times = nrow(my.channels))
 
 my.dest <- file(my.make.filename(my.opt))
 open(my.dest, "w")

@@ -5,7 +5,11 @@ get.pulse <- function(wf, front.len, tail.len, n.skip = 0, is.positive = FALSE, 
   } else {
     my.pos <- which.min(wf)
   }
-  
+
+  if (n.skip < 0) {
+    n.skip <- length(wf)
+  }
+    
   my.front.pos <- my.pos - front.len
   my.tail.pos <- my.pos + tail.len
   my.skip.pos <- my.tail.pos + n.skip + 1
