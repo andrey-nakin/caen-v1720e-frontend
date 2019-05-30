@@ -55,15 +55,28 @@ my.print.header <- function(e) {
 }
 
 my.print.channel <- function(ch, my.info, trg.ch, trg.pos) {
-  my.pulse <- my.pulses[[ch]]
+  if (ch <= length(my.pulses)) {
+    my.pulse <- my.pulses[[ch]]
+  } else {
+    my.pulse <- NULL
+  }
   if (is.null(my.pulse)) {
     return()
   }
 
   for (t in my.trigger.indices) {
-    if (!is.na(my.last.master.run[t]) && my.last.master.run[t] == my.info$Run && !is.null(my.pulses[[t]])) {
+    if (t <= length(my.last.master.trigger.pulse)) {
+      my.t.pulse <- my.last.master.trigger.pulse[[t]]
+    } else {
+      my.t.pulse <- NULL
+    }
+
+    if (t == ch && !is.null(my.pulse)) {
+      my.pos <- my.pulse$x - (trg.pos + 1)
+      my.pos.err <- my.pulse$x.err
+    } else if (!is.na(my.last.master.run[t]) && my.last.master.run[t] == my.info$Run && !is.null(my.t.pulse)) {
       my.pos <- (my.pulse$x - (trg.pos + 1)) -
-        (my.pulses[[t]]$x - (my.last.master.trigger.position[t] + 1))  +
+        (my.t.pulse$x - (my.last.master.trigger.position[t] + 1))  +
         timestamp.diff(my.info$DeviceTimeStamp, my.last.master.timeStamp[t]) * my.info$TicksPerSample
       my.pos.err <- my.pulse$x.err
       if (my.last.master.eventCounter[t] != my.info$EventCounter) {
@@ -151,11 +164,12 @@ my.event.collector <- function(a, e) {
 
     my.pulses[[ch]] <<- my.pulse
   }
-  
+
   my.last.master.run[my.trg.ch] <<- my.info$Run
   my.last.master.eventCounter[my.trg.ch] <<- my.info$EventCounter
   my.last.master.timeStamp[my.trg.ch] <<- my.info$DeviceTimeStamp
   my.last.master.trigger.position[my.trg.ch] <<- my.trg.pos
+  my.last.master.trigger.pulse[[my.trg.ch]] <<- my.pulses[[my.trg.ch]]
 
   for (ch in my.channel.indices) {
     my.res <- my.print.channel(ch, my.info, my.trg.ch, my.trg.pos)
@@ -254,6 +268,7 @@ my.last.master.run <- rep(NA, times = nrow(my.channels))
 my.last.master.eventCounter <- rep(NA, times = nrow(my.channels))
 my.last.master.timeStamp <- rep(NA, times = nrow(my.channels))
 my.last.master.trigger.position <- rep(NA, times = nrow(my.channels))
+my.last.master.trigger.pulse <- NULL
 
 my.dest <- file(my.make.filename(my.opt))
 open(my.dest, "w")
