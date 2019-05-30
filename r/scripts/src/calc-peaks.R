@@ -169,7 +169,11 @@ my.event.collector <- function(a, e) {
   my.last.master.eventCounter[my.trg.ch] <<- my.info$EventCounter
   my.last.master.timeStamp[my.trg.ch] <<- my.info$DeviceTimeStamp
   my.last.master.trigger.position[my.trg.ch] <<- my.trg.pos
-  my.last.master.trigger.pulse[[my.trg.ch]] <<- my.pulses[[my.trg.ch]]
+  if (my.trg.ch <= length(my.pulses)) {
+    my.last.master.trigger.pulse[[my.trg.ch]] <<- my.pulses[[my.trg.ch]]
+  } else {
+    my.last.master.trigger.pulse[[my.trg.ch]] <<- NULL
+  }
 
   for (ch in my.channel.indices) {
     my.res <- my.print.channel(ch, my.info, my.trg.ch, my.trg.pos)
