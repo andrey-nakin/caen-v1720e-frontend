@@ -212,14 +212,6 @@ my.make.filename <- function(opt) {
   return (res)
 }
 
-my.make.column.name <- function(channel) {
-  if (is.na(channel)) {
-    return (NA)
-  } else {
-    return (paste("CH", channel, sep = ""))
-  }
-}
-
 my.stop.func <- function(a) {
   return(!is.na(my.opt$options$number) && my.opt$options$number > 0 && !(a < my.opt$options$number))
 }
@@ -258,9 +250,6 @@ my.opt <- parse_args(
 )
 
 my.midas.files <- tail(my.opt$args, n = -1)
-#my.channel.col <- my.make.column.name(my.opt$options$channel)
-#my.master.trigger.col <- my.make.column.name(my.opt$options$master)
-#my.trigger.col <- my.make.column.name(my.opt$options$trigger)
 
 ########################################################
 # Processing
