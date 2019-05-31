@@ -1,6 +1,6 @@
 peaks.amp.time.distr <- function(
   channel, master, srcDir, destDir, amp.breaks, time.breaks, trigger = NA,
-  nevents = NA, filter = NULL, file.suffix = NULL
+  nevents = NA, filter = NULL, file.suffix = NULL, file.comment = NULL
 ) {
 
   my.make.src.filename.mask <- function() {
@@ -93,9 +93,17 @@ peaks.amp.time.distr <- function(
   }
   
   my.write.result <- function(my.accum) {
+    my.file.name <- my.make.result.filename()
+    my.file.conn <- file(my.file.name)
+    if (!is.null(file.comment)) {
+      writeLines(paste("#", file.comment), my.file.conn)
+    }
+    close(my.file.conn)
+    
     write.table(
-      my.accum, 
-      file = my.make.result.filename(),
+      my.accum,
+      file = my.file.name,
+      append = T,
       sep = "\t",
       row.names = F,
       col.names = F

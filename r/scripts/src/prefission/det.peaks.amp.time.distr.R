@@ -27,6 +27,26 @@ my.filter <- function(df) {
   return()
 }
 
+my.file.comment <- function() {
+  my.from <- my.opt$options$camtimefrom
+  my.to <- my.opt$options$camtimeto
+  my.col <- paste("CH", my.opt$options$channel, "_PP_M", my.opt$options$camera, sep = "")
+  
+  if (!is.na(my.from) && !is.na(my.to)) {
+    return(paste("camera time between ", my.from, " and ", my.to, sep = ""))
+  }
+  
+  if (!is.na(my.from)) {
+    return(paste("camera time >= ", my.from, sep = ""))
+  }
+  
+  if (!is.na(my.to)) {
+    return(paste("camera time < ", my.to, sep = ""))
+  }
+  
+  return()
+}
+
 ########################################################
 # Command line parsing
 ########################################################
@@ -140,5 +160,6 @@ gneis.daq::peaks.amp.time.distr(
   time.breaks = seq(from = my.opt$options$timemin, to = my.opt$options$timemax, by = my.opt$options$timestep),
   filter = my.filter,
   nevents = my.opt$options$number,
-  file.suffix = my.opt$options$suffix
+  file.suffix = my.opt$options$suffix,
+  file.comment = my.file.comment()
 )
