@@ -106,7 +106,7 @@ my.option.list <- list(
   ),
   make_option(
     c("", "--suffix"),
-    type = "string",
+    type = "character",
     default = NULL, 
     help = "Destination file name suffix"
   ),

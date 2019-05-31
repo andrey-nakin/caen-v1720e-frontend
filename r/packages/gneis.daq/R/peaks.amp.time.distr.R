@@ -115,7 +115,6 @@ peaks.amp.time.distr <- function(
     }
   }
 
-  cat("SUM", sum(my.accum), "\n")  
   my.write.result(my.accum)
   
 }
