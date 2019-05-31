@@ -8,7 +8,23 @@ library(gneis.daq)
 ########################################################
 
 my.filter <- function(df) {
-  return(TRUE)
+  my.from <- my.opt$options$camtimefrom
+  my.to <- my.opt$options$camtimeto
+  my.col <- paste("CH", my.opt$options$channel, "_PP_M", my.opt$options$camera, sep = "")
+  
+  if (!is.na(my.from) && !is.na(my.to)) {
+    return(which(df[[my.col]] >= my.from & df[[my.col]] < my.to))
+  }
+  
+  if (!is.na(my.from)) {
+    return(which(df[[my.col]] >= my.from))
+  }
+  
+  if (!is.na(my.to)) {
+    return(which(df[[my.col]] < my.to))
+  }
+  
+  return()
 }
 
 ########################################################
@@ -33,6 +49,12 @@ my.option.list <- list(
     type = "integer",
     default = NA, 
     help = "Trigger channel #"
+  ),
+  make_option(
+    c("-a", "--camera"),
+    type = "integer",
+    default = NA, 
+    help = "Camera channel #"
   ),
   make_option(
     c("", "--timemin"),
@@ -71,6 +93,24 @@ my.option.list <- list(
     help = "Amplitude distribution step"
   ),
   make_option(
+    c("", "--camtimefrom"),
+    type = "double",
+    default = NA, 
+    help = "Min time from camera pulse"
+  ),
+  make_option(
+    c("", "--camtimeto"),
+    type = "double",
+    default = NA, 
+    help = "Max time from camera pulse"
+  ),
+  make_option(
+    c("", "--suffix"),
+    type = "string",
+    default = NULL, 
+    help = "Destination file name suffix"
+  ),
+  make_option(
     c("-n", "--number"),
     type = "integer",
     default = NA, 
@@ -99,5 +139,6 @@ gneis.daq::peaks.amp.time.distr(
   amp.breaks = seq(from = my.opt$options$ampmin, to = my.opt$options$ampmax, by = my.opt$options$ampstep),
   time.breaks = seq(from = my.opt$options$timemin, to = my.opt$options$timemax, by = my.opt$options$timestep),
   filter = my.filter,
-  nevents = my.opt$options$number
+  nevents = my.opt$options$number,
+  file.suffix = my.opt$options$suffix
 )

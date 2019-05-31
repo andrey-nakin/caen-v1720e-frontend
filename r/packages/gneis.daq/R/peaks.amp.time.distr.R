@@ -1,6 +1,6 @@
 peaks.amp.time.distr <- function(
   channel, master, srcDir, destDir, amp.breaks, time.breaks, trigger = NA,
-  nevents = NA, filter = NULL
+  nevents = NA, filter = NULL, file.suffix = NULL
 ) {
 
   my.make.src.filename.mask <- function() {
@@ -9,14 +9,23 @@ peaks.amp.time.distr <- function(
   }
 
   my.process.file <- function(fn, accum) {
-    cat("processing file", fn, "\n")
-    
     my.df <- read.table(fn, header = T, sep = "")
+    
     my.x <- abs(my.df[[paste("CH", channel, "_PA", sep = "")]])
     my.y <- my.df[[paste("CH", channel, "_PP_M", master, sep = "")]]
+    my.trg <- my.df$TRG
+    
+    if (!is.null(filter)) {
+      my.idx <- filter(my.df)
+      if (!is.null(my.idx)) {
+        my.x <- my.x[my.idx]
+        my.y <- my.y[my.idx]
+        my.trg <- my.trg[my.idx]
+      }
+    }
     
     if (!is.na(trigger)) {
-      my.idx <- which(my.df$TRG == trigger)
+      my.idx <- which(my.trg == trigger)
       my.x <- my.x[my.idx]
       my.y <- my.y[my.idx]
     }
@@ -65,10 +74,14 @@ peaks.amp.time.distr <- function(
       res, 
       paste("amp", my.amp.step, sep = ""), 
       paste("time", my.time.step, sep = ""), 
-      "dist", 
       sep = "."
     )
-    res <- paste(res, ext, sep = ".")
+    
+    if (!is.null(file.suffix)) {
+      res <- paste(res, file.suffix, sep = ".")
+    }
+    
+    res <- paste(res, "dist", ext, sep = ".")
     
     return (res)
   }
@@ -80,8 +93,6 @@ peaks.amp.time.distr <- function(
   }
   
   my.write.result <- function(my.accum) {
-    cat("writing to file", my.make.result.filename(), "\n")
-    
     write.table(
       my.accum, 
       file = my.make.result.filename(),
@@ -103,7 +114,8 @@ peaks.amp.time.distr <- function(
       break
     }
   }
-  
+
+  cat("SUM", sum(my.accum), "\n")  
   my.write.result(my.accum)
   
 }
