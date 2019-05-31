@@ -83,7 +83,7 @@ peaks.time.quantiles <- function(
     }
   }
 
-  my.a <- c(0.001 / 4, 0.001 / 2, 0.01 / 4, 0.01 / 2, 0.1 / 4, 0.1 / 2, 1 / 4)
+  my.a <- c(0.001 / 4, 0.001 / 2, 0.01 / 4, 0.01 / 2, 0.1 / 4, 0.1 / 2, 1 / 10, 1 / 8, 1 / 4)
   my.v <- append(my.a, append(0.5, rev(1 - my.a)))
   my.q <- quantile(my.accum, my.v)
   my.write.result(data.frame(
