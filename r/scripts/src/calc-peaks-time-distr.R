@@ -8,11 +8,25 @@ library(gneis.daq)
 ########################################################
 
 my.filter <- function(df) {
-  my.indices <- which(
-    abs(df[[my.amp.col]]) >= my.amp.from &
-    df[[my.cam.col]] >= my.cam.time.from &
-    df[[my.cam.col]] < my.cam.time.to
-  )
+  if (!my.opt$options$nocamtimefilter && !my.opt$options$noampfilter) {
+    my.indices <- which(
+      abs(df[[my.amp.col]]) >= my.amp.from &
+        df[[my.cam.col]] >= my.cam.time.from &
+        df[[my.cam.col]] < my.cam.time.to
+    )
+  } else if (!my.opt$options$nocamtimefilter) {
+    my.indices <- which(
+      df[[my.cam.col]] >= my.cam.time.from &
+        df[[my.cam.col]] < my.cam.time.to
+    )
+  } else if (!my.opt$options$noampfilter) {
+    my.indices <- which(
+      abs(df[[my.amp.col]]) >= my.amp.from
+    )
+  } else {
+    my.indices <- NULL
+  }
+      
   return(my.indices)
 }
 
@@ -20,18 +34,26 @@ my.file.comment <- function() {
   my.time.range <- paste("time range >=", my.opt$options$timemin, "and <", my.opt$options$timemax);
   my.time.step  <- paste("time step =", my.opt$options$timestep)
   
-  if (!is.na(my.cam.time.from) && !is.na(my.cam.time.to)) {
-    my.cam.time <- paste("camera time >=", my.cam.time.from, "and <", my.cam.time.to)
-  } else if (!is.na(my.cam.time.from)) {
-    my.cam.time <- paste("camera time >=", my.cam.time.from)
-  } else if (!is.na(my.cam.time.to)) {
-    my.cam.time <- paste("camera time <", my.cam.time.to)
+  if (!my.opt$options$nocamtimefilter) {
+    if (!is.na(my.cam.time.from) && !is.na(my.cam.time.to)) {
+      my.cam.time <- paste("camera time >=", my.cam.time.from, "and <", my.cam.time.to)
+    } else if (!is.na(my.cam.time.from)) {
+      my.cam.time <- paste("camera time >=", my.cam.time.from)
+    } else if (!is.na(my.cam.time.to)) {
+      my.cam.time <- paste("camera time <", my.cam.time.to)
+    }
+  } else {
+    my.cam.time <- "all camera times"
   }
   
-  if (!is.na(my.amp.from)) {
-    my.amp <- paste("amplitude >=", my.amp.from)
+  if (!my.opt$options$noampfilter) {
+    if (!is.na(my.amp.from)) {
+      my.amp <- paste("amplitude >=", my.amp.from)
+    }
+  } else {
+    my.amp <- "all amplitudes"
   }
-  
+
   return(paste(my.time.range, my.time.step, my.amp, my.cam.time, sep = ", "))
 }
 
@@ -81,6 +103,20 @@ my.option.list <- list(
     type = "character",
     default = NULL, 
     help = "Destination file name suffix"
+  ),
+  make_option(
+    c("", "--noampfilter"),
+    type = "logical",
+    default = FALSE, 
+    action = "store_true",
+    help = "Use filtration by amplitude"
+  ),
+  make_option(
+    c("", "--nocamtimefilter"),
+    type = "logical",
+    default = FALSE, 
+    action = "store_true",
+    help = "Use filtration by camera time"
   ),
   make_option(
     c("-n", "--number"),

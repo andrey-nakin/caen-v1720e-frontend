@@ -42,7 +42,7 @@ peaks.time.distr <- function(
   }
 
   my.make.dest.filename <- function(dir, ext) {
-    res <- paste(dir, "/peaks", channel, sep = "")
+    res <- paste(dir, "/peaks.ch", channel, sep = "")
     
     res <- paste(res, ".mst", master, sep = "")
 
