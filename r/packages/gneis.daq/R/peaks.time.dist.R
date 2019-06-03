@@ -1,4 +1,4 @@
-peaks.time.distr <- function(
+peaks.time.dist <- function(
   channel, master, srcDir, txtDir, pdfDir = NULL, htmlDir = NULL, 
   time.breaks, trigger = NA, 
   nevents = NA, filter = NULL, file.suffix = NULL, file.comment = NULL

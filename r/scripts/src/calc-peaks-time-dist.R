@@ -148,7 +148,7 @@ my.cam.col <- paste("CH", my.opt$options$channel, "_PP_M", my.cam.channel - 1, s
 my.cam.time.from <- my.channels$CTFROM[my.opt$options$channel + 1]
 my.cam.time.to <- my.channels$CTTO[my.opt$options$channel + 1]
 
-gneis.daq::peaks.time.distr(
+gneis.daq::peaks.time.dist(
   srcDir = my.opt$args[1],
   txtDir = my.opt$args[2],
   pdfDir = my.opt$args[3],
