@@ -72,19 +72,37 @@ peaks.time.distr <- function(
       my.make.dest.filename(txtDir, "txt")
     )
   }
+
+  my.make.plot.filename <- function(opt, suffix = NULL) {
+    if (is.null(pdfDir)) {
+      return()
+    } else {
+      return(
+        my.make.dest.filename(pdfDir, "pdf")
+      )
+    }
+  }
   
-  my.write.result <- function(my.accum) {
+  my.make.html.filename <- function(opt, suffix = NULL) {
+    if (is.null(htmlDir)) {
+      return()
+    } else {
+      return(
+        my.make.dest.filename(htmlDir, "html")
+      )
+    }
+  }
+  
+  my.write.result <- function() {
     my.file.name <- my.make.result.filename()
+    cat("write to ", my.file.name, "\n")
+    
     my.file.conn <- file(my.file.name)
     if (!is.null(file.comment)) {
       writeLines(paste("#", file.comment), my.file.conn)
     }
     close(my.file.conn)
     
-    my.df <- data.frame(
-      TIME = tail(time.breaks, n = -1),
-      COUNT = my.accum
-    )
     write.table(
       my.df,
       file = my.file.name,
@@ -95,6 +113,46 @@ peaks.time.distr <- function(
     )
   }
   
+  my.plot.title <- function(main) {
+    my.res <- paste(main, paste("Channel #", channel, sep = ""), sep = ", ")
+    if (!is.na(master)) {
+      my.res <- paste(my.res, paste("Master #", master, sep = ""), sep = ", ")
+    }
+    if (!is.na(trigger)) {
+      my.res <- paste(my.res, paste("Trigger #", trigger, sep = ""), sep = ", ")
+    }
+    if (!is.null(file.comment)) {
+      my.res <- paste(my.res, file.comment, sep = ", ")
+    }
+    return(my.res)
+  }
+  
+  my.plot <- function(my.accum) {
+    library(ggplot2)
+    pdf(my.make.plot.filename())
+    
+    my.p <- ggplot(
+      data = my.df, 
+      aes(x = TIME, y = COUNT)
+    ) + 
+      geom_line() +
+      ggtitle(
+        label = my.plot.title("Time Distribution")
+      ) +
+      scale_x_continuous(name = "Time, channels") + 
+      scale_y_continuous(name = "Count") +
+      theme_light()
+    
+    plot(my.p)
+    
+    if (!is.null(my.make.html.filename())) {
+      library(plotly)
+      library(tidyverse)
+      library(htmlwidgets)
+      htmlwidgets::saveWidget(ggplotly(my.p), my.make.html.filename())
+    }
+  }
+  
   ######################################################
   # Entry point
   ######################################################
@@ -102,12 +160,21 @@ peaks.time.distr <- function(
   my.accum <- NULL
   my.files <- list.files(path = srcDir, pattern = my.make.src.filename.mask(), full.names = T)
   for (my.fn in my.files) {
+    cat("my.fn", my.fn, "\n")
     my.accum <- my.process.file(my.fn, my.accum)
     if (!is.na(nevents) && sum(my.accum) >= nevents) {
       break
     }
   }
 
-  my.write.result(my.accum)
+  my.df <- data.frame(
+    TIME = tail(time.breaks, n = -1),
+    COUNT = my.accum
+  )
+  
+  my.write.result()
+  if (!is.null(my.make.plot.filename())) {
+    my.plot()
+  }
   
 }

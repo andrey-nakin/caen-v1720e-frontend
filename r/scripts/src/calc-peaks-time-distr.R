@@ -8,43 +8,32 @@ library(gneis.daq)
 ########################################################
 
 my.filter <- function(df) {
-  my.from <- my.opt$options$camtimefrom
-  my.to <- my.opt$options$camtimeto
-  my.col <- paste("CH", my.opt$options$channel, "_PP_M", my.opt$options$camera, sep = "")
-  
-  if (!is.na(my.from) && !is.na(my.to)) {
-    return(which(df[[my.col]] >= my.from & df[[my.col]] < my.to))
-  }
-  
-  if (!is.na(my.from)) {
-    return(which(df[[my.col]] >= my.from))
-  }
-  
-  if (!is.na(my.to)) {
-    return(which(df[[my.col]] < my.to))
-  }
-  
-  return()
+  my.indices <- which(
+    abs(df[[my.amp.col]]) >= my.amp.from &
+    df[[my.cam.col]] >= my.cam.time.from &
+    df[[my.cam.col]] < my.cam.time.to
+  )
+  cat("my.indices=", length(my.indices), "\n")
+  return(my.indices)
 }
 
 my.file.comment <- function() {
-  my.from <- my.opt$options$camtimefrom
-  my.to <- my.opt$options$camtimeto
-  my.col <- paste("CH", my.opt$options$channel, "_PP_M", my.opt$options$camera, sep = "")
+  my.time.range <- paste("time range >=", my.opt$options$timemin, "and <", my.opt$options$timemax);
+  my.time.step  <- paste("time step =", my.opt$options$timestep)
   
-  if (!is.na(my.from) && !is.na(my.to)) {
-    return(paste("camera time between ", my.from, " and ", my.to, sep = ""))
+  if (!is.na(my.cam.time.from) && !is.na(my.cam.time.to)) {
+    my.cam.time <- paste("camera time >=", my.cam.time.from, "and <", my.cam.time.to)
+  } else if (!is.na(my.cam.time.from)) {
+    my.cam.time <- paste("camera time >=", my.cam.time.from)
+  } else if (!is.na(my.cam.time.to)) {
+    my.cam.time <- paste("camera time <", my.cam.time.to)
   }
   
-  if (!is.na(my.from)) {
-    return(paste("camera time >= ", my.from, sep = ""))
+  if (!is.na(my.amp.from)) {
+    my.amp <- paste("amplitude >=", my.amp.from)
   }
   
-  if (!is.na(my.to)) {
-    return(paste("camera time < ", my.to, sep = ""))
-  }
-  
-  return()
+  return(paste(my.time.range, my.time.step, my.amp, my.cam.time, sep = ", "))
 }
 
 ########################################################
@@ -71,12 +60,6 @@ my.option.list <- list(
     help = "Trigger channel #"
   ),
   make_option(
-    c("-a", "--camera"),
-    type = "integer",
-    default = NA, 
-    help = "Camera channel #"
-  ),
-  make_option(
     c("", "--timemin"),
     type = "double",
     default = 0, 
@@ -95,36 +78,6 @@ my.option.list <- list(
     help = "Time distribution step"
   ),
   make_option(
-    c("", "--ampmin"),
-    type = "double",
-    default = 0, 
-    help = "Amplitude min value"
-  ),
-  make_option(
-    c("", "--ampmax"),
-    type = "double",
-    default = NA, 
-    help = "Amplitude max value"
-  ),
-  make_option(
-    c("", "--ampstep"),
-    type = "double",
-    default = 1, 
-    help = "Amplitude distribution step"
-  ),
-  make_option(
-    c("", "--camtimefrom"),
-    type = "double",
-    default = NA, 
-    help = "Min time from camera pulse"
-  ),
-  make_option(
-    c("", "--camtimeto"),
-    type = "double",
-    default = NA, 
-    help = "Max time from camera pulse"
-  ),
-  make_option(
     c("", "--suffix"),
     type = "character",
     default = NULL, 
@@ -141,22 +94,33 @@ my.option.list <- list(
 my.opt <- parse_args(
   OptionParser(
     option_list = my.option.list,
-    usage = "%prog [options] <src file dir> <txt file dir>"
+    usage = "%prog [options] <src file dir> <txt file dir> [<pdf file dir> [<html file dir>]]"
   ), 
-  positional_arguments = c(2, 2)
+  positional_arguments = c(2, 4)
 )
 
 ########################################################
 # Processing
 ########################################################
 
+my.channels <- read.table("channels.txt", header = T, sep = "")
+my.cam.channel <- which.max(my.channels$CAM)
+
+my.amp.col <- paste("CH", my.opt$options$channel, "_PA", sep = "")
+my.amp.from <- my.channels$AMPFROM[my.opt$options$channel + 1]
+
+my.cam.col <- paste("CH", my.opt$options$channel, "_PP_M", my.cam.channel - 1, sep = "")
+my.cam.time.from <- my.channels$CTFROM[my.opt$options$channel + 1]
+my.cam.time.to <- my.channels$CTTO[my.opt$options$channel + 1]
+
 gneis.daq::peaks.time.distr(
   srcDir = my.opt$args[1],
-  destDir = my.opt$args[2],
+  txtDir = my.opt$args[2],
+  pdfDir = my.opt$args[3],
+  htmlDir = my.opt$args[4],
   channel = my.opt$options$channel,
   master = my.opt$options$master,
   trigger = my.opt$options$trigger,
-  amp.breaks = seq(from = my.opt$options$ampmin, to = my.opt$options$ampmax, by = my.opt$options$ampstep),
   time.breaks = seq(from = my.opt$options$timemin, to = my.opt$options$timemax, by = my.opt$options$timestep),
   filter = my.filter,
   nevents = my.opt$options$number,
