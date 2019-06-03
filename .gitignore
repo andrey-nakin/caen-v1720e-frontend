@@ -21,3 +21,6 @@ doc/gneis-daq.run.xml
 doc/gneis-daq.toc
 doc/version.tex
 .Rproj.user
+r/packages/gneis.daq/.RData
+r/packages/gneis.daq/.Rhistory
+
