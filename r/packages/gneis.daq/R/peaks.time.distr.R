@@ -95,8 +95,7 @@ peaks.time.distr <- function(
   
   my.write.result <- function() {
     my.file.name <- my.make.result.filename()
-    cat("write to ", my.file.name, "\n")
-    
+
     my.file.conn <- file(my.file.name)
     if (!is.null(file.comment)) {
       writeLines(paste("#", file.comment), my.file.conn)
@@ -160,7 +159,6 @@ peaks.time.distr <- function(
   my.accum <- NULL
   my.files <- list.files(path = srcDir, pattern = my.make.src.filename.mask(), full.names = T)
   for (my.fn in my.files) {
-    cat("my.fn", my.fn, "\n")
     my.accum <- my.process.file(my.fn, my.accum)
     if (!is.na(nevents) && sum(my.accum) >= nevents) {
       break

@@ -13,7 +13,6 @@ my.filter <- function(df) {
     df[[my.cam.col]] >= my.cam.time.from &
     df[[my.cam.col]] < my.cam.time.to
   )
-  cat("my.indices=", length(my.indices), "\n")
   return(my.indices)
 }
 
