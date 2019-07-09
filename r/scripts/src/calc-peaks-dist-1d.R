@@ -49,6 +49,12 @@ my.option.list <- list(
     help = "Data column name"
   ),
   make_option(
+    c("f", "--filter"),
+    type = "character",
+    default = NA, 
+    help = "Filtering expression"
+  ),
+  make_option(
     c("", "--min"),
     type = "double",
     default = 0, 
@@ -83,7 +89,7 @@ my.option.list <- list(
 my.opt <- parse_args(
   OptionParser(
     option_list = my.option.list,
-    usage = "%prog [options] <src file dir> <txt file dir>"
+    usage = "%prog [options] <src file dir> <txt file name>"
   ), 
   positional_arguments = c(2, 2)
 )
@@ -102,19 +108,9 @@ if (is.na(my.opt$options$min)) {
 # Processing
 ########################################################
 
-my.channels <- read.table("channels.txt", header = T, sep = "")
-my.cam.channel <- which.max(my.channels$CAM)
-
-my.amp.col <- paste("CH", my.opt$options$channel, "_PA", sep = "")
-my.amp.from <- my.channels$AMPFROM[my.opt$options$channel + 1]
-
-my.cam.col <- paste("CH", my.opt$options$channel, "_PP_M", my.cam.channel - 1, sep = "")
-my.cam.time.from <- my.channels$CTFROM[my.opt$options$channel + 1]
-my.cam.time.to <- my.channels$CTTO[my.opt$options$channel + 1]
-
 gneis.daq::peaks.dist.1d(
   srcDir = my.opt$args[1],
-  txtDir = my.opt$args[2],
+  destFn = my.opt$args[2],
   column = my.opt$options$column,
   breaks = seq(from = my.opt$options$min, to = my.opt$options$max, by = my.opt$options$step),
   filter = my.filter,
