@@ -19,6 +19,7 @@ Collection of data-acquisition applications for [GNEIS](http://accelconf.web.cer
 * `math-lib`: general purpose math library.
 * `math-lib-test`: unit tests for `math-lib`.
 * `r`: R packages with data parsing and hadling functions.
+* `slurm`: [slurm](https://slurm.schedmd.com/) scripts.
 * `doc`: documentation.
 
 ## Requirements

@@ -13,6 +13,7 @@ option(BUILD_UTILS "Enable utility building" ON)
 option(BUILD_TESTS "Enable unit test building" OFF)
 option(BUILD_DOCS "Enable documentation building" OFF)
 option(BUILD_R "Enable R package building" ON)
+option(BUILD_SLURM "Enable slurm building" OFF)
 
 add_subdirectory(midas-util-lib)
 add_subdirectory(caen-lib)
@@ -51,3 +52,8 @@ endif()
 if(BUILD_R)
   add_subdirectory(r)
 endif()
+
+if(BUILD_SLURM)
+  add_subdirectory(slurm)
+endif()
+
