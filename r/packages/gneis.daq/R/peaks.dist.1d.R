@@ -1,6 +1,6 @@
 peaks.dist.1d <- function(
   column, srcDir, destFn, breaks, 
-  nevents = NA, filter = NULL, file.suffix = NULL, file.comment = NULL
+  nevents = NA, filter = NULL, file.comment = NULL
 ) {
 
   my.make.src.filename.mask <- function() {

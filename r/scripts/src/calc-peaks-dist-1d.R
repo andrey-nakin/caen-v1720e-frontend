@@ -8,33 +8,20 @@ library(gneis.daq)
 ########################################################
 
 my.filter <- function(df) {
-  if (!my.opt$options$nocamtimefilter && !my.opt$options$noampfilter) {
-    my.indices <- which(
-      abs(df[[my.amp.col]]) >= my.amp.from &
-        df[[my.cam.col]] >= my.cam.time.from &
-        df[[my.cam.col]] < my.cam.time.to
-    )
-  } else if (!my.opt$options$nocamtimefilter) {
-    my.indices <- which(
-      df[[my.cam.col]] >= my.cam.time.from &
-        df[[my.cam.col]] < my.cam.time.to
-    )
-  } else if (!my.opt$options$noampfilter) {
-    my.indices <- which(
-      abs(df[[my.amp.col]]) >= my.amp.from
-    )
-  } else {
-    my.indices <- NULL
-  }
-      
+  my.indices <- NULL
+
   return(my.indices)
 }
 
 my.file.comment <- function() {
-  my.time.range <- paste("distribution range >=", my.opt$options$min, "and <", my.opt$options$max);
-  my.time.step  <- paste("distribution step =", my.opt$options$step)
-  
-  return(paste(my.time.range, my.time.step, sep = ", "))
+  return(
+    paste(
+      paste("data column =", my.opt$options$column), 
+      paste("distribution range >=", my.opt$options$min, "and <", my.opt$options$max), 
+      paste("distribution step =", my.opt$options$step), 
+      sep = ", "
+    )
+  )
 }
 
 ########################################################
@@ -115,6 +102,5 @@ gneis.daq::peaks.dist.1d(
   breaks = seq(from = my.opt$options$min, to = my.opt$options$max, by = my.opt$options$step),
   filter = my.filter,
   nevents = my.opt$options$number,
-  file.suffix = my.opt$options$suffix,
   file.comment = my.file.comment()
 )
