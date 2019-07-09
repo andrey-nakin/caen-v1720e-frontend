@@ -62,8 +62,12 @@ peaks.dist.1d <- function(
     }
   }
 
+  if (is.null(my.accum)) {
+    stop("No data")
+  }
+  
   my.df <- data.frame(
-    TIME = tail(time.breaks, n = -1),
+    TIME = tail(breaks, n = -1),
     COUNT = my.accum
   )
   

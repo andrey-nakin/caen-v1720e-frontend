@@ -7,9 +7,9 @@ library(gneis.daq)
 # Functions
 ########################################################
 
-my.filter <- function(df) {
-  my.indices <- NULL
-
+my.filter.func <- function(df) {
+  my.indices <- eval(parse(text = my.filter.expr))
+  cat("my.indices=", my.indices, "\n")
   return(my.indices)
 }
 
@@ -30,13 +30,13 @@ my.file.comment <- function() {
 
 my.option.list <- list( 
   make_option(
-    c("", "--column"),
+    c("-c", "--column"),
     type = "character",
     default = NA, 
     help = "Data column name"
   ),
   make_option(
-    c("f", "--filter"),
+    c("-f", "--filter"),
     type = "character",
     default = NA, 
     help = "Filtering expression"
@@ -94,6 +94,18 @@ if (is.na(my.opt$options$min)) {
 ########################################################
 # Processing
 ########################################################
+
+if (is.null(my.opt$options$filter)) {
+  my.filter <- NULL
+} else {
+  my.filter.expr <- paste(
+    "which(",
+    gsub(pattern = "@", replacement = "df$", x = my.opt$options$filter),
+    ")"
+  )
+  cat("filter = /", my.filter.expr, "/\n")
+  my.filter <- my.filter.func
+}
 
 gneis.daq::peaks.dist.1d(
   srcDir = my.opt$args[1],
