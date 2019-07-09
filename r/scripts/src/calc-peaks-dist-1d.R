@@ -9,7 +9,6 @@ library(gneis.daq)
 
 my.filter.func <- function(df) {
   my.indices <- eval(parse(text = my.filter.expr))
-  cat("my.indices=", my.indices, "\n")
   return(my.indices)
 }
 
@@ -103,7 +102,6 @@ if (is.null(my.opt$options$filter)) {
     gsub(pattern = "@", replacement = "df$", x = my.opt$options$filter),
     ")"
   )
-  cat("filter = /", my.filter.expr, "/\n")
   my.filter <- my.filter.func
 }
 
