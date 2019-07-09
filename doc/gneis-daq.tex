@@ -31,6 +31,7 @@
 \newcommand{\ENV}[1]{{\tt #1}}
 \newcommand{\BITVALUE}[1]{<<#1>>}
 \newcommand{\NOTE}{{\bf Внимание:}}
+\newcommand{\ENVVAR}[1]{{\tt #1}}
 
 \input{version.tex}
 
@@ -812,9 +813,32 @@ sudo make install
 
 \chapter{R-скрипты по обработке результатов измерений}
 
-\section{Построение одномерных распределений импульсов}
+В состав \GD{} входят программы, написанные на языке~R \cite{RLang} (далее~--- скрипты), предназначенные для обработки результатов измерений. Скрипты могут использоваться везде, где установлен интерпретатор языка R, например непосредственно в ЦОД.
 
-\COMMAND{sbatch {\it path}/calc-peaks-dist-1d.sbatch [параметры]}
+Для правильной работы скриптов требуется установить следующие переменные окружения:
+
+\begin{itemize}
+
+\item \ENVVAR{RSCRIPT}~--- путь к программе \COMMAND{Rscript}, интерпретатору языка~R.
+
+\item \ENVVAR{R\_SCRIPT\_DIR}~--- путь к каталогу, в котором хранятся скрипты на языке R.
+
+\end{itemize}
+
+\section{Построение одномерных распределений по данным импульсов}
+
+Данный скрипт считывает ранее полученные файлы с вычлененными импульсами (см. приложение~\ref{sec_peaks_file_format}) и формирует текстовый файл с распределением нужной величины, например амплитуды импульсов по какому-нибудь каналу.
+
+Для запуска задания в ЦОД используется следующая команда:
+
+\bigskip
+
+\COMMAND{sbatch {\it <путь>}/calc-peaks-dist-1d.sbatch {\it <параметры>} {\it <каталог с файлами импульсов>} {\it <имя результирующего файла>}
+}
+
+\bigskip
+
+где {\it <путь>}~--- путь к каталогу, где расположены slurm-скрипты, {\it <параметры>}~--- параметры программы построения (см. ниже), {\it <каталог с файлами импульсов>}~--- путь к каталогу, где расположены ранее сформированные файлы с вычлененными импульсами, {\it <имя результирующего файла>}~--- имя файла, в который будет записано результирующее распределение.
 
 Параметры:
 
@@ -834,11 +858,20 @@ sudo make install
 
 \subsection{Примеры использования}
 
-Пример 1: построить временной спектр по каналу №~1 относительно триггеров по каналу №~0 без фильтрации.
+Пример 1: построить временной спектр по каналу №~1 относительно триггеров по каналу №~0 без фильтрации. 
 
-\begin{lstlisting}[language=bash]
+Файлы с вычлененными импульсами располагаются в каталоге:
+
+ \DIRECTORY{/home/user/exp/session/int}. 
+
+Результирующее распределение будет записано в файл:
+
+ \FILE{/home/user/exp/session/dist.txt}.
+
+\begin{lstlisting}
 sbatch /path/to/calc-peaks-dist-1d.sbatch \
-  -c CH0_PP_M0 --min=0 --max=10000 --step=10
+  -c CH0_PP_M0 --min=0 --max=10000 --step=10 \
+  /home/user/exp/session/int /home/user/exp/session/dist.txt
 \end{lstlisting}
 
 \bigskip
@@ -846,10 +879,11 @@ sbatch /path/to/calc-peaks-dist-1d.sbatch \
 
 \NOTE{} выражение для фильтрации указано в кавычках.
 
-\begin{lstlisting}[language=bash]
+\begin{lstlisting}
 sbatch /path/to/calc-peaks-dist-1d.sbatch \
   -c CH0_PP_M0 --min=0 --max=10000 --step=10 \
-  -f "@TRG == 5"
+  -f "@TRG == 5" \
+  /home/user/exp/session/int /home/user/exp/session/dist.txt
 \end{lstlisting}
 
 \bigskip
@@ -857,10 +891,11 @@ sbatch /path/to/calc-peaks-dist-1d.sbatch \
 
 Обратите внимание на использование функции \FILE{abs}, которая возвращает абсолютное значение числа. В данном случае это необходимо, поскольку импульсы по каналу №~1 имеют отрицательную полярность, и их амплитуды имеют отрицательные значения.
 
-\begin{lstlisting}[language=bash]
+\begin{lstlisting}
 sbatch /path/to/calc-peaks-dist-1d.sbatch \
   -c CH0_PP_M0 --min=0 --max=10000 --step=10 \
-  -f "@TRG == 5 & abs(@CH1_PA) > 1000"
+  -f "@TRG == 5 & abs(@CH1_PA) > 1000" \
+  /home/user/exp/session/int /home/user/exp/session/dist.txt
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
