@@ -12,17 +12,6 @@ my.filter.func <- function(df) {
   return(my.indices)
 }
 
-my.file.comment <- function() {
-  return(
-    paste(
-      paste("data column =", my.opt$options$column), 
-      paste("distribution range >=", my.opt$options$min, "and <", my.opt$options$max), 
-      paste("distribution step =", my.opt$options$step), 
-      sep = ", "
-    )
-  )
-}
-
 ########################################################
 # Command line parsing
 ########################################################
@@ -49,7 +38,7 @@ my.option.list <- list(
   make_option(
     c("", "--max"),
     type = "double",
-    default = NA, 
+    default = 1000, 
     help = "Distribution max value"
   ),
   make_option(
@@ -84,9 +73,6 @@ my.opt <- parse_args(
 if (is.na(my.opt$options$column)) {
   stop("Column is not specified")
 }
-if (is.na(my.opt$options$max)) {
-  stop("Min distribution value is not specified")
-}
 
 ########################################################
 # Processing
@@ -110,6 +96,5 @@ gneis.daq::peaks.dist.1d(
   breaks = seq(from = my.opt$options$min, to = my.opt$options$max, by = my.opt$options$step),
   absolute = my.opt$options$absolute,
   filter = my.filter,
-  nevents = my.opt$options$number,
-  file.comment = my.file.comment()
+  nevents = my.opt$options$number
 )

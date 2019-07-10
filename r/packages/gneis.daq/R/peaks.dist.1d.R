@@ -1,6 +1,6 @@
 peaks.dist.1d <- function(
   column, srcDir, destFn, breaks, absolute = FALSE,
-  nevents = NA, filter = NULL, file.comment = NULL
+  nevents = NA, filter = NULL
 ) {
 
   my.make.src.filename.mask <- function() {
@@ -36,17 +36,10 @@ peaks.dist.1d <- function(
     }
   }
 
-  my.write.result <- function() {
-    my.file.conn <- file(destFn)
-    if (!is.null(file.comment)) {
-      writeLines(paste("#", file.comment), my.file.conn)
-    }
-    close(my.file.conn)
-    
+  my.write.result <- function(my.df) {
     write.table(
       my.df,
       file = destFn,
-      append = T,
       sep = "\t",
       row.names = F,
       col.names = T
@@ -76,6 +69,6 @@ peaks.dist.1d <- function(
   )
   colnames(my.df) <- c(column, "COUNT")
   
-  my.write.result()
+  my.write.result(my.df)
 
 }
