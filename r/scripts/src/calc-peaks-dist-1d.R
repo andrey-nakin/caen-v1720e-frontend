@@ -59,10 +59,10 @@ my.option.list <- list(
     help = "Distribution step"
   ),
   make_option(
-    c("", "--suffix"),
-    type = "character",
-    default = NULL, 
-    help = "Destination file name suffix"
+    c("-a", "--absolute"),
+    type = "boolean",
+    default = FALSE, 
+    help = "Use absolute values"
   ),
   make_option(
     c("-n", "--number"),
@@ -86,9 +86,6 @@ if (is.na(my.opt$options$column)) {
 if (is.na(my.opt$options$max)) {
   stop("Min distribution value is not specified")
 }
-if (is.na(my.opt$options$min)) {
-  stop("Max distribution value is not specified")
-}
 
 ########################################################
 # Processing
@@ -110,6 +107,7 @@ gneis.daq::peaks.dist.1d(
   destFn = my.opt$args[2],
   column = my.opt$options$column,
   breaks = seq(from = my.opt$options$min, to = my.opt$options$max, by = my.opt$options$step),
+  absolute = my.opt$options$absolute,
   filter = my.filter,
   nevents = my.opt$options$number,
   file.comment = my.file.comment()

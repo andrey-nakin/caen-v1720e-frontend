@@ -1,5 +1,5 @@
 peaks.dist.1d <- function(
-  column, srcDir, destFn, breaks, 
+  column, srcDir, destFn, breaks, absolute = FALSE,
   nevents = NA, filter = NULL, file.comment = NULL
 ) {
 
@@ -19,6 +19,10 @@ peaks.dist.1d <- function(
       }
     }
 
+    if (absolute) {
+      my.y <- abs(my.y)
+    }
+    
     my.min <- breaks[1]
     my.max <- breaks[length(breaks)]
     my.y <- my.y[which(my.y >= my.min & my.y < my.max)]
@@ -67,9 +71,10 @@ peaks.dist.1d <- function(
   }
   
   my.df <- data.frame(
-    TIME = tail(breaks, n = -1),
+    VALUE = tail(breaks, n = -1),
     COUNT = my.accum
   )
+  colnames(my.df) <- c(column, "COUNT")
   
   my.write.result()
 
