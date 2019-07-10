@@ -60,8 +60,9 @@ my.option.list <- list(
   ),
   make_option(
     c("-a", "--absolute"),
-    type = "boolean",
+    type = "logical",
     default = FALSE, 
+    action = "store_true",
     help = "Use absolute values"
   ),
   make_option(
