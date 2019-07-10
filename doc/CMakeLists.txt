@@ -7,7 +7,7 @@ FILE(WRITE version.tex
 )
 
 add_latex_document(gneis-daq.tex
-	INPUTS fe-v1720.tex fe-v1724.tex gd-convert.tex version.tex
+	INPUTS fe-v1720.tex fe-v1724.tex gd-convert.tex r-scripts.tex version.tex
 	BIBFILES gneis-daq.bib
 	USE_BIBLATEX
 	FORCE_PDF
