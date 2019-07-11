@@ -100,7 +100,11 @@ gneis.daq::peaks.dist.1d(
   srcDir = my.opt$args[1],
   destFn = my.opt$args[2],
   column = my.opt$options$column,
-  breaks = seq(from = my.opt$options$min, to = my.opt$options$max, by = my.opt$options$step),
+  breaks = seq(
+    from = my.opt$options$min, 
+    to = my.opt$options$max, 
+    by = my.opt$options$step
+  ),
   absolute = my.opt$options$absolute,
   filter = my.filter,
   nevents = my.opt$options$number,
