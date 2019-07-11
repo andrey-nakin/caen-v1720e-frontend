@@ -26,7 +26,7 @@ my.option.list <- list(
   make_option(
     c("-f", "--filter"),
     type = "character",
-    default = NA, 
+    default = NULL, 
     help = "Filtering expression"
   ),
   make_option(
@@ -53,6 +53,13 @@ my.option.list <- list(
     default = FALSE, 
     action = "store_true",
     help = "Use absolute values"
+  ),
+  make_option(
+    c("-v", "--verbose"),
+    type = "logical",
+    default = FALSE, 
+    action = "store_true",
+    help = "Print diagnostic messages"
   ),
   make_option(
     c("-n", "--number"),
@@ -96,5 +103,6 @@ gneis.daq::peaks.dist.1d(
   breaks = seq(from = my.opt$options$min, to = my.opt$options$max, by = my.opt$options$step),
   absolute = my.opt$options$absolute,
   filter = my.filter,
-  nevents = my.opt$options$number
+  nevents = my.opt$options$number,
+  verbose = my.opt$options$verbose
 )

@@ -1,6 +1,6 @@
 peaks.dist.1d <- function(
   column, srcDir, destFn, breaks, absolute = FALSE,
-  nevents = NA, filter = NULL
+  nevents = NA, filter = NULL, verbose = FALSE
 ) {
 
   my.make.src.filename.mask <- function() {
@@ -49,11 +49,28 @@ peaks.dist.1d <- function(
   ######################################################
   # Entry point
   ######################################################
+
+  if (verbose) {
+    cat("Processing directory", srcDir, "\n")
+  }
   
   my.accum <- NULL
   my.files <- list.files(path = srcDir, pattern = my.make.src.filename.mask(), full.names = T)
   for (my.fn in my.files) {
+    if (verbose) {
+      cat("Processing file", my.fn, "\n")
+    }
+    
     my.accum <- my.process.file(my.fn, my.accum)
+
+    if (verbose) {
+      if (is.null(my.accum)) {
+        cat("No events in statistics", "\n")
+      } else {
+        cat("Number of events in statistics:", sum(my.accum), "\n")
+      }
+    }
+    
     if (!is.na(nevents) && sum(my.accum) >= nevents) {
       break
     }
@@ -71,4 +88,8 @@ peaks.dist.1d <- function(
   
   my.write.result(my.df)
 
+  if (verbose) {
+    cat("Finished processing", "\n")
+  }
+  
 }
