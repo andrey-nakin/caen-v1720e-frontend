@@ -8,7 +8,7 @@ library(gneis.daq)
 ########################################################
 
 my.filter.func <- function(df) {
-  my.indices <- eval(parse(text = my.filter.expr))
+  my.indices <- eval(my.filter.expr)
   return(my.indices)
 }
 
@@ -88,10 +88,15 @@ if (is.na(my.opt$options$column)) {
 if (is.null(my.opt$options$filter)) {
   my.filter <- NULL
 } else {
-  my.filter.expr <- paste(
-    "which(",
-    gsub(pattern = "@", replacement = "df$", x = my.opt$options$filter),
-    ")"
+  if (my.opt$options$verbose) {
+    cat("Filter expression: ", my.opt$options$filter, "\n")
+  }
+  my.filter.expr <- parse(
+    text = paste(
+      "which(",
+      gsub(pattern = "@", replacement = "df$", x = my.opt$options$filter),
+      ")"
+    )
   )
   my.filter <- my.filter.func
 }
