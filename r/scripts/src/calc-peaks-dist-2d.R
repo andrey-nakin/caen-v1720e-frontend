@@ -72,14 +72,14 @@ my.option.list <- list(
     help = "Distribution step for Y axis"
   ),
   make_option(
-    c("", "--xabsolute"),
+    c("", "--xabs"),
     type = "logical",
     default = FALSE, 
     action = "store_true",
     help = "Use absolute values for values along X axis"
   ),
   make_option(
-    c("", "--yabsolute"),
+    c("", "--yabs"),
     type = "logical",
     default = FALSE, 
     action = "store_true",
@@ -150,8 +150,8 @@ gneis.daq::peaks.dist.2d(
     to = my.opt$options$ymax, 
     by = my.opt$options$ystep
   ),
-  xabsolute = my.opt$options$xabsolute,
-  yabsolute = my.opt$options$yabsolute,
+  xAbsolute = my.opt$options$xabs,
+  yAbsolute = my.opt$options$yabs,
   filter = my.filter,
   nevents = my.opt$options$number,
   verbose = my.opt$options$verbose

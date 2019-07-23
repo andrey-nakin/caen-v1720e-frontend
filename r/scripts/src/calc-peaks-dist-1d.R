@@ -48,7 +48,7 @@ my.option.list <- list(
     help = "Distribution step"
   ),
   make_option(
-    c("-a", "--absolute"),
+    c("-a", "--abs"),
     type = "logical",
     default = FALSE, 
     action = "store_true",
@@ -110,7 +110,7 @@ gneis.daq::peaks.dist.1d(
     to = my.opt$options$max, 
     by = my.opt$options$step
   ),
-  absolute = my.opt$options$absolute,
+  absolute = my.opt$options$abs,
   filter = my.filter,
   nevents = my.opt$options$number,
   verbose = my.opt$options$verbose
