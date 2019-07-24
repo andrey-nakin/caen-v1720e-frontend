@@ -27,7 +27,7 @@ peaks.dist.1d <- function(
     my.max <- breaks[length(breaks)]
     my.y <- my.y[which(my.y >= my.min & my.y < my.max)]
     
-    my.h.y <- hist(my.y, breaks = breaks, plot = F)
+    my.h.y <- hist(my.y, breaks = breaks, plot = F, right = F)
 
     if (is.null(accum)) {
       return(my.h.y$counts)

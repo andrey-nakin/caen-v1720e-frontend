@@ -41,13 +41,16 @@ peaks.dist.2d <- function(
     my.x <- my.x[my.idx]
     my.y <- my.y[my.idx]
     
-    l <- lapply(tail(xBreaks, n = -1), function(xmax) {
-      xmin <- xmax - my.step.x
-      my.h.y <- hist(my.y[which(my.x >= xmin & my.x < xmax)], breaks = yBreaks, plot = F)
+    my.m <- apply(my.x.breaks, 1, function(limits) {
+      my.h.y <- hist(
+        my.y[which(my.x >= limits[1] & my.x < limits[2])], 
+        breaks = yBreaks, 
+        plot = F, 
+        right = F
+      )
       return(my.h.y$counts) 
     })
-    my.m <- do.call(cbind, l)
-    
+
     if (is.null(accum)) {
       return(my.m)
     } else {
@@ -72,6 +75,10 @@ peaks.dist.2d <- function(
   if (verbose) {
     cat("Processing directory", srcDir, "\n")
   }
+
+  my.x.breaks <- array(dim = c(length(xBreaks) - 1, 2))
+  my.x.breaks[,1] <- head(xBreaks, n = -1)
+  my.x.breaks[,2] <- tail(xBreaks, n = -1)
   
   my.accum <- NULL
   my.files <- list.files(path = srcDir, pattern = my.make.src.filename.mask(), full.names = T)
