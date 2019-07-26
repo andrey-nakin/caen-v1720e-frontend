@@ -28,6 +28,7 @@ endif()
 if(BUILD_ANALYZERS)
   add_subdirectory(analyzer-lib)
   add_subdirectory(an-basic-waveform)
+  add_subdirectory(an-anisotropy)
 endif()
 
 if(BUILD_UTILS)
